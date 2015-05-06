@@ -1,23 +1,78 @@
 """
+Accessing PING data
 """
+import md5
 import os
 
 import numpy as np
 import pandas
+import requests
+import statsmodels.formula.api as smf
 
 from utils import asymmetry_index
+
+
+class PINGSession(object):
+
+    def __init__(self, username=None, passwd=None, verbosity=1):
+        self.username = username or os.environ.get('PING_USERNAME')
+        self.passwd = passwd or os.environ.get('PING_PASSWORD')
+        self.sess = None  # http session with server
+        self.result_ids = None  # current dictionary of result IDs
+        self.verbosity = verbosity  # level of output
+
+    def log(self, message, verbosity=1):
+        if self.verbosity >= verbosity:
+            print message
+
+    def login(self):
+        payload = {
+            'username': self.username,
+            'pw': md5.md5(self.passwd).hexdigest(),
+            'ac': 'log',
+            'url': ''}
+
+        self.sess = requests.Session()
+        resp = self.sess.post('https://ping-dataportal.ucsd.edu/applications/User/login.php',
+                              data=payload)
+        if 'Login to Data Portal' in resp.text:
+            self.sess = None
+            raise Exception('Login failed.')
+        else:
+            self.log("Logged in as %s successfully." % self.username)
 
 
 def col2prop(col_name):
     return col_name.replace('-', '.')
 
 
-def load_PING_data():
+def load_PING_data(scrub_fields=False):
     # Load data
     print("Loading data...")
     script_dir = os.path.abspath(os.path.dirname(__file__))
-    csv_path = os.path.join(script_dir, 'PING_raw_data.csv')
+    csv_path = os.path.join(script_dir, 'csv', 'PING_raw_data.csv')
     data = pandas.read_csv(csv_path)
+
+    # Convert dots to underscores
+    print("Converting data...")
+
+    new_data = dict()
+    for key in data.keys():
+        if scrub_fields and '.' not in key:
+            continue
+        new_data[key.replace('.', '_')] = data[key]
+    data = new_data
+
+    # print("Regressing data on confounds...")
+    # for key in data.keys():
+    #     formula = ('%s ~ FDH_Highest_Education + FDH_3_Household_Income +'
+    #                '     DeviceSerialNumber + GAF_africa + GAF_amerind +'
+    #                '     GAF_eastAsia + GAF_oceania + GAF_centralAsia') % key.replace('.', '_')
+    #     try:
+    #         resid = smf.ols(formula, data=data).fit().resid
+    #         data[key] = resid
+    #     except Exception as e:
+    #         print "Failed (%s): %s" % (key, e)
     return data
 
 
@@ -28,7 +83,7 @@ def get_twohemi_keys(prefix, all_keys):
     if not isinstance(prefix, list):
         prefix = [prefix]
     prefix = np.asarray(prefix)
-    rh_markers = ['Right', '.rh.', '.R_']
+    rh_markers = ['Right', '_rh_', '_R_']
 
     good_keys = []
     for prop_name in all_keys:
@@ -50,19 +105,19 @@ def get_twohemi_prop_names(data, prop_name):
     if 'Left' in prop_name or 'Right' in prop_name:
         left_prop_name = prop_name.replace('Right', 'Left')
         right_prop_name = prop_name.replace('Left', 'Right')
-    elif '.lh.' in prop_name or '.rh.' in prop_name:
-        left_prop_name = prop_name.replace('.rh.', '.lh.')
-        right_prop_name = prop_name.replace('.lh.', '.rh.')
-    elif '.L_' in prop_name or '.R_' in prop_name:
-        left_prop_name = prop_name.replace('.R_', '.L_')
-        right_prop_name = prop_name.replace('.L_', '.R_')
+    elif '_lh_' in prop_name or '_rh_' in prop_name:
+        left_prop_name = prop_name.replace('_rh_', '_lh_')
+        right_prop_name = prop_name.replace('_lh_', '_rh_')
+    elif '_L_' in prop_name or '_R_' in prop_name:
+        left_prop_name = prop_name.replace('_R_', '_L_')
+        right_prop_name = prop_name.replace('_L_', '_R_')
     else:
         raise ValueError("Unknown format for prop_name='%s'" % prop_name)
 
     return left_prop_name, right_prop_name
 
 
-def get_asymmetry_index(data, prop_name):
+def get_asymmetry_index(data, prop_name, mask_nan=True):
     """ Get the correponding left and right values for the prop_name,
     and returns the asymmetry index."""
 
@@ -73,5 +128,5 @@ def get_asymmetry_index(data, prop_name):
     RH_data = np.asarray(data[right_prop_name].tolist())
 
     # Compute an asymmetry index
-    prop_asymmetry = asymmetry_index(LH_data, RH_data)
+    prop_asymmetry = asymmetry_index(LH_data, RH_data, mask_nan=mask_nan)
     return prop_asymmetry

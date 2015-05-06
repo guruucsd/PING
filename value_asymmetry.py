@@ -54,7 +54,7 @@ def compare_group_asymmetry(data, prop_name, grouping_prop_name):
     for gi, group_name in enumerate(['all'] + group_names):
         # Index the current group
         if group_name == 'all':
-            idx = np.ones((data.shape[0],), dtype=bool)
+            idx = np.ones((len(data.values()[0]),), dtype=bool)
         else:
             idx = grouping_index[gi - 1]
 
@@ -113,4 +113,7 @@ if __name__ == '__main__':
     # loop_show_asymmetry(prefix='DTI_fiber_vol', grouping_prop_name=['Gender', 'FDH_23_Handedness_Prtcpnt'])
 
     #
-    loop_show_asymmetry(prefix=['DTI_fiber_FA'])
+    #loop_show_asymmetry(prefix=['MRI_cort_area', 'MRI_cort_thick', 'MRI_subcort_vol', 'DTI_fiber_vol'],
+    #                    grouping_prop_name=['Gender', 'FDH_23_Handedness_Prtcpnt'])
+
+    loop_show_asymmetry(prefix='MRI_cort_thick_ctx')

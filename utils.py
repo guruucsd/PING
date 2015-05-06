@@ -1,15 +1,19 @@
+"""
+Shared functions across scripts.
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
 
-def asymmetry_index(left, right):
+def asymmetry_index(left, right, mask_nan=True):
     """ Left and right should be arrays"""
     left = np.asarray(left)
     right = np.asarray(right)
 
     aidx = (left - right) / (left + right)
-    aidx[np.isnan(aidx)] = 0
+    if mask_nan:
+        aidx[np.isnan(aidx)] = 0
     return aidx
 
 
