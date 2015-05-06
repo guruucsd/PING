@@ -35,22 +35,41 @@ class PINGSession(object):
         self.sess = requests.Session()
         resp = self.sess.post('https://ping-dataportal.ucsd.edu/applications/User/login.php',
                               data=payload)
-        if 'Login to Data Portal' in resp.text:
+        if 'Login to Data Portal' in resp.text or resp.url != 'https://ping-dataportal.ucsd.edu/index.php':
             self.sess = None
             raise Exception('Login failed.')
         else:
             self.log("Logged in as %s successfully." % self.username)
+
+    def get_spreadsheet(self, out_file=None):
+        url = 'https://ping-dataportal.ucsd.edu/applications/Documents/downloadDoc.php?project_name=PING&version=&file=../usercache_PING_%s.csv' % (
+            self.username)
+        resp = self.sess.get(url)
+        out_text = str(resp.text)
+
+        if out_file:
+            with open(out_file, 'wb') as fp:
+                fp.write(out_text)
+
+        return out_text
 
 
 def col2prop(col_name):
     return col_name.replace('-', '.')
 
 
-def load_PING_data(scrub_fields=False):
-    # Load data
-    print("Loading data...")
+def load_PING_data(scrub_fields=False, csv_path=None, username=None, passwd=None):
     script_dir = os.path.abspath(os.path.dirname(__file__))
-    csv_path = os.path.join(script_dir, 'csv', 'PING_raw_data.csv')
+    csv_path = csv_path or os.path.join(script_dir, 'csv', 'PING_raw_data.csv')
+
+    # Download data
+    if not os.path.exists(csv_path):
+        print("Downloading data...")
+        sess = PINGSession(username=username, passwd=passwd)
+        sess.login()
+        sess.get_spreadsheet(out_file=csv_path)
+
+    print("Loading data...")
     data = pandas.read_csv(csv_path)
 
     # Convert dots to underscores
