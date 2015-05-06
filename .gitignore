@@ -1,4 +1,7 @@
-*.csv
-*.png
-*.sublime*
+csv/
+doc/
+download/
+pdf/
+plink_mac/
+R_package/
 *.pyc
