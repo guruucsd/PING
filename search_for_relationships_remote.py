@@ -142,24 +142,27 @@ smoothing.interaction = ""
         added_covariates_X = self.AI2flds(X)
         added_covariates_Y = self.AI2flds(Y)
 
+        def add_subplot(fh, *args):
+            return fh.add_subplot(*args) if plot else None
+
         # First, regress with covariates
-        fh1 = plt.figure(figsize=(18, 10))
-        out.append(self.regress(X, Y, covariates, limits, plot=fh1.add_subplot(2, 4, 1), cache_dir=cache_dir))
-        out.append(self.regress(Y, X, covariates, limits, plot=fh1.add_subplot(2, 4, 5), cache_dir=cache_dir))
-        out.append(self.regress(X, Y, covariates + added_covariates_X, limits, plot=fh1.add_subplot(2, 4, 2), cache_dir=cache_dir))
-        out.append(self.regress(Y, X, covariates + added_covariates_X, limits, plot=fh1.add_subplot(2, 4, 6), cache_dir=cache_dir))
-        out.append(self.regress(X, Y, covariates + added_covariates_Y, limits, plot=fh1.add_subplot(2, 4, 3), cache_dir=cache_dir))
-        out.append(self.regress(Y, X, covariates + added_covariates_Y, limits, plot=fh1.add_subplot(2, 4, 7), cache_dir=cache_dir))
-        out.append(self.regress(X, Y, covariates + added_covariates_X + added_covariates_Y , limits, plot=fh1.add_subplot(2, 4, 4), cache_dir=cache_dir))
-        out.append(self.regress(Y, X, covariates + added_covariates_X + added_covariates_Y , limits, plot=fh1.add_subplot(2, 4, 8), cache_dir=cache_dir))
+        fh1 = plt.figure(figsize=(18, 10)) if plot else None
+        out.append(self.regress(X, Y, covariates, limits, plot=add_subplot(fh1, 2, 4, 1), cache_dir=cache_dir))
+        out.append(self.regress(Y, X, covariates, limits, plot=add_subplot(fh1, 2, 4, 5), cache_dir=cache_dir))
+        out.append(self.regress(X, Y, covariates + added_covariates_X, limits, plot=add_subplot(fh1, 2, 4, 2), cache_dir=cache_dir))
+        out.append(self.regress(Y, X, covariates + added_covariates_X, limits, plot=add_subplot(fh1, 2, 4, 6), cache_dir=cache_dir))
+        out.append(self.regress(X, Y, covariates + added_covariates_Y, limits, plot=add_subplot(fh1, 2, 4, 3), cache_dir=cache_dir))
+        out.append(self.regress(Y, X, covariates + added_covariates_Y, limits, plot=add_subplot(fh1, 2, 4, 7), cache_dir=cache_dir))
+        out.append(self.regress(X, Y, covariates + added_covariates_X + added_covariates_Y , limits, plot=add_subplot(fh1, 2, 4, 4), cache_dir=cache_dir))
+        out.append(self.regress(Y, X, covariates + added_covariates_X + added_covariates_Y , limits, plot=add_subplot(fh1, 2, 4, 8), cache_dir=cache_dir))
 
         # Then regress on each side
-        fh2 = plt.figure(figsize=(12, 10))
-        out.append(self.regress(added_covariates_X[0], X, covariates, limits, plot=fh2.add_subplot(2, 2, 1), cache_dir=cache_dir))
-        out.append(self.regress(added_covariates_X[1], X, covariates, limits, plot=fh2.add_subplot(2, 2, 2), cache_dir=cache_dir))
+        fh2 = plt.figure(figsize=(12, 10)) if plot else None
+        out.append(self.regress(added_covariates_X[0], X, covariates, limits, plot=add_subplot(fh2, 2, 2, 1), cache_dir=cache_dir))
+        out.append(self.regress(added_covariates_X[1], X, covariates, limits, plot=add_subplot(fh2, 2, 2, 2), cache_dir=cache_dir))
 
-        out.append(self.regress(added_covariates_Y[0], Y, covariates, limits, plot=fh2.add_subplot(2, 2, 3), cache_dir=cache_dir))
-        out.append(self.regress(added_covariates_Y[1], Y, covariates, limits, plot=fh2.add_subplot(2, 2, 4), cache_dir=cache_dir))
+        out.append(self.regress(added_covariates_Y[0], Y, covariates, limits, plot=add_subplot(fh2, 2, 2, 3), cache_dir=cache_dir))
+        out.append(self.regress(added_covariates_Y[1], Y, covariates, limits, plot=add_subplot(fh2, 2, 2, 4), cache_dir=cache_dir))
 
         if np.all([o is None for o in out]):
             return None
@@ -175,7 +178,7 @@ def search_one_asymmetry(**kwargs):
                                   **kwargs)
 
 
-def search_all_asymmetries(**kwargs):
+def search_all_asymmetries(plot=True, **kwargs):
     """For each pair of variables, look for a significant regression slope."""
 
     sess = PINGDataSession()  # username/password stored in an env variable for me.
@@ -197,18 +200,29 @@ def search_all_asymmetries(**kwargs):
                 continue
 
             try:
-                result = sess.regress_multistep(key1, key2, **kwargs)
+                result = sess.regress_multistep(key1, key2, plot=plot, **kwargs)
                 results.append(result)
             except Exception as e:
                 print "Exception: %s" % str(e)
             else:
-                if True or result is None:
-                    plt.close()
-                    plt.close()
-                else:
-                    plt.show()
+                if plot:
+                    if result is None:
+                        plt.close()
+                        plt.close()
+                    else:
+                        plt.show()
 
 if __name__ == '__main__':
-    search_all_asymmetries()
+    try:
+        plt.figure()
+    except:
+        plot=False
+    else:
+        plot=True
+        plt.close()
+
+    search_all_asymmetries(plot=plot)
     print_legend()
-    plt.show()
+
+    if plot:
+        plt.show()
