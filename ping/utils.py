@@ -6,17 +6,6 @@ import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
 
-def asymmetry_index(left, right, mask_nan=True):
-    """ Left and right should be arrays"""
-    left = np.asarray(left)
-    right = np.asarray(right)
-
-    aidx = (left - right) / (left + right)
-    if mask_nan:
-        aidx[np.isnan(aidx)] = 0
-    return aidx
-
-
 def do_and_plot_regression(X, Y, covariates=[], xlabel='', ylabel='', title='', ax=None):
     assert not np.any(np.isnan(X))
     assert not np.any(np.isnan(Y))

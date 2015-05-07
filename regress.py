@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import pandas
 import numpy as np
 
-from ping.access import col2prop, load_PING_data, get_twohemi_keys, get_asymmetry_index
 from ping.export import get_all_derived_data
 from ping.utils import do_and_plot_regression
 from ping.apps.regress import find_one_relationship, skip_key, skip_pairing, search_all_vs_itself, search_all_pairwise

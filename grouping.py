@@ -7,7 +7,8 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ping.access import col2prop, load_PING_data, get_twohemi_keys, get_asymmetry_index
+from ping.access import col2prop, load_PING_data, get_twohemi_keys
+from ping.asymmetry import get_asymmetry_index
 from ping.utils import do_and_plot_regression
 
 

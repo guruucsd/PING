@@ -9,8 +9,6 @@ import pandas
 import requests
 import statsmodels.formula.api as smf
 
-from .utils import asymmetry_index
-
 PING_DATA = None
 
 
@@ -134,7 +132,7 @@ def get_twohemi_keys(prefix, all_keys):
 
 
 
-def get_twohemi_prop_names(data, prop_name):
+def get_bilateral_hemi_keys(data, prop_name):
     """ Given one hemisphere's property name,
     return both."""
 
@@ -151,18 +149,3 @@ def get_twohemi_prop_names(data, prop_name):
         raise ValueError("Unknown format for prop_name='%s'" % prop_name)
 
     return left_prop_name, right_prop_name
-
-
-def get_asymmetry_index(data, prop_name, mask_nan=True):
-    """ Get the correponding left and right values for the prop_name,
-    and returns the asymmetry index."""
-
-    left_prop_name, right_prop_name = get_twohemi_prop_names(data, prop_name)
-
-    # Select data within the group
-    LH_data = np.asarray(data[left_prop_name].tolist())
-    RH_data = np.asarray(data[right_prop_name].tolist())
-
-    # Compute an asymmetry index
-    prop_asymmetry = asymmetry_index(LH_data, RH_data, mask_nan=mask_nan)
-    return prop_asymmetry
