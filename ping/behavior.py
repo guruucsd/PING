@@ -2,13 +2,12 @@
 """
 
 import numpy as np
-import scipy
 from scipy.stats import pearsonr
 from sklearn.decomposition import PCA
 
-from ping import col2prop, get_asymmetry_index, load_PING_data, get_twohemi_keys
-from similarity_matrices import get_all_data
-from utils import do_and_plot_regression
+from .access import col2prop, get_asymmetry_index, load_PING_data, get_twohemi_keys
+from .similarity import get_all_data
+from .utils import do_and_plot_regression
 
 
 def report_asymmetries():

@@ -9,7 +9,7 @@ import pandas
 import requests
 import statsmodels.formula.api as smf
 
-from utils import asymmetry_index
+from .utils import asymmetry_index
 
 PING_DATA = None
 
@@ -66,8 +66,7 @@ def load_PING_data(scrub_fields=False, csv_path=None, username=None, passwd=None
     global PING_DATA
     if PING_DATA is None or force:
 
-        script_dir = os.path.abspath(os.path.dirname(__file__))
-        csv_path = csv_path or os.path.join(script_dir, 'csv', 'PING_raw_data.csv')
+        csv_path = csv_path or os.path.join('csv', 'PING_raw_data.csv')
 
         # Download data
         if not os.path.exists(csv_path):

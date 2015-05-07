@@ -7,8 +7,8 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ping import col2prop, load_PING_data, get_twohemi_keys, get_asymmetry_index
-from utils import do_and_plot_regression
+from ping.access import col2prop, load_PING_data, get_twohemi_keys, get_asymmetry_index
+from ping.utils import do_and_plot_regression
 
 
 def make_groups(data, grouping_prop_names):

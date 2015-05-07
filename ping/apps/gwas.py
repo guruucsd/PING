@@ -4,7 +4,7 @@ import os
 import sys
 import time
 
-from ping import PINGSession
+from ..access import PINGSession
 
 
 class GWASSession(PINGSession):

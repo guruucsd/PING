@@ -6,8 +6,8 @@ import numpy as np
 import scipy
 from matplotlib import pyplot as plt
 
-from ping import load_PING_data, which_hemi
-from export_measures import get_all_derived_data
+from .access import load_PING_data, which_hemi
+from .apps.download import get_all_derived_data
 
 
 def get_all_data(prefix):
@@ -129,9 +129,3 @@ def compare_all_similarity_matrices(prefix=None):
             full_mat += np.eye(full_mat.shape[0])
             ax.imshow(full_mat, vmin=-1, vmax=1)
             ax.set_title('%s: %s' % (p, key))
-        plt.show()
-    import pdb; pdb.set_trace()
-
-
-if __name__ == '__main__':
-    compare_all_similarity_matrices()

@@ -8,8 +8,8 @@ import csv
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ping import col2prop, load_PING_data, get_twohemi_keys, get_asymmetry_index
-from utils import do_and_plot_regression
+from ..access import col2prop, load_PING_data, get_twohemi_keys, get_asymmetry_index
+from ..utils import do_and_plot_regression
 
 EXPORTED_PING_SPREADSHEET = 'csv/PING.csv'
 

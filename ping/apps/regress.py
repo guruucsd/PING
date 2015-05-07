@@ -11,10 +11,10 @@ import numpy as np
 import requests
 import StringIO
 from matplotlib import pyplot as plt
+from scipy.stats import linregress
 
-from export_measures import compute_all_asymmetries
-from ping import PINGSession
-from search_for_relationships import find_one_relationship, print_legend, skip_key, skip_pairing
+from .download import compute_all_asymmetries
+from ..access import PINGSession
 
 
 class PINGDataSession(PINGSession):
@@ -169,6 +169,84 @@ smoothing.interaction = ""
         return out
 
 
+
+def skip_key(key):
+    return ('fuzzy' in key or
+            key == 'MRI_cort_thick_ctx_mean_AI')
+
+
+def skip_pairing(key1, key2):
+    return (('AllFib' in key1 and 'AllFib' in key2) or
+            ('AllFib' in key1 and 'DTI_' in key2) or
+            ('AllFib' in key2 and 'DTI_' in key1) or
+            np.any([t in key1 and t in key2 for t in ['SLF_', 'SCS_', '_Fx']]))
+
+
+def find_one_relationship(all_data, key1, key2, covariates=[],
+                          rsq_thresh=0., plot=False):
+    print key1, key2, covariates
+
+    # Limit to data without nan
+    idx = np.ones(all_data[key1].shape, dtype=bool)
+    for key in [key1, key2] + covariates:
+        idx = np.logical_and(idx, np.logical_not(np.isnan(all_data[key])))
+    if not np.any(idx):
+        return None
+
+    # Construct the data matrices
+    data1 = all_data[key1][idx]
+    data2 = all_data[key2][idx]
+    X = [np.ones((idx.sum(),))]
+    for key in [key2] + covariates:
+        X.append(all_data[key][idx])
+
+    # Do the regression, remove covariates.
+    bestfit = np.linalg.lstsq(np.asarray(X).T, data1)[0]
+    for ci, dat in enumerate(X[2:]):  # covariates
+        data2 -= bestfit[ci + 2] * dat
+
+    # Now, redo the regression on the residuals
+    m, b, r, p, err = linregress(data1, data2)
+    assert np.logical_not(np.isnan(r)), 'WTF, nan?'
+    if r**2 < rsq_thresh:
+        return None
+
+    key = '%s vs. %s' % (key1, key2)
+
+    # Small plot
+    if plot:
+        xlims = np.asarray([np.min(data1), np.max(data1)])
+        ylims = np.asarray([np.min(data2), np.max(data2)])
+        xlims += (np.diff(xlims) / 10. * np.asarray([-1, 1]))  # add space
+        ylims += (np.diff(ylims) / 10. * np.asarray([-1, 1]))  # add space
+
+        # Grab / create the axis handle.
+        if isinstance(plot, bool):
+            ax = plt.figure().gca()
+        else:
+            ax = plot
+
+        # Plot axes
+        ax.hold(True)
+        if xlims[0] < 0 and xlims[1] > 0:
+            ax.plot([0, 0], ylims, 'k--')
+        if ylims[0] < 0 and ylims[1] > 0:
+            ax.plot(xlims, [0, 0], 'k--')
+        ax.scatter(data1, data2)
+        ax.plot(xlims, b + m * xlims, 'r', linewidth=3.0)
+        x_mean = data1.mean()
+        ax.plot(x_mean, b + m * x_mean, 'g*', markersize=20.0)
+
+        # Metadata
+        ax.set_title("Significant at %.2e (r=%.3f)" % (p, r))
+        ax.set_xlabel(key1)
+        ax.set_ylabel(key2)
+        ax.set_xlim(tuple(xlims))
+        ax.set_ylim(tuple(ylims))
+
+    return key, p, r
+
+
 def search_one_asymmetry(**kwargs):
     sess = PINGDataSession()  # username/password stored in an env variable for me.
     sess.login()
@@ -267,25 +345,3 @@ def search_all_vs_itself(covariates, plot=False, **kwargs):
 
         if plot:
             plt.show()
-
-if __name__ == '__main__':
-    try:
-        plt.figure()
-    except:
-        print "Plotting not available."
-        plot = False
-    else:
-        print "Plotting detected and will be used!"
-        plot = True
-        plt.close()
-
-    covariates = ['Age_At_IMGExam', 'Gender', 'FDH_23_Handedness_Prtcpnt']#, 'MRI_cort_area_ctx_total_LH_PLUS_RH']
-    cache_dir = 'download'
-
-    # search_all_pairwise(plot=plot, cache_dir=cache_dir, covariates=covariates + ['MRI_cort_area_ctx_total_LH_PLUS_RH'])
-    # search_all_vs_one(key='MRI_cort_area_ctx_total_LH_PLUS_RH', plot=plot, cache_dir=cache_dir, covariates=covariates)
-    search_all_vs_itself(plot=plot, cache_dir=cache_dir, covariates=covariates, abort_if_done=False)
-    print_legend()
-
-    if plot:
-        plt.show()
