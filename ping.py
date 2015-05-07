@@ -11,12 +11,16 @@ import statsmodels.formula.api as smf
 
 from utils import asymmetry_index
 
+PING_DATA = None
+
 
 class PINGSession(object):
 
     def __init__(self, username=None, passwd=None, verbosity=1):
         self.username = username or os.environ.get('PING_USERNAME')
         self.passwd = passwd or os.environ.get('PING_PASSWORD')
+        assert self.username is not None and self.passwd is not None, "Username & password must be specified, or read from environment variables PING_USERNAME and PING_PASSWORD"
+
         self.sess = None  # http session with server
         self.result_ids = None  # current dictionary of result IDs
         self.verbosity = verbosity  # level of output
@@ -58,41 +62,56 @@ def col2prop(col_name):
     return col_name.replace('-', '.')
 
 
-def load_PING_data(scrub_fields=False, csv_path=None, username=None, passwd=None):
-    script_dir = os.path.abspath(os.path.dirname(__file__))
-    csv_path = csv_path or os.path.join(script_dir, 'csv', 'PING_raw_data.csv')
+def load_PING_data(scrub_fields=False, csv_path=None, username=None, passwd=None, force=False):
+    global PING_DATA
+    if PING_DATA is None or force:
 
-    # Download data
-    if not os.path.exists(csv_path):
-        print("Downloading data...")
-        sess = PINGSession(username=username, passwd=passwd)
-        sess.login()
-        sess.get_spreadsheet(out_file=csv_path)
+        script_dir = os.path.abspath(os.path.dirname(__file__))
+        csv_path = csv_path or os.path.join(script_dir, 'csv', 'PING_raw_data.csv')
 
-    print("Loading data...")
-    data = pandas.read_csv(csv_path)
+        # Download data
+        if not os.path.exists(csv_path):
+            print("Downloading PING data...")
+            sess = PINGSession(username=username, passwd=passwd)
+            sess.login()
+            sess.get_spreadsheet(out_file=csv_path)
 
-    # Convert dots to underscores
-    print("Converting data...")
+        print("Loading PING data...")
+        data = pandas.read_csv(csv_path)
 
-    new_data = dict()
-    for key in data.keys():
-        if scrub_fields and '.' not in key:
-            continue
-        new_data[key.replace('.', '_')] = data[key]
-    data = new_data
+        # Convert dots to underscores
+        print("Converting PING data...")
 
-    # print("Regressing data on confounds...")
-    # for key in data.keys():
-    #     formula = ('%s ~ FDH_Highest_Education + FDH_3_Household_Income +'
-    #                '     DeviceSerialNumber + GAF_africa + GAF_amerind +'
-    #                '     GAF_eastAsia + GAF_oceania + GAF_centralAsia') % key.replace('.', '_')
-    #     try:
-    #         resid = smf.ols(formula, data=data).fit().resid
-    #         data[key] = resid
-    #     except Exception as e:
-    #         print "Failed (%s): %s" % (key, e)
-    return data
+        new_data = dict()
+        for key in data.keys():
+            if scrub_fields and '.' not in key:
+                continue
+            new_data[key.replace('.', '_')] = data[key].as_matrix()
+        data = new_data
+
+        # print("Regressing data on confounds...")
+        # for key in data.keys():
+        #     formula = ('%s ~ FDH_Highest_Education + FDH_3_Household_Income +'
+        #                '     DeviceSerialNumber + GAF_africa + GAF_amerind +'
+        #                '     GAF_eastAsia + GAF_oceania + GAF_centralAsia') % key.replace('.', '_')
+        #     try:
+        #         resid = smf.ols(formula, data=data).fit().resid
+        #         data[key] = resid
+        #     except Exception as e:
+        #         print "Failed (%s): %s" % (key, e)
+        PING_DATA = data
+    return PING_DATA
+
+
+def which_hemi(key):
+    rh_markers = ['Right', '_rh_', '_R_']
+    lh_markers = ['Left', '_lh_', '_L_']
+    if np.any([m in key for m in rh_markers]):
+        return 'rh'
+    elif np.any([m in key for m in lh_markers]):
+        return 'lh'
+    else:
+        return None
 
 
 def get_twohemi_keys(prefix, all_keys):
@@ -102,12 +121,11 @@ def get_twohemi_keys(prefix, all_keys):
     if not isinstance(prefix, list):
         prefix = [prefix]
     prefix = np.asarray(prefix)
-    rh_markers = ['Right', '_rh_', '_R_']
 
     good_keys = []
     for prop_name in all_keys:
-        if (not np.any(np.asarray([r in prop_name for r in rh_markers])) or
-                not np.any(np.asarray([p in prop_name for p in prefix]))):
+        if (which_hemi(prop_name) != 'rh' or
+                not np.any([p in prop_name for p in prefix])):
             continue
         if 'vent' in prop_name.lower() and 'ventral' not in prop_name.lower():
             print("Skipping %s" % prop_name)
