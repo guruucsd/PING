@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import sys
+import time
 
 from ping import PINGSession
 
@@ -22,7 +23,7 @@ class GWASSession(PINGSession):
             self.log("Fetched %d result ID(s)" % len(self.result_ids))
         return self.result_ids
 
-    def get_results(self, id=None, measure=None, raw=False, out_dir='download'):
+    def get_results(self, id=None, measure=None, force=False, raw=False, out_dir='download'):
         """Can search by id or measure.
         Search by id returns a list of tuples,
             each tuple a triplet (SNP, effect size, pval)
@@ -37,11 +38,11 @@ class GWASSession(PINGSession):
             ids = [r['id'] for r in self.get_results_ids()
                            if r['yvalue'] == measure]
             self.log("Retrieving results for measure %s (%d ids found) ..." % (measure, len(ids)))
-            return [self.get_results(id=id, raw=raw, out_dir=out_dir) for id in ids]
+            return [self.get_results(id=id, force=force, raw=raw, out_dir=out_dir) for id in ids]
 
         # Fetch
         out_file = os.path.join(out_dir, '%s_GWAS.csv' % id)
-        if os.path.exists(out_file):
+        if os.path.exists(out_file) and not force:
             with open(out_file, 'rb') as fp:
                 out_text = '\n'.join(fp.readlines())
         else:
@@ -66,8 +67,13 @@ class GWASSession(PINGSession):
 
     def launch_run(self, measure, covariates=['Age_At_IMGExam']):
         assert self.sess is not None, "Session must be started before calling launch_run."
+
+        self.log("Launching run for measure=%s, covariates=%s ..." % (measure, str(covariates)))
+        time.sleep(5.);
         try:
-            self.log("Launching run for measure=%s ..." % measure)
+            # if 'y' != raw_input("Is this what you want to do? (y/N) => ").lower():
+            #     return
+
             start_time = datetime.datetime.now()
             url = 'https://ping-dataportal.ucsd.edu/applications/GWAS/startRun.php?project_name=PING&com=%s&covariates=%s' % (
                 measure, '+'.join(covariates))
@@ -84,19 +90,19 @@ class GWASSession(PINGSession):
 
     def launch_and_retrieve_run(self, measure, covariates=['Age_At_IMGExam'], out_dir='download'):
         result_id = self.launch_run(measure=measure, covariates=covariates)
-        results = self.get_results(measure=measure, raw=True, out_dir=out_dir)
+        results = self.get_results(measure=measure, force=True, raw=True, out_dir=out_dir)
         return results[-1]
 
 if __name__ == '__main__':
     action = 'display' if len(sys.argv) == 1 else sys.argv[1]
-    measure = 'MRI_cort_area_ctx_transversetemporal_AI' if len(sys.argv) <= 2 else sys.argv[2]
-    covariates = ['MRI_cort_area_ctx_total_LH_PLUS_RH']
+    measure = 'DTI_fiber_vol_CgC_AI' if len(sys.argv) <= 2 else sys.argv[2]
+    covariates = ['DTI_fiber_vol_AllFibnoCC_AI']  # ', 'DTI_fiber_vol_AllFibnoCC_AI', 'Gender', 'FDH_23_Handedness_Prtcpnt']  # MRI_cort_area_ctx_total_LH_PLUS_RH']
     print action, measure, covariates
 
     sess = GWASSession()  # username/password stored in an env variable for me.
     sess.login()
 
     if action == 'display':
-        print sess.get_results(measure=measure)
+        print sess.get_results(measure=measure, force=True)
     elif action == 'launch':
         print sess.launch_and_retrieve_run(measure=measure, covariates=covariates)
