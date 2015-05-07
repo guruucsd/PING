@@ -25,13 +25,30 @@ def do_and_plot_regression(X, Y, xlabel='', ylabel='', title='', ax=None):
     if not ax:
         fh = plt.figure()
         ax = ax
-    xlim = [X.size and X.min() or 0, X.size and X.max() or 1]
-    xvals = np.linspace(xlim[0], xlim[1], 25)
+
+    # Add standard deviation
+    w_sz = 2.0
+    xvals = np.arange(np.min(X) + w_sz / 2, np.max(X) - w_sz / 2, 0.01)
+    yvals_mean = np.empty(xvals.shape)  # m * xvals + b
+    yvals_std = np.empty(xvals.shape)
+    for xi, xval in enumerate(xvals):
+        idx = np.logical_and(xval - w_sz / 2 <= X, X <= xval + w_sz / 2)
+        yvals_mean[xi] = Y[idx].mean()
+        yvals_std[xi] = Y[idx].std()
+
+    ax.plot(xvals, xvals * 0., 'k--', linewidth=5)
+    ax.hold('on')
+
+    if len(X) > 200:
+        # ax.plot(xvals, yvals_mean, 'r', linewidth=3.)
+        ax.fill_between(xvals, yvals_mean+yvals_std, yvals_mean-yvals_std,
+                        facecolor='red', alpha=0.6)
+    ax.scatter(X, Y)
     ax.plot(xvals, m * xvals + b, 'r', linewidth=3.)
+
     ax.set_title('%s\n(r=%.3f, p=%.3e, n=%d)' % (title, rval, pval, X.size))
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    ax.hold('on')
-    ax.plot(xvals, xvals * 0., 'k--', linewidth=5)
-    ax.scatter(X, Y)
-    ax.set_ylim([-1, 1])
+    ax.set_ylim([-0.4, 0.4])
+
+    return yvals_mean, yvals_std
