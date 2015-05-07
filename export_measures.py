@@ -7,10 +7,11 @@ import os
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas
 
 from ping import col2prop, load_PING_data, get_twohemi_keys, get_asymmetry_index
 from utils import do_and_plot_regression
+
+EXPORTED_PING_SPREADSHEET = 'csv/PING.csv'
 
 
 def compare_group_asymmetry(data, prop_name, grouping_prop_name):
@@ -89,21 +90,6 @@ def compute_all_totals(prefix):
     return export_data
 
 
-def export_all_data(export_data, out_file):
-
-    keys = export_data.keys()
-
-    # Now export as csv
-    with open(out_file, 'wb') as fp:
-        w = csv.writer(fp)
-        w.writerow(keys)
-        for row_idx in range(len(export_data['SubjID'])):
-            row = []
-            for key in keys:
-                row.append(export_data[key][row_idx])
-            w.writerow(row)
-
-
 def combine_genetic_data(export_data, gene_file):
     # Merge the two together.
     with open(gene_file, 'rb') as fp:
@@ -111,7 +97,7 @@ def combine_genetic_data(export_data, gene_file):
 
     all_idx = []
     for subj_id in export_data['SubjID']:
-        x_subj_id = '"%s"' % subj_id 
+        x_subj_id = '"%s"' % subj_id
         if x_subj_id in  gene_data['subjid']:
             all_idx.append(gene_data['subjid'].tolist().index(x_subj_id))
         else:
@@ -127,10 +113,47 @@ def combine_genetic_data(export_data, gene_file):
     return export_data
 
 
+def get_all_derived_data(prefix=None, force=True):
+    prefix = prefix or []
+    data = None
+    if os.path.exists(EXPORTED_PING_SPREADSHEET) and not force:
+        print("Loading derived data...")
+        data = pandas.read_csv(EXPORTED_PING_SPREADSHEET)
+        for p in prefix:
+            if not np.any([key.startswith(p) for key in data.keys()]):
+                data = None
+                break
+        if data is not None:
+            new_data = dict()
+            for key in data.keys():
+                new_data[key.replace('.', '_')] = data[key]
+            data = new_data
+
+    if data is None:
+        print "Computing derived data..."
+        data = compute_all_asymmetries(prefix=prefix)
+        data.update(compute_all_totals(prefix=prefix))
+        data = combine_genetic_data(data, 'csv/frontalpole_genes.csv')
+
+    return data
+
+
+def export_all_data(export_data, out_file):
+
+    keys = export_data.keys()
+
+    # Now export as csv
+    with open(out_file, 'wb') as fp:
+        w = csv.writer(fp)
+        w.writerow(keys)
+        for row_idx in range(len(export_data['SubjID'])):
+            row = []
+            for key in keys:
+                row.append(export_data[key][row_idx])
+            w.writerow(row)
+
 
 if __name__ == '__main__':
     prefixes = ['MRI_cort_area', 'MRI_cort_thick', 'MRI_subcort_vol', 'DTI_fiber_vol']
-    export_data = compute_all_asymmetries(prefix=prefixes)
-    export_data.update(compute_all_totals(prefix=prefixes))
-    export_data = combine_genetic_data(export_data, 'csv/frontalpole_genes.csv')
-    export_all_data(export_data, out_file='csv/PING.csv')
+    export_data = get_all_derived_data(prefix=prefixes, force=True)
+    export_all_data(export_data, out_file=EXPORTED_PING_SPREADSHEET)
