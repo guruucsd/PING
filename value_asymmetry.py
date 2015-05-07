@@ -6,21 +6,20 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas
 
 from ping import col2prop, load_PING_data, get_twohemi_keys, get_asymmetry_index
 from utils import do_and_plot_regression
 
 
-def make_groups(data, grouping_prop_name):
+def make_groups(data, grouping_prop_names):
     """ Group data by the unique values of `grouping_prop_name`"""
 
-    if not isinstance(grouping_prop_name, list):
-        grouping_prop_name = [grouping_prop_name]
+    if not isinstance(grouping_prop_names, list):
+        grouping_prop_names = [grouping_prop_names]
 
     # Group
     grouping_index = group_names = []
-    for gpn in grouping_prop_name:
+    for gpn in grouping_prop_names:
         grouping_data = np.asarray(data[gpn].tolist())
         prop_groups = np.asarray(list(set(np.unique(grouping_data)) -
                                  set(['Not yet established', 'nan'])))
@@ -40,17 +39,20 @@ def make_groups(data, grouping_prop_name):
     return group_names, grouping_index
 
 
-def compare_group_asymmetry(data, prop_name, grouping_prop_name):
-    """ Groups data according to grouping_prop_name, computes
+def compare_group_asymmetry(data, prop_name, grouping_prop_names):
+    """ Groups data according to grouping_prop_names, computes
     asymmetry index for prop_name, and graphs."""
 
-    group_names, grouping_index = make_groups(data, grouping_prop_name)
+    group_names, grouping_index = make_groups(data, grouping_prop_names)
 
     age_data = np.asarray(data['Age_At_IMGExam'].tolist())
     fh = plt.figure(figsize=(18, 10))
     n_subplots = 1 + len(group_names)
     n_rows = int(np.round(0.75 * np.sqrt(n_subplots)))
     n_cols = int(np.ceil(n_subplots / float(n_rows)))
+
+    ymeans = []
+    ystds = []
     for gi, group_name in enumerate(['all'] + group_names):
         # Index the current group
         if group_name == 'all':
@@ -70,19 +72,19 @@ def compare_group_asymmetry(data, prop_name, grouping_prop_name):
 
         # Plot the result
         ax = fh.add_subplot(n_rows, n_cols, gi + 1)
-        do_and_plot_regression(cur_ages, prop_asymmetry, ax=ax,
-                               xlabel='Age', ylabel='Asymmetry Index (LH - RH)',
-                               title='Group: %s\n%s' % (group_name, prop_name))
+        ymn, ystd = do_and_plot_regression(cur_ages, prop_asymmetry, ax=ax,
+                                           xlabel='Age', ylabel='Asymmetry Index (LH - RH)',
+                                           title='Group: %s\n%s' % (group_name, prop_name))
 
 
-def loop_show_asymmetry(prefix, grouping_prop_name='FDH_23_Handedness_Prtcpnt'):
+def loop_show_asymmetry(prefix, grouping_prop_names=['FDH_23_Handedness_Prtcpnt', 'Gender']):
     """ Loop over all properties to show asymmetry."""
     data = load_PING_data()
 
     # Process & plot the data.
     for pi, prop_name in enumerate(get_twohemi_keys(prefix, data.keys())):
         compare_group_asymmetry(data, prop_name=prop_name,
-                                grouping_prop_name=grouping_prop_name)
+                                grouping_prop_names=grouping_prop_names)
         print pi
     plt.show()
 
@@ -110,10 +112,10 @@ if __name__ == '__main__':
     # loop_show_asymmetry(prefix='DTI_fiber_vol')
 
     # Doesn't work... sex is missing!
-    # loop_show_asymmetry(prefix='DTI_fiber_vol', grouping_prop_name=['Gender', 'FDH_23_Handedness_Prtcpnt'])
+    # loop_show_asymmetry(prefix='DTI_fiber_vol', grouping_prop_names=['Gender', 'FDH_23_Handedness_Prtcpnt'])
 
     #
     #loop_show_asymmetry(prefix=['MRI_cort_area', 'MRI_cort_thick', 'MRI_subcort_vol', 'DTI_fiber_vol'],
-    #                    grouping_prop_name=['Gender', 'FDH_23_Handedness_Prtcpnt'])
+    #                    grouping_prop_names=['Gender', 'FDH_23_Handedness_Prtcpnt'])
 
-    loop_show_asymmetry(prefix='MRI_cort_thick_ctx')
+    loop_show_asymmetry(prefix='MRI_cort_area_ctx_rh_frontalpole')
