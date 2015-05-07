@@ -119,4 +119,5 @@ def show_asymmetry_by_component(prefix, grouping_prop_name='FDH_23_Handedness_Pr
 
 
 if __name__ == '__main__':
-    show_asymmetry_by_component(prefix=['MRI_cort_area'])
+    # 'MRI_cort_area', 'MRI_cort_thick', 'MRI_subcort_vol', 'DTI_fiber_vol'
+    show_asymmetry_by_component(prefix=['DTI_fiber_vol'])

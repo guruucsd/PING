@@ -17,10 +17,13 @@ def asymmetry_index(left, right, mask_nan=True):
     return aidx
 
 
-def do_and_plot_regression(X, Y, xlabel='', ylabel='', title='', ax=None):
+def do_and_plot_regression(X, Y, covariates=[], xlabel='', ylabel='', title='', ax=None):
     assert not np.any(np.isnan(X))
     assert not np.any(np.isnan(Y))
 
+    # Regress out stuff
+    if covariates:
+        raise NotImplementedException('covariates')
     m, b, rval,  pval, stderr = linregress(X, Y)
     if not ax:
         fh = plt.figure()
