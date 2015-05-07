@@ -1,11 +1,12 @@
 """
+Multivariate analyses of PING data
 """
-
 import numpy as np
 from scipy.stats import pearsonr
 from sklearn.decomposition import PCA
 
-from .access import col2prop, get_asymmetry_index, load_PING_data, get_twohemi_keys
+from .access import load_PING_data, get_twohemi_keys
+from .asymmetry import get_asymmetry_index
 from .similarity import get_all_data
 from .utils import do_and_plot_regression
 
