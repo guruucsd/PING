@@ -1,7 +1,9 @@
 csv/
 doc/
 download/
+genes/
 pdf/
 plink_mac/
 R_package/
 *.pyc
+.DS_Store

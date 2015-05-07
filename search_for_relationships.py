@@ -120,7 +120,7 @@ def search_all_vs_one(all_data, key, rsq_thresh=0., covariates=[], plot=False):
     """For each pair of variables, look for a significant regression slope."""
 
     results = []
-    all_keys = list(set(all_data.keys()) - set(('SubjID',)))
+    all_keys = list(set(all_data.keys()) - set(('SubjID', key)))
     for all_key in all_keys:
         if not all_key.endswith('_AI'):
             continue
