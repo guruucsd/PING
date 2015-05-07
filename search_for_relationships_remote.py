@@ -158,10 +158,10 @@ smoothing.interaction = ""
 
         # Then regress on each side
         fh2 = plt.figure(figsize=(12, 10)) if plot else None
-        out.append(self.regress(added_covariates_X[0], X, covariates, limits, plot=add_subplot(fh2, 2, 2, 1), cache_dir=cache_dir))
+        out.append(self.regress(X.replace('_AI', 'LH_PLUS_RH'), X, covariates, limits, plot=add_subplot(fh2, 2, 2, 1), cache_dir=cache_dir))
         out.append(self.regress(added_covariates_X[1], X, covariates, limits, plot=add_subplot(fh2, 2, 2, 2), cache_dir=cache_dir))
 
-        out.append(self.regress(added_covariates_Y[0], Y, covariates, limits, plot=add_subplot(fh2, 2, 2, 3), cache_dir=cache_dir))
+        out.append(self.regress(Y.replace('_AI', 'LH_PLUS_RH'), Y, covariates, limits, plot=add_subplot(fh2, 2, 2, 3), cache_dir=cache_dir))
         out.append(self.regress(added_covariates_Y[1], Y, covariates, limits, plot=add_subplot(fh2, 2, 2, 4), cache_dir=cache_dir))
 
         if np.all([o is None for o in out]):
@@ -178,7 +178,7 @@ def search_one_asymmetry(**kwargs):
                                   **kwargs)
 
 
-def search_all_asymmetries(plot=True, **kwargs):
+def search_all_pairwise(plot=True, **kwargs):
     """For each pair of variables, look for a significant regression slope."""
 
     sess = PINGDataSession()  # username/password stored in an env variable for me.
@@ -212,16 +212,79 @@ def search_all_asymmetries(plot=True, **kwargs):
                     else:
                         plt.show()
 
+
+def search_all_vs_one(key, plot=False, **kwargs):
+    """For each pair of variables, look for a significant regression slope."""
+
+    sess = PINGDataSession()  # username/password stored in an env variable for me.
+    sess.login()
+
+    all_data = compute_all_asymmetries(prefix=['MRI_cort_area', 'MRI_cort_thick',
+                                               'MRI_subcort_vol', 'DTI_fiber_vol'])
+    results = []
+    keys = list(set(all_data.keys()) - set(('SubjID',)))
+    for loop_key in keys:
+        results.append(sess.regress(key, loop_key, plot=plot, **kwargs))
+        if plot:
+            plt.show()
+
+def search_all_vs_itself(covariates, plot=False, **kwargs):
+    """For each pair of variables, look for a significant regression slope."""
+
+    def add_subplot(fh, *args):
+        return fh.add_subplot(*args) if plot else None
+
+    sess = PINGDataSession()  # username/password stored in an env variable for me.
+    sess.login()
+
+    all_data = compute_all_asymmetries(prefix=['MRI_cort_area', 'MRI_cort_thick',
+                                               'MRI_subcort_vol', 'DTI_fiber_vol'])
+    results = []
+    keys = list(set(all_data.keys()) - set(('SubjID',)))
+    for X in keys:
+        # Get relevant covariates
+        try:
+            added_covariates = sess.AI2flds(X)
+
+            # Then regress on each side
+            fh2 = plt.figure(figsize=(18, 6)) if plot else None
+            sess.regress(X.replace('_AI', '_LH_PLUS_RH'),
+                         X,
+                         covariates=covariates, plot=add_subplot(fh2, 1, 3, 1),
+                         **kwargs)
+            sess.regress(added_covariates[1],
+                         X,
+                         covariates=covariates + ['MRI_cort_area_ctx_total_LH_PLUS_RH'],
+                         plot=add_subplot(fh2, 1, 3, 2),
+                         **kwargs)
+            sess.regress('MRI_cort_area_ctx_total_LH_PLUS_RH',
+                         X,
+                         covariates=covariates,
+                         plot=add_subplot(fh2, 1, 3, 3),
+                         **kwargs)
+        except Exception as e:
+            print("Failed for %s (%s); moving on..." % (X, e))
+
+        if plot:
+            plt.show()
+
 if __name__ == '__main__':
     try:
         plt.figure()
     except:
-        plot=False
+        print "Plotting not available."
+        plot = False
     else:
-        plot=True
+        print "Plotting detected and will be used!"
+        plot = True
         plt.close()
 
-    search_all_asymmetries(plot=plot)
+    covariates = ['Age_At_IMGExam', 'Gender', 'FDH_23_Handedness_Prtcpnt']#, 'MRI_cort_area_ctx_total_LH_PLUS_RH']
+    cache_dir = 'download'
+
+    # search_all_pairwise(plot=plot, cache_dir=cache_dir, covariates=covariates + ['MRI_cort_area_ctx_total_LH_PLUS_RH'])
+    # search_all_vs_one(key='MRI_cort_area_ctx_total_LH_PLUS_RH', plot=plot, cache_dir=cache_dir, covariates=covariates)
+    search_all_vs_itself(plot=plot, cache_dir=cache_dir, covariates=covariates, abort_if_done=False)
     print_legend()
 
     if plot:
