@@ -13,7 +13,7 @@ import StringIO
 from matplotlib import pyplot as plt
 from scipy.stats import linregress
 
-from .download import compute_all_asymmetries
+from ..export import compute_all_asymmetries
 from ..access import PINGSession
 
 

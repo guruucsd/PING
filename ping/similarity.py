@@ -7,7 +7,7 @@ import scipy
 from matplotlib import pyplot as plt
 
 from .access import load_PING_data, which_hemi
-from .apps.download import get_all_derived_data
+from .export import get_all_derived_data
 
 
 def get_all_data(prefix):
