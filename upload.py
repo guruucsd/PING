@@ -1,4 +1,6 @@
 """
+Export all measures to a spreadsheet, then
+upload to the PING server.
 """
 from data import get_derived_data, EXPORTED_PING_SPREADSHEET
 from ping.apps.upload import PINGUploadSession
@@ -14,6 +16,6 @@ for key in sorted(export_data.keys()):
     print key
 
 # Upload the new spreadsheet.
-#sess = PINGUploadSession()
-#sess.login()
-#sess.upload_spreadsheet(EXPORTED_PING_SPREADSHEET)
+sess = PINGUploadSession()
+sess.login()
+sess.upload_spreadsheet(EXPORTED_PING_SPREADSHEET)
