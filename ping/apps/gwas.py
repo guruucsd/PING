@@ -37,7 +37,14 @@ class GWASSession(PINGSession):
             ids = [r['id'] for r in self.get_results_ids()
                            if r['yvalue'] == measure]
             self.log("Retrieving results for measure %s (%d ids found) ..." % (measure, len(ids)))
-            return [self.get_results(id=id, force=force, raw=raw, out_dir=out_dir) for id in ids]
+            results = []
+            for cur_id in ids:
+                try:
+                    results.append(self.get_results(id=cur_id, force=force,
+                                                    raw=raw, out_dir=out_dir))
+                except Exception as e:
+                    print "Failed to get id=%s: %s" % (cur_id, str(e))
+                    ids.append(None)
 
         # Fetch
         out_file = os.path.join(out_dir, '%s_GWAS.csv' % id)
