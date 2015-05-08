@@ -1,7 +1,6 @@
 import datetime
 import json
 import os
-import sys
 import time
 
 from ..access import PINGSession
@@ -92,17 +91,3 @@ class GWASSession(PINGSession):
         result_id = self.launch_run(measure=measure, covariates=covariates)
         results = self.get_results(measure=measure, force=True, raw=True, out_dir=out_dir)
         return results[-1]
-
-if __name__ == '__main__':
-    action = 'display' if len(sys.argv) == 1 else sys.argv[1]
-    measure = 'DTI_fiber_vol_CgC_AI' if len(sys.argv) <= 2 else sys.argv[2]
-    covariates = ['DTI_fiber_vol_AllFibnoCC_AI']  # ', 'DTI_fiber_vol_AllFibnoCC_AI', 'Gender', 'FDH_23_Handedness_Prtcpnt']  # MRI_cort_area_ctx_total_LH_PLUS_RH']
-    print action, measure, covariates
-
-    sess = GWASSession()  # username/password stored in an env variable for me.
-    sess.login()
-
-    if action == 'display':
-        print sess.get_results(measure=measure, force=True)
-    elif action == 'launch':
-        print sess.launch_and_retrieve_run(measure=measure, covariates=covariates)
