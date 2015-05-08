@@ -6,8 +6,8 @@ import numpy as np
 import scipy
 from matplotlib import pyplot as plt
 
-from .access import is_ai_prop_name, load_PING_data, which_hemi
-from .export import get_all_derived_data
+from .access import load_PING_data, which_hemi
+from .asymmetry import is_ai_prop_name
 
 
 def get_good_keys(all_data, filter_fn):
@@ -46,7 +46,7 @@ def build_similarity_matrix(all_data, good_keys=None, filter_fn=None, standardiz
         data_mat = scipy.stats.mstats.zscore(data_mat, axis=1)
         assert np.all(np.abs(data_mat.sum(axis=1)) < 1E-4)
     print "Found %d keys; removed %d subjects w/ missing data." % (
-        len(data_mat), bad_idx.sum())
+        data_mat.shape[1], bad_idx.sum())
 
     # Compute a correlation matrix
     dist_mat = scipy.spatial.distance.pdist(data_mat, 'correlation')
@@ -56,7 +56,7 @@ def build_similarity_matrix(all_data, good_keys=None, filter_fn=None, standardiz
     return corr_mat, good_keys
 
 
-def compare_similarity_matrices(vec1, vec2):
+def compare_similarity_vectors(vec1, vec2):
 
     # Make sure both similarity matrices are in vector form.
     if len(vec1.shape) == 2:
@@ -68,53 +68,54 @@ def compare_similarity_matrices(vec1, vec2):
     return scipy.stats.pearsonr(vec1, vec2)
 
 
-def compare_all_similarity_matrices(prefix=None):
-    prefix = prefix or ['MRI_cort_area', 'MRI_cort_thick',
-                        'MRI_subcort_vol', 'DTI_fiber_vol']
-
+def compute_similarity_matrices(data):
     filt_fns = {
-        'ai': is_ai_prop_name,
+        'ai': lambda key: is_ai_prop_name(key) and '_TOTAL' not in key,
         'left': lambda key: which_hemi(key) == 'lh',
         'right': lambda key: which_hemi(key) == 'rh'}
 
     sim_dict = dict()
-    key_dict = dict()
-    comp_dict = dict()
-    for p in prefix:
-        sim_dict[p], key_dict[p] = dict(), dict()
 
-        # 1. Compute similarity matrices
-        for mat_type, filt_fn in filt_fns.items():
-            print "Computing similarity matrix for %s, %s" % (mat_type, p)
+    # 1. Compute similarity matrices
+    for mat_type, filt_fn in filt_fns.items():
+        print "Computing similarity matrix for %s" % (mat_type)
 
-            all_data = get_all_data(prefix=p)
-            fn = lambda key: filt_fn(key) and key.startswith(p)
-            sim_mat, good_keys = build_similarity_matrix(all_data,
-                                                         filter_fn=fn,
-                                                         standardize=True)
-            sim_dict[p][mat_type] = sim_mat
-            key_dict[p][mat_type] = good_keys
+        sim_mat, good_keys = build_similarity_matrix(data,
+                                                     filter_fn=filt_fn,
+                                                     standardize=False)
+        sim_dict[mat_type] = sim_mat
+        print [v.shape for v in sim_dict.values()]
+    return sim_dict
 
-        # 2. Compare similarity matrices.
-        compare_keys = sim_dict[p].keys()
-        n_keys = len(compare_keys)
-        mat_compare_mat = np.zeros((n_keys * (n_keys - 1) / 2,))
-        mat_idx = 0
-        for ki, key1 in enumerate(compare_keys):
-            for kj in range(ki + 1, n_keys):
-                key2 = compare_keys[kj]
-                r, pval = compare_similarity_matrices(sim_dict[p][key1],
-                                                      sim_dict[p][key2])
-                print "%s vs. %s: r**2=%.3f (p=%.3f)" % (
-                    key1, key2, r**2, pval)
-                mat_compare_mat[mat_idx] = r
-                mat_idx += 1
 
-        # Visualize similarity matrices
-        fh = plt.figure(figsize=(16, 6))
-        for ki, key in enumerate(compare_keys):
-            ax = fh.add_subplot(1, n_keys, ki)
-            full_mat = scipy.spatial.distance.squareform(sim_dict[p][key])
-            full_mat += np.eye(full_mat.shape[0])
-            ax.imshow(full_mat, vmin=-1, vmax=1)
-            ax.set_title('%s: %s' % (p, key))
+def compare_similarity_matrices(sim_dict):
+    # 2. Compare similarity matrices.
+    compare_keys = sim_dict.keys()
+    n_keys = len(compare_keys)
+
+    mat_compare_mat = np.zeros((n_keys * (n_keys - 1) / 2,))
+    mat_idx = 0
+    for ki, key1 in enumerate(compare_keys):
+        for kj in range(ki + 1, n_keys):
+            key2 = compare_keys[kj]
+            r, pval = compare_similarity_vectors(sim_dict[key1],
+                                                  sim_dict[key2])
+            print "%s vs. %s: r**2=%.3f (p=%.3f)" % (
+                key1, key2, r**2, pval)
+            mat_compare_mat[mat_idx] = r
+            mat_idx += 1
+
+def visualize_similarity_matrices(sim_dict):
+    # Visualize similarity matrices
+    compare_keys = sim_dict.keys()
+    n_keys = len(compare_keys)
+
+    fh = plt.figure(figsize=(16, 6))
+    for ki, key in enumerate(compare_keys):
+        ax = fh.add_subplot(1, n_keys, ki)
+        full_mat = scipy.spatial.distance.squareform(sim_dict[key])
+        full_mat += np.eye(full_mat.shape[0])
+        ax.imshow(full_mat, vmin=-1, vmax=1)
+        ax.set_title(key)
+
+    return ax
