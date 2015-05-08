@@ -13,8 +13,6 @@ from ping.asymmetry import (get_asymmetry_index, get_ai_prop_name,
 from ping.export import export_all_data, merge_by_key
 from ping.multivariate import AsymmetryPCA
 
-EXPORTED_PING_SPREADSHEET = 'csv/PING_userdefined.csv'
-
 
 def compute_all_totals(prefix):
     """ Loop over all properties to show asymmetry."""
@@ -103,51 +101,43 @@ def combine_genetic_data(export_data, gene_file):
     return export_data
 
 
-def get_derived_data(prefix=None, csv_files=[], force=True):
-    prefix = prefix or []
-    data = None
-    if os.path.exists(EXPORTED_PING_SPREADSHEET) and not force:
-        print("Loading derived data...")
-        data = pandas.read_csv(EXPORTED_PING_SPREADSHEET)
+def get_derived_data(prefix=None):
+    if prefix is None:
+        prefix = []
+
+    print "Computing derived data..."
+    data = compute_all_asymmetries(prefix=prefix)
+    data = merge_by_key(data, compute_all_totals(prefix=prefix))
+
+    # Add principle components as a whole,
+    #   then for each prefix seperately.
+    try:
+        pc_dict = compute_component_loadings(prefix=prefix)
+    except Exception as e:
+        print "Skipping PCA: %s" % e
+    else:
+        recoded_keys = ['ALL_%s' % k if k != 'SubjID' else k
+                        for k in pc_dict.keys()]
+        data = merge_by_key(data, dict(zip(recoded_keys, pc_dict.values())))
+
         for p in prefix:
-            if not np.any([key.startswith(p) for key in data.keys()]):
-                data = None
-                break
-        if data is not None:
-            new_data = dict()
-            for key in data.keys():
-                new_data[key.replace('.', '_')] = data[key].as_matrix()
-            data = new_data
-
-    if data is None:
-        print "Computing derived data..."
-        data = compute_all_asymmetries(prefix=prefix)
-        data = merge_by_key(data, compute_all_totals(prefix=prefix))
-
-        # Add principle components as a whole,
-        #   then for each prefix seperately.
-        try:
-            pc_dict = compute_component_loadings(prefix=prefix)
-        except Exception as e:
-            print "Skipping PCA: %s" % e
-        else:
-            recoded_keys = ['ALL_%s' % k if k != 'SubjID' else k
+            pc_dict = compute_component_loadings(prefix=p)
+            recoded_keys = ['%s_%s' % (p, k) if k != 'SubjID' else k
                             for k in pc_dict.keys()]
             data = merge_by_key(data, dict(zip(recoded_keys, pc_dict.values())))
-
-            for p in prefix:
-                pc_dict = compute_component_loadings(prefix=p)
-                recoded_keys = ['%s_%s' % (p, k) if k != 'SubjID' else k
-                                for k in pc_dict.keys()]
-                data = merge_by_key(data, dict(zip(recoded_keys, pc_dict.values())))
-
-        data = combine_genetic_data(data, 'csv/frontalpole_genes.csv')
 
     return data
 
 
 def get_all_data(prefix, force=False):
     ping_data = copy.deepcopy(load_PING_data())
-    all_data = get_derived_data(prefix=prefix, force=force)
+    all_data = get_derived_data(prefix=prefix)
 
-    return merge_by_key(ping_data, all_data)
+    all_data = merge_by_key(ping_data, all_data)
+
+    # Now scrub every field.
+    for key, val in all_data.items():
+        if not isinstance(val, np.ndarray):
+            all_data[key] = np.asarray(val)
+
+    return all_data

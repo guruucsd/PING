@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 from scipy.stats import linregress
 
 from ..access import PINGSession
-from ..asymmetry import compute_all_asymmetries
+from ..computed_measures import compute_all_asymmetries
 
 
 class PINGDataSession(PINGSession):

@@ -3,7 +3,7 @@ Similarity matrix comparisons PING data.
 """
 from matplotlib import pyplot as plt
 
-from data import get_all_data
+from ping.computed_measures import get_all_data
 from ping.similarity import (compare_similarity_matrices,
                              compute_similarity_matrices,
                              visualize_similarity_matrices)
