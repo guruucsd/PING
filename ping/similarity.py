@@ -6,6 +6,7 @@ import numpy as np
 import scipy
 from matplotlib import pyplot as plt
 
+from .access import is_ai_prop_name, load_PING_data, which_hemi
 from .access import load_PING_data, which_hemi
 from .export import get_all_derived_data
 
@@ -84,9 +85,9 @@ def compare_all_similarity_matrices(prefix=None):
                         'MRI_subcort_vol', 'DTI_fiber_vol']
 
     filt_fns = {
-        'ai': (lambda key: key.endswith('_AI')),
-        'left': (lambda key: which_hemi(key) == 'lh'),
-        'right': (lambda key: which_hemi(key) == 'rh')}
+        'ai': is_ai_prop_name,
+        'left': lambda key: which_hemi(key) == 'lh',
+        'right': lambda key: which_hemi(key) == 'rh'}
 
     sim_dict = dict()
     key_dict = dict()

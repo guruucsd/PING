@@ -10,6 +10,7 @@ import pandas
 import numpy as np
 
 from ping.export import get_all_derived_data
+from ping.access import is_ai_prop_name
 from ping.utils import do_and_plot_regression
 from ping.apps.regress import find_one_relationship, skip_key, skip_pairing, search_all_vs_itself, search_all_pairwise
 
@@ -44,7 +45,7 @@ def search_all_vs_one(all_data, key, rsq_thresh=0., covariates=[], plot=False):
     results = []
     all_keys = list(set(all_data.keys()) - set(('SubjID', key)))
     for all_key in all_keys:
-        if not all_key.endswith('_AI'):
+        if not is_ai_prop_name(all_key):
             continue
         try:
             result = find_one_relationship(all_data,

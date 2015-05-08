@@ -62,6 +62,14 @@ class PINGSession(object):
         return out_text
 
 
+def get_lh_prop_name(prop_name):
+    return prop_name.replace('_rh_', '_lh_').replace('_Right_', '_Left_').replace('_R_', '_L_')
+
+
+def get_nonhemi_prop_name(prop_name):
+    return prop_name.replace('_rh_', '_').replace('_Right_', '_').replace('_R_', '_')
+
+
 def col2prop(col_name):
     return col_name.replace('-', '.')
 
