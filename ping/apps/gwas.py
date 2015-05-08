@@ -22,7 +22,7 @@ class GWASSession(PINGSession):
             self.log("Fetched %d result ID(s)" % len(self.result_ids))
         return self.result_ids
 
-    def get_results(self, id=None, measure=None, force=False, raw=False, out_dir='download'):
+    def get_results(self, id=None, measure=None, force=False, raw=False, out_dir='download/gwas'):
         """Can search by id or measure.
         Search by id returns a list of tuples,
             each tuple a triplet (SNP, effect size, pval)
@@ -87,7 +87,7 @@ class GWASSession(PINGSession):
         else:
             print resp.text
 
-    def launch_and_retrieve_run(self, measure, covariates=['Age_At_IMGExam'], out_dir='download'):
+    def launch_and_retrieve_run(self, measure, covariates=['Age_At_IMGExam'], out_dir='download/gwas'):
         result_id = self.launch_run(measure=measure, covariates=covariates)
         results = self.get_results(measure=measure, force=True, raw=True, out_dir=out_dir)
         return results[-1]
