@@ -22,8 +22,6 @@ class PINGDataSession(PINGSession):
     def __init__(self, *args, **kwargs):
         super(PINGDataSession, self).__init__(*args, **kwargs)
         self.result_ids = None  # current dictionary of result IDs
-        if '@' in self.username:
-            raise Exception('You must log in with your username, not email address, for these functions to work.')
 
     def expert_mode_script(self, X, Y, covariates=[], limits=[]):
         """Produce the necessary 'expert' script"""

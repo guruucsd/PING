@@ -17,7 +17,13 @@ class PINGSession(object):
     def __init__(self, username=None, passwd=None, verbosity=1):
         self.username = username or os.environ.get('PING_USERNAME')
         self.passwd = passwd or os.environ.get('PING_PASSWORD')
-        assert self.username is not None and self.passwd is not None, "Username & password must be specified, or read from environment variables PING_USERNAME and PING_PASSWORD"
+
+        if self.username is None:
+            raise ValueError("username must be specified, or read from environment variables PING_USERNAME")
+        elif '@' in self.username:
+            raise ValueError('You must log in with your username, not email address, for these functions to work.')
+        if self.passwd is None:
+            raise ValueError("password must be specified, or read from environment variables PING_PASSWORD")
 
         self.sess = None  # http session with server
         self.result_ids = None  # current dictionary of result IDs
