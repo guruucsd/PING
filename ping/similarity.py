@@ -105,6 +105,7 @@ def compare_similarity_matrices(sim_dict):
             mat_compare_mat[mat_idx] = r
             mat_idx += 1
 
+
 def visualize_similarity_matrices(sim_dict):
     # Visualize similarity matrices
     compare_keys = sim_dict.keys()

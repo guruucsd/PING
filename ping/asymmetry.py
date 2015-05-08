@@ -38,4 +38,3 @@ def get_asymmetry_index(data, prop_name, mask_nan=True):
     # Compute an asymmetry index
     prop_asymmetry = asymmetry_index(LH_data, RH_data, mask_nan=mask_nan)
     return prop_asymmetry
-
