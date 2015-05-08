@@ -126,16 +126,20 @@ def get_derived_data(prefix=None, csv_files=[], force=True):
 
         # Add principle components as a whole,
         #   then for each prefix seperately.
-        pc_dict = compute_component_loadings(prefix=prefix)
-        recoded_keys = ['ALL_%s' % k if k != 'SubjID' else k
-                        for k in pc_dict.keys()]
-        data = merge_by_key(data, dict(zip(recoded_keys, pc_dict.values())))
-
-        for p in prefix:
-            pc_dict = compute_component_loadings(prefix=p)
-            recoded_keys = ['%s_%s' % (p, k) if k != 'SubjID' else k
+        try:
+            pc_dict = compute_component_loadings(prefix=prefix)
+        except Exception as e:
+            print "Skipping PCA: %s" % e
+        else:
+            recoded_keys = ['ALL_%s' % k if k != 'SubjID' else k
                             for k in pc_dict.keys()]
             data = merge_by_key(data, dict(zip(recoded_keys, pc_dict.values())))
+
+            for p in prefix:
+                pc_dict = compute_component_loadings(prefix=p)
+                recoded_keys = ['%s_%s' % (p, k) if k != 'SubjID' else k
+                                for k in pc_dict.keys()]
+                data = merge_by_key(data, dict(zip(recoded_keys, pc_dict.values())))
 
         data = combine_genetic_data(data, 'csv/frontalpole_genes.csv')
 
@@ -143,11 +147,7 @@ def get_derived_data(prefix=None, csv_files=[], force=True):
 
 
 def get_all_data(prefix, force=False):
-    all_data = get_derived_data(prefix=prefix, force=force)
     ping_data = copy.deepcopy(load_PING_data())
+    all_data = get_derived_data(prefix=prefix, force=force)
 
-    for key in copy.deepcopy(ping_data.keys()):
-        if not np.any([key.startswith(p) for p in prefix]):
-            del ping_data[key]
-    all_data.update(ping_data)
-    return all_data
+    return merge_by_key(ping_data, all_data)

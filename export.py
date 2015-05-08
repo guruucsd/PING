@@ -1,5 +1,6 @@
 """
-Export
+Export derived measures spreadsheet
+(useful for upload to the data exploration tool)
 """
 from data import get_derived_data, EXPORTED_PING_SPREADSHEET
 from ping.export import export_all_data

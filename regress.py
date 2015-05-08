@@ -79,6 +79,7 @@ def print_legend():
 
 
 if __name__ == '__main__':
+    raise NotImplementedError("Broke this in the refactor.")
     local = False
 
 

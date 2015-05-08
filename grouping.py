@@ -91,6 +91,8 @@ def loop_show_asymmetry(prefix, grouping_prop_names=['FDH_23_Handedness_Prtcpnt'
 
 
 if __name__ == '__main__':
+    import warnings
+    warnings.warn('Code to group by handedness or gender should be extracted and generalized.')
     # Grey volume vs. thickness vs. area
     # vol_name = col2prop('MRI_subcort_vol-Right-Cerebral-Cortex')
     # thick_name = col2prop('MRI_cort_thick-ctx-rh-mean')
