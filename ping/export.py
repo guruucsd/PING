@@ -9,51 +9,27 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .access import load_PING_data, get_twohemi_keys
-from .utils import do_and_plot_regression
-
 
 def merge_by_key(dict1, dict2, merge_key='SubjID'):
 
+    # Make index mapping from dict1 into dict2
     all_idx = []
     for val in dict1[merge_key]:
-        if val in  dict2[merge_key]:
+        if val in dict2[merge_key]:
             all_idx.append(dict2[merge_key].tolist().index(val))
         else:
             all_idx.append(np.nan)
 
+    # Now reorder dict2 values to dict1
     out_dict = copy.copy(dict1)
-    for key in dict2.keys():
+    for key, vals in dict2.items():
         if key == merge_key:
             continue
-        vals = [dict2[idx] if np.logical_not(np.isnan(idx)) else np.nan
-                for idx in all_idx]
-        out_dict[key] = vals
+        reordered_vals = [vals[idx] if not np.isnan(idx) else np.nan
+                          for idx in all_idx]
+        out_dict[key] = reordered_vals
 
     return out_dict
-
-
-def combine_genetic_data(export_data, gene_file):
-    # Merge the two together.
-    with open(gene_file, 'rb') as fp:
-        gene_data = np.recfromcsv(fp)
-
-    all_idx = []
-    for subj_id in export_data['SubjID']:
-        x_subj_id = '"%s"' % subj_id
-        if x_subj_id in gene_data['subjid']:
-            all_idx.append(gene_data['subjid'].tolist().index(x_subj_id))
-        else:
-            all_idx.append(np.nan)
-
-    for key in gene_data.dtype.names:
-        if key == 'subjid':
-            continue
-        vals = [gene_data[idx] if np.logical_not(np.isnan(idx)) else np.nan
-                for idx in all_idx]
-        export_data[key] = vals
-
-    return export_data
 
 
 def update_data_dictionary(data_dict, update_dict=None, update_csv=None,

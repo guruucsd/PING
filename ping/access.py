@@ -92,7 +92,6 @@ def load_PING_data(scrub_fields=False, csv_path=None, username=None, passwd=None
 
         # Convert dots to underscores
         print("Converting PING data...")
-
         new_data = dict()
         for key in data.keys():
             if scrub_fields and '.' not in key:
@@ -111,8 +110,34 @@ def load_PING_data(scrub_fields=False, csv_path=None, username=None, passwd=None
         #     except Exception as e:
         #         print "Failed (%s): %s" % (key, e)
         PING_DATA = data
+
     return PING_DATA
 
+
+def get_tbx_data(data=None):
+    if data is None:
+        data = load_PING_data()
+    tbx_data = dict()
+    for key in data.keys():
+        if not key.startswith('TBX_'):
+            continue
+        if data[key].dtype.name in ['string', 'object']:
+            continue
+        tbx_data[key] = data[key][good_subj_idx]
+    return tbx_data
+
+
+def get_fdh_data(data=None):
+    if data is None:
+        data = load_PING_data()
+    fdh_data = dict()
+    for key in data.keys():
+        if not key.startswith('FDH_'):
+            continue
+        if data[key].dtype.name in ['string', 'object']:
+            continue
+        fdh_data[key] = data[key][good_subj_idx]
+    return fdh_data
 
 def which_hemi(key):
     rh_markers = ['Right', '_rh_', '_R_']

@@ -3,8 +3,7 @@ Functions related to asymmetry
 """
 import numpy as np
 
-from .access import (get_bilateral_hemi_keys, get_twohemi_keys,
-                     get_nonhemi_prop_name)
+from .access import get_bilateral_hemi_keys, get_nonhemi_prop_name
 
 
 def get_ai_prop_name(rh_prop_name):
@@ -40,31 +39,3 @@ def get_asymmetry_index(data, prop_name, mask_nan=True):
     prop_asymmetry = asymmetry_index(LH_data, RH_data, mask_nan=mask_nan)
     return prop_asymmetry
 
-
-def compute_all_asymmetries(prefix):
-    """ Loop over all properties to show asymmetry."""
-    data = load_PING_data(scrub_fields=False)
-
-    export_data = dict((('SubjID', data['SubjID'],),))
-
-    # Process & plot the data.
-    for prop_name in get_twohemi_keys(prefix, data.keys()):
-        dest_prop_name = get_ai_prop_name(prop_name)
-        export_data[dest_prop_name] = get_asymmetry_index(data, prop_name,
-                                                          mask_nan=False)
-
-    # Add one property for total asymmetry
-    n_subj = len(data['SubjID'])
-    for p in prefix:
-        total_asymmetry = np.zeros((n_subj,))
-        good_keys = filter(lambda k: k.startswith(p) and is_ai_prop_name(k),
-                           export_data.keys())
-        for key in good_keys:
-            values = export_data[key].copy()
-            values[np.isnan(values)] = 0.
-            total_asymmetry += export_data[key]**2
-        total_ai_key = get_ai_prop_name(p + '_TOTAL')
-        export_data[total_ai_key] = np.sqrt(total_asymmetry)
-        assert len(export_data[total_ai_key]) == n_subj
-
-    return export_data

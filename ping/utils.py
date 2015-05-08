@@ -6,6 +6,15 @@ import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
 
+def filter_dict(d, filter_fn):
+    out_dict = dict()
+    for key, val in d.items():
+        if filter_fn(key, val):
+            out_dict[key] = val
+
+    return out_dict
+
+
 def do_and_plot_regression(X, Y, covariates=[], xlabel='', ylabel='', title='', ax=None):
     assert not np.any(np.isnan(X))
     assert not np.any(np.isnan(Y))
