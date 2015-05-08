@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import pandas
 import numpy as np
 
-from ping.export import get_all_derived_data
+from export import get_derived_data
 from ping.access import is_ai_prop_name
 from ping.utils import do_and_plot_regression
 from ping.apps.regress import find_one_relationship, skip_key, skip_pairing, search_all_vs_itself, search_all_pairwise
@@ -84,8 +84,8 @@ if __name__ == '__main__':
 
 
     if local:
-        all_data = get_all_derived_data(prefix=['MRI_cort_area', 'MRI_cort_thick',
-                                                'MRI_subcort_vol', 'DTI_fiber_vol'])
+        all_data = get_derived_data(prefix=['MRI_cort_area', 'MRI_cort_thick',
+                                            'MRI_subcort_vol', 'DTI_fiber_vol'])
         # search_all_pairwise(all_data)
 
         # search_all_vs_one(all_data, key='MRI_cort_area_ctx_total_LH_PLUS_RH', rsq_thresh=0.0015, plot=False)

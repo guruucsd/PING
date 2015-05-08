@@ -2,32 +2,35 @@
 File for investigating asymmetry from PING data, based on each subject's
 asymmetry index
 """
+import copy
+import csv
 import os
 
-import csv
 import matplotlib.pyplot as plt
 import numpy as np
 
 from .access import load_PING_data, get_twohemi_keys
 from .utils import do_and_plot_regression
 
-EXPORTED_PING_SPREADSHEET = 'csv/PING.csv'
 
+def merge_by_key(dict1, dict2, merge_key='SubjID'):
 
-def compute_all_totals(prefix):
-    """ Loop over all properties to show asymmetry."""
-    data = load_PING_data(scrub_fields=False)
+    all_idx = []
+    for val in dict1[merge_key]:
+        if val in  dict2[merge_key]:
+            all_idx.append(dict2[merge_key].tolist().index(val))
+        else:
+            all_idx.append(np.nan)
 
-    export_data = dict((('SubjID', data['SubjID'],),))
+    out_dict = copy.copy(dict1)
+    for key in dict2.keys():
+        if key == merge_key:
+            continue
+        vals = [dict2[idx] if np.logical_not(np.isnan(idx)) else np.nan
+                for idx in all_idx]
+        out_dict[key] = vals
 
-    # Process & plot the data.
-    for prop_name in get_twohemi_keys(prefix, data.keys()):
-        lh_prop_name = prop_name.replace('_rh_', '_lh_').replace('_Right_', '_Left_').replace('_R_', '_L_')
-        dest_prop_name = prop_name.replace('_rh_', '_').replace('_Right_', '_').replace('_R_', '_')
-        dest_prop_name += '_LH_PLUS_RH'
-        export_data[dest_prop_name] = data[prop_name] + data[lh_prop_name]
-
-    return export_data
+    return out_dict
 
 
 def combine_genetic_data(export_data, gene_file):
@@ -38,7 +41,7 @@ def combine_genetic_data(export_data, gene_file):
     all_idx = []
     for subj_id in export_data['SubjID']:
         x_subj_id = '"%s"' % subj_id
-        if x_subj_id in  gene_data['subjid']:
+        if x_subj_id in gene_data['subjid']:
             all_idx.append(gene_data['subjid'].tolist().index(x_subj_id))
         else:
             all_idx.append(np.nan)
@@ -53,27 +56,33 @@ def combine_genetic_data(export_data, gene_file):
     return export_data
 
 
-def get_all_derived_data(prefix=None, force=True):
-    prefix = prefix or []
-    data = None
-    if os.path.exists(EXPORTED_PING_SPREADSHEET) and not force:
-        print("Loading derived data...")
-        data = pandas.read_csv(EXPORTED_PING_SPREADSHEET)
-        for p in prefix:
-            if not np.any([key.startswith(p) for key in data.keys()]):
-                data = None
-                break
-        if data is not None:
-            new_data = dict()
-            for key in data.keys():
-                new_data[key.replace('.', '_')] = data[key]
-            data = new_data
+def update_data_dictionary(data_dict, update_dict=None, update_csv=None,
+                           data_type=None):
+    assert int(update_dict is None) + int(update_csv is None) == 1, "Dict or file"
 
-    if data is None:
-        print "Computing derived data..."
-        data = compute_all_asymmetries(prefix=prefix)
-        data.update(compute_all_totals(prefix=prefix))
-        data = combine_genetic_data(data, 'csv/frontalpole_genes.csv')
+    if update_dict is not None:
+        if 'SubjID' in data_dict and 'SubjID' in update_dict:
+            out_dict = merge_by_key(data_dict, update_dict, merge_key='SubjID')
+        elif len(data_dict.values()[0]) == len(update_dict.values()[0]):
+            # Same length, assume they match.
+            out_dict = copy.copy(data_dict)
+            out_dict.update(update_dict)
+        else:
+            raise ValueError('Cannot combine dicts; no SubjID field and data are different sizes.')
+
+    else:
+        # Below here, using csv_file
+        if data_type is None:
+            # Merge the two together.
+            with open(gene_file, 'rb') as fp:
+                csv_data = np.recfromcsv(fp)
+            out_dict = copy.copy(data_dict)
+            out_dict.update(csv_data)
+        elif data_type == 'genetic':
+            out_dict = copy.copy(data_dict)
+            out_dict = combine_genetic_data(out_dict, csv_file)
+        else:
+            raise NotImplementedError(data_type)
 
     return data
 

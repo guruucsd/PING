@@ -7,19 +7,7 @@ import scipy
 from matplotlib import pyplot as plt
 
 from .access import is_ai_prop_name, load_PING_data, which_hemi
-from .access import load_PING_data, which_hemi
 from .export import get_all_derived_data
-
-
-def get_all_data(prefix):
-    all_data = get_all_derived_data(prefix=prefix)
-    ping_data = copy.deepcopy(load_PING_data())
-
-    for key in copy.deepcopy(ping_data.keys()):
-        if not np.any([key.startswith(p) for p in prefix]):
-            del ping_data[key]
-    all_data.update(ping_data)
-    return all_data
 
 
 def get_good_keys(all_data, filter_fn):
