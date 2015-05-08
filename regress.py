@@ -6,11 +6,10 @@ import os
 
 import csv
 import matplotlib.pyplot as plt
-import pandas
 import numpy as np
 
 from export import get_derived_data
-from ping.access import is_ai_prop_name
+from ping.asymmetry import is_ai_prop_name
 from ping.utils import do_and_plot_regression
 from ping.apps.regress import find_one_relationship, skip_key, skip_pairing, search_all_vs_itself, search_all_pairwise
 
