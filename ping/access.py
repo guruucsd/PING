@@ -125,21 +125,22 @@ def which_hemi(key):
         return None
 
 
-def get_twohemi_keys(prefix, all_keys):
+def get_twohemi_keys(all_keys, prefix=None):
     """Given a key prefix, get all keys that have left/right pairs."""
 
     # Massage inputs
-    if not isinstance(prefix, list):
-        prefix = [prefix]
-    prefix = np.asarray(prefix)
+    if prefix is not None:
+        if not isinstance(prefix, list):
+            prefix = [prefix]
+        prefix = np.asarray(prefix)
 
     good_keys = []
     for prop_name in all_keys:
-        if (which_hemi(prop_name) != 'rh' or
-                not np.any([p in prop_name for p in prefix])):
+        if which_hemi(prop_name) != 'rh':
+            continue
+        elif prefix is not None and not np.any([p in prop_name for p in prefix]):
             continue
         if 'vent' in prop_name.lower() and 'ventral' not in prop_name.lower():
-            print("Skipping %s" % prop_name)
             continue
         good_keys.append(prop_name)
     return np.asarray(good_keys)

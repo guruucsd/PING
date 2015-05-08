@@ -12,7 +12,7 @@ def compute_all_totals(prefix):
     export_data = dict((('SubjID', data['SubjID'],),))
 
     # Process & plot the data.
-    for prop_name in get_twohemi_keys(prefix, data.keys()):
+    for prop_name in get_twohemi_keys(data.keys(), prefix=prefix):
         lh_prop_name = get_lh_prop_name(prop_name)
         dest_prop_name = get_nonhemi_prop_name(prop_name)
         dest_prop_name += '_LH_PLUS_RH'

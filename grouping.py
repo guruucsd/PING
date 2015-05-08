@@ -83,7 +83,7 @@ def loop_show_asymmetry(prefix, grouping_prop_names=['FDH_23_Handedness_Prtcpnt'
     data = load_PING_data()
 
     # Process & plot the data.
-    for pi, prop_name in enumerate(get_twohemi_keys(prefix, data.keys())):
+    for pi, prop_name in enumerate(get_twohemi_keys(data.keys(), prefix=prefix)):
         compare_group_asymmetry(data, prop_name=prop_name,
                                 grouping_prop_names=grouping_prop_names)
         print pi
