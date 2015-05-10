@@ -54,7 +54,7 @@ class GWASSession(PINGSession):
                 out_text = '\n'.join(fp.readlines())
         else:
             self.log("Retrieving results for id=%s ..." % id)
-            out_text = self.download_file('applications/GWAS/downloadRunResult.php?project_name={project_name}&id=%s') % id,
+            out_text = self.download_file('applications/GWAS/downloadRunResult.php?project_name={project_name}&id=%s' % id,
                                           out_file=out_file)
             if out_text == '':
                 os.remove(out_file)
@@ -79,7 +79,7 @@ class GWASSession(PINGSession):
 
             start_time = datetime.datetime.now()
             resp = self.make_request('applications/GWAS/startRun.php?project_name={project_name}&com=%s&covariates=%s' % (
-                                         measure, '+'.join(covariates))
+                                         measure, '+'.join(covariates)))
             time_diff = datetime.datetime.now() - start_time
 
             self.log("Completed run for measure=%s (time=%s)" % (measure, str(time_diff)))
