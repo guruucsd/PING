@@ -25,48 +25,14 @@ class PINGDataSession(PINGSession):
 
     def expert_mode_script(self, X, Y, covariates=[], limits=[]):
         """Produce the necessary 'expert' script"""
-        limits = '\n'.join(['data <- data[data$%s,]' % lim for lim in limits])
-        return """dependent.measure     = "{Y}"
-covariates.usr        = "{covariates}"
-covariates.ses        = "FDH_Highest_Education + FDH_3_Household_Income"
-covariates.dev        = "DeviceSerialNumber"
-covariates.gaf        = "GAF_africa + GAF_amerind + GAF_eastAsia + GAF_oceania + GAF_centralAsia"
-independent.variable  = "{X}"
-smoothing.interaction = ""
 
-{limits}""".format(X=X, Y=Y, covariates='+'.join(covariates), limits=limits)
+        ems = super(PINGDataSession, self).expert_mode_script(
+                  X=X, Y=Y, covariates=covariates)
+        limits_script = '\n'.join(['data <- data[data$%s,]' % lim
+                                   for lim in limits])
+        return '%s\n%s' % (ems, limits_script)
 
-    def regress(self, X, Y, covariates=[], limits=[], plot=False, cache_dir='.', force=False, abort_if_done=True):
-        """Do the regression remotely (via R), compile result, plot and save locally.
-        """
-        cookie = np.random.randint(1000)
-        payload = {
-            '_v': '',
-            'cookie': cookie,
-            'user_name': self.username,
-            'project_name': self.project_name,
-            'command': '+'.join(covariates),
-            'yvalue': Y,
-            'functionOf': X,
-            'interaction': '',
-            'expert': self.expert_mode_script(X, Y, covariates, limits)}
-        out_files = [os.path.join(cache_dir, '%s_%s.txt') % (
-                         hashlib.md5(payload['expert'].encode()).hexdigest(),
-                         ftype)
-                     for ftype in ['executeR', 'tsv']]
-
-        # First, generate the regression and store the result.
-        if os.path.exists(out_files[0]) and not force:
-            if abort_if_done:
-                return
-            with open(out_files[0], 'r') as fp:
-                r_text = '\n'.join(fp.readlines())
-        else:
-            self.log("Computing regression for %s vs. %s..." % (X, Y))
-            r_text = self.download_file('applications/DataExploration/executeR.php',
-                                        verb='post', data=payload,
-                                        out_file=out_files[0])
-
+    def parse_regression_summary(self, r_text):
         # Parse the regression result
         error_prog = re.compile('.*Error in (.+)<br>Execution halted<br>',
                                 re.MULTILINE | re.IGNORECASE)
@@ -82,11 +48,53 @@ smoothing.interaction = ""
         else:
             raise Exception("Could not parse output: %s" % r_text)
 
+        return outputs
+
+    def parse_and_display_regression(self, tsv_text, plot=False):
+        try:
+            rec = np.recfromcsv(StringIO.StringIO(tsv_text))
+        except Exception as e:
+            raise Exception("Failed to parse data response (%s): %s" % (tsv_text, e))
+        else:
+            self.log("Retrieved: %s" % str(rec.dtype.names))
+
+        # Display the result
+        if plot:
+
+            if isinstance(plot, bool):
+                ax = plt.figure().gca()
+            else:
+                ax = plot
+            find_one_relationship(rec, X.lower().replace('.', ''), Y.lower().replace('.', ''), plot=ax)
+            ax.set_title('%s\n%s' % (ax.get_title(), '\n'.join(covariates[3:])))
+
+    def regress(self, X, Y, covariates=[], limits=[], plot=False, cache_dir='.', force=False, abort_if_done=True):
+        """Do the regression remotely (via R), compile result, plot and save locally.
+        """
+        ems = self.expert_mode_script(X, Y, covariates, limits)
+        out_files = [os.path.join(cache_dir, '%s_%s.txt') % (
+                         hashlib.md5(ems.encode()).hexdigest(),
+                         ftype)
+                     for ftype in ['executeR', 'tsv']]
+
+        # First, generate the regression and store the result.
+        if os.path.exists(out_files[0]) and not force:
+            if abort_if_done:
+                return  # Don't continue long script if regression is complete.
+            with open(out_files[0], 'r') as fp:
+                r_text = '\n'.join(fp.readlines())
+        else:
+            self.log("Computing regression (remotely) for %s vs. %s..." % (
+                X, Y))
+            r_text = super(PINGDataSession, self).regress(
+                         X=X, Y=Y, covariates=covariates,
+                         expert=ems)
+
+        # Parse the result (exception if parse fails)
+        outputs = self.parse_regression_summary(r_text)
+
         # Next, retrieve the raw data.
         if os.path.exists(out_files[1]) and not force:
-            dir_path = os.path.dirname(out_files[0])
-            if not os.path.exists(dir_path):
-                os.makedirs(dir_path)
             with open(out_files[1], 'r') as fp:
                 tsv_text = '\n'.join(fp.readlines())
 
@@ -97,21 +105,8 @@ smoothing.interaction = ""
                                           out_file=out_files[1])
 
         # Parse the raw data
-        try:
-            rec = np.recfromcsv(StringIO.StringIO(tsv_text))
-        except Exception as e:
-            raise Exception("Failed to parse data response (%s): %s" % (tsv_text, e))
-        else:
-            self.log("Retrieved: %s" % str(rec.dtype.names))
+        rec = self.parse_and_display_regression(tsv_text, plot=plot)
 
-        # Display the result
-        if plot:
-            if isinstance(plot, bool):
-                ax = plt.figure().gca()
-            else:
-                ax = plot
-            find_one_relationship(rec, X.lower().replace('.', ''), Y.lower().replace('.', ''), plot=ax)
-            ax.set_title('%s\n%s' % (ax.get_title(), '\n'.join(covariates[3:])))
         return outputs, rec
 
     def AI2flds(self, AI):
