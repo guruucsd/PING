@@ -4,6 +4,7 @@ downloading subject SNP info from the SNP browser.
 """
 import csv
 import json
+import os
 import subprocess
 import sys
 
@@ -21,10 +22,17 @@ class PINGSNPSession(PINGSession):
     as well as download user-data for specific snps.
     """
 
+    genes_metadata_file = 'csv/genes/PING_gene_annotate.json'
+    SNP_metadata_file = 'csv/genes/PING_SNPs.txt'
+
     def get_genes_dict(self):
         global GENES
         if GENES is None:
-            GENES = json.load(open('csv/genes/PING_gene_annotate.json'))
+            if not os.path.exists(self.genes_metadata_file):
+                self.log("Downloading PING genes metadata...")
+                self.download_file('data/PING/data_uncorrected/SNPs/PING_gene_annotate.json',
+                                   out_file=self.genes_metadata_file)
+            GENES = json.load(open(self.genes_metadata_file, 'r'))
             GENES = np.asarray(GENES['data'])
         return GENES
 
@@ -37,7 +45,11 @@ class PINGSNPSession(PINGSession):
         return all_genes[idx]
 
     def get_snp_metadata(self, snp):
-        snp_reader = csv.reader(open('csv/genes/PING_SNPs.txt'))
+        if not os.path.exists(self.SNP_metadata_file):
+            self.log("Downloading PING SNP metadata...")
+            self.download_file('data/PING/data_uncorrected/SNPs/PING_SNPs.txt',
+                               out_file=self.SNP_metadata_file)
+        snp_reader = csv.reader(open(self.NP_metadata_file, 'r'))
         next(snp_reader)  # skip header
 
         for row in snp_reader:
@@ -79,28 +91,36 @@ class PINGSNPSession(PINGSession):
         Given a gene name, or entry in the gene metadata dictionary,
         return all SNPs for the PING study.
         """
+
+        # Prep the overall gene info
         if isinstance(gene, six.string_types):
             gene_metadata = self.get_gene_metadata(gene)
         else:
             gene_metadata = gene
-
-        matched_snps = []
-        snp_reader = csv.reader(open('csv/genes/PING_SNPs.txt'))
-
         all_chromosomes = [int(g[1][3:]) for g in gene_metadata]
         min_chromosome = np.min(all_chromosomes)
         max_chromosome = np.max(all_chromosomes)
 
+        # Prep a stream of the SNP info
+        if not os.path.exists(self.SNP_metadata_file):
+            self.log("Downloading PING SNP metadata...")
+            self.download_file('data/PING/data_uncorrected/SNPs/PING_SNPs.txt',
+                               out_file=self.SNP_metadata_file)
+        snp_reader = csv.reader(open(self.SNP_metadata_file, 'r'))
         next(snp_reader)  # skip header
+
+        # Loop over each SNP in the file, saving matches
+        matched_snps = []
         for row in snp_reader:
             # Format: ['SNP', 'Chromosome', 'Basepair', 'Allele1', 'Allele2']
 
             if int(row[1]) < min_chromosome or max_chromosome < int(row[1]):
-                continue
+                continue  # Wrong chromosome, no need to process further!
 
             cur_chromosome = 'chr%s' % row[1]
             cur_basepair = int(row[2])
 
+            # Search over the requested genes to see if we have a match.
             for gene in gene_metadata:
                 if (cur_chromosome == (chromosome or gene[1]) and
                         int(gene[3]) - range/2 <= cur_basepair and
