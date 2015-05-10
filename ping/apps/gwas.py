@@ -17,7 +17,8 @@ class GWASSession(PINGSession):
         self.log("Retrieving all result IDs ...")
 
         if self.result_ids is None or force:
-            resp = self.sess.get('https://ping-dataportal.ucsd.edu/applications/GWAS/getListOfRuns.php?project_name=PING')
+            url = self.make_url('applications/GWAS/getListOfRuns.php?project_name={project_name}')
+            resp = self.sess.get(url)
             self.result_ids = json.loads(resp.text)['runs']
             self.log("Fetched %d result ID(s)" % len(self.result_ids))
         return self.result_ids
@@ -54,7 +55,7 @@ class GWASSession(PINGSession):
                 out_text = '\n'.join(fp.readlines())
         else:
             self.log("Retrieving results for id=%s ..." % id)
-            url = 'https://ping-dataportal.ucsd.edu/applications/GWAS/downloadRunResult.php?project_name=PING&id=%s' % id
+            url = self.make_url('applications/GWAS/downloadRunResult.php?project_name={project_name}&id=%s') % id
             resp = self.sess.get(url)
             out_text = str(resp.text)
             if out_text == '':
@@ -87,7 +88,7 @@ class GWASSession(PINGSession):
             #     return
 
             start_time = datetime.datetime.now()
-            url = 'https://ping-dataportal.ucsd.edu/applications/GWAS/startRun.php?project_name=PING&com=%s&covariates=%s' % (
+            url = self.make_url('applications/GWAS/startRun.php?project_name={project_name}&com=%s&covariates=%s') % (
                 measure, '+'.join(covariates))
             print(url)
             resp = self.sess.get(url)

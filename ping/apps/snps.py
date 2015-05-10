@@ -113,7 +113,7 @@ class PINGSNPSession(PINGSession):
 
     def download_snps(self, all_snps):
         """Download actual data from subjects"""
-        template_url = 'https://ping-dataportal.ucsd.edu/applications/SNPs/download.php?_v=&project_name=PING&snps=%s'
+        template_url = self.make_url('applications/SNPs/download.php?_v=&project_name={project_name}&snps=%s')
         fetch_url = template_url % ('%0A'.join([s[0] for s in all_snps]))
         print(fetch_url)
         import pdb; pdb.set_trace()
