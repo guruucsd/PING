@@ -50,6 +50,9 @@ def update_data_dictionary(data_dict, update_dict=None, update_csv=None,
         # Below here, using csv_file
         if data_type is None:
             # Merge the two together.
+            dir_path = os.path.dirname(gene_file)
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
             with open(gene_file, 'r') as fp:
                 csv_data = np.recfromcsv(fp)
             out_dict = copy.copy(data_dict)
@@ -66,6 +69,10 @@ def update_data_dictionary(data_dict, update_dict=None, update_csv=None,
 def export_all_data(export_data, out_file):
 
     keys = list(export_data.keys())
+
+    dir_path = os.path.dirname(out_file)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
 
     # Now export as csv
     with open(out_file, 'w') as fp:

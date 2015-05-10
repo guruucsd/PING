@@ -61,6 +61,11 @@ class GWASSession(PINGSession):
 
         # Cache the result
         if not os.path.exists(out_file):
+            # Make the directory, write the file.
+            dir_path = os.path.dirname(out_file)
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
+
             with open(out_file, 'w') as fp:
                 fp.write(out_text)
             self.log("Wrote results to disk at %s." % out_file)

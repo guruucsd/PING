@@ -56,6 +56,10 @@ class PINGSession(object):
         out_text = str(resp.text)
 
         if out_file:
+            # Make the directory and dump the file.
+            dir_path = os.path.dirname(out_file)
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
             with open(out_file, 'w') as fp:
                 fp.write(out_text)
 

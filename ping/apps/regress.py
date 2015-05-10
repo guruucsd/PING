@@ -66,6 +66,10 @@ smoothing.interaction = ""
             self.log("Computing regression for %s vs. %s..." % (X, Y))
             resp = self.sess.post(url, data=payload)
             r_text = str(resp.text)
+
+            dir_path = os.path.dirname(out_files[0])
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
             with open(out_files[0], 'w') as fp:
                 fp.write(r_text)
 
@@ -86,8 +90,12 @@ smoothing.interaction = ""
 
         # Next, retrieve the raw data.
         if os.path.exists(out_files[1]) and not force:
+            dir_path = os.path.dirname(out_files[0])
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
             with open(out_files[1], 'r') as fp:
                 tsv_text = '\n'.join(fp.readlines())
+
         else:
             self.log('Retrieving raw data...')
             resp = self.sess.get('https://ping-dataportal.ucsd.edu/applications/DataExploration/curves/%s_PING_curves/%s_PING_Corrected%d.tsv?cache=false' % (
