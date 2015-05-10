@@ -3,7 +3,7 @@ import json
 import os
 import time
 
-from ..access import PINGSession
+from . import PINGSession
 
 
 class GWASSession(PINGSession):

@@ -1,7 +1,7 @@
 """
 Upload a custom spreadsheet from the command-line
 """
-from ..access import PINGSession
+from . import PINGSession
 
 
 class PINGUploadSession(PINGSession):

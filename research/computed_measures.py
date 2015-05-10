@@ -6,12 +6,12 @@ import os
 import numpy as np
 import pandas
 
+from .asymmetry import (get_asymmetry_index, get_ai_prop_name,
+                        is_ai_prop_name)
+from .multivariate import AsymmetryPCA
 from ping.access import (get_lh_prop_name, get_nonhemi_prop_name,
                          load_PING_data, get_twohemi_keys)
-from ping.asymmetry import (get_asymmetry_index, get_ai_prop_name,
-                            is_ai_prop_name)
-from ping.export import export_all_data, merge_by_key
-from ping.multivariate import AsymmetryPCA
+from ping.data.export import export_all_data, merge_by_key
 
 
 def compute_all_totals(prefix):

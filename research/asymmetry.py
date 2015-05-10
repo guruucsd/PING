@@ -3,7 +3,7 @@ Functions related to asymmetry
 """
 import numpy as np
 
-from .access import get_bilateral_hemi_keys, get_nonhemi_prop_name
+from ping.access import get_bilateral_hemi_keys, get_nonhemi_prop_name
 
 
 def get_ai_prop_name(rh_prop_name):

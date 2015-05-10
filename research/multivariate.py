@@ -5,10 +5,10 @@ import numpy as np
 from scipy.stats import pearsonr
 from sklearn.decomposition import PCA
 
-from .access import (load_PING_data, get_twohemi_keys,
-                     get_fdh_data, get_tbx_data)
 from .asymmetry import get_asymmetry_index, is_ai_prop_name
-from .utils import do_and_plot_regression
+from ping.access import (load_PING_data, get_twohemi_keys,
+                           get_fdh_data, get_tbx_data)
+from ping.utils import do_and_plot_regression
 
 
 class AsymmetryPCA(object):

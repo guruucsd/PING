@@ -7,8 +7,8 @@ import copy
 import numpy as np
 
 from ping.access import load_PING_data
-from ping.computed_measures import get_derived_data
-from ping.export import (export_all_data, merge_by_key)
+from ping.data.export import (export_all_data, merge_by_key)
+from research.computed_measures import get_derived_data
 
 EXPORTED_PING_SPREADSHEET = 'csv/PING_userdefined.csv'
 

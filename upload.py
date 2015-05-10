@@ -5,9 +5,9 @@ upload to the PING server.
 import sys
 
 from export import EXPORTED_PING_SPREADSHEET
-from ping.computed_measures import get_derived_data
 from ping.apps.upload import PINGUploadSession
-from ping.export import export_all_data
+from ping.data.export import export_all_data
+from research.computed_measures import get_derived_data
 
 
 # Export the relevant data

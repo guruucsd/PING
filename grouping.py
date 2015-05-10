@@ -9,10 +9,10 @@ import numpy as np
 import scipy.stats
 
 from ping.access import col2prop, load_PING_data, get_twohemi_keys
-from ping.asymmetry import get_asymmetry_index
 from ping.utils import do_and_plot_regression
 from ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
                                  equalize_xlims, equalize_ylims)
+from research.asymmetry import get_asymmetry_index
 
 
 def make_groups(data, grouping_prop_names):
