@@ -2,8 +2,8 @@
 Run the data browser tools from the command-line.
 """
 import datetime
+import hashlib
 import json
-import md5
 import os
 import re
 
@@ -51,21 +51,22 @@ smoothing.interaction = ""
             'interaction': '',
             'expert': self.expert_mode_script(X, Y, covariates, limits)}
         out_files = [os.path.join(cache_dir, '%s_%s.txt') % (
-                         md5.md5(payload['expert']).hexdigest(), ftype)
+                         hashlib.md5(payload['expert'].encode()).hexdigest(),
+                         ftype)
                      for ftype in ['executeR', 'tsv']]
 
         # First, generate the regression and store the result.
         if os.path.exists(out_files[0]) and not force:
             if abort_if_done:
                 return
-            with open(out_files[0], 'rb') as fp:
+            with open(out_files[0], 'r') as fp:
                 r_text = '\n'.join(fp.readlines())
         else:
             url = 'https://ping-dataportal.ucsd.edu/applications/DataExploration/executeR.php'
             self.log("Computing regression for %s vs. %s..." % (X, Y))
             resp = self.sess.post(url, data=payload)
             r_text = str(resp.text)
-            with open(out_files[0], 'wb') as fp:
+            with open(out_files[0], 'w') as fp:
                 fp.write(r_text)
 
         # Parse the regression result
@@ -85,14 +86,14 @@ smoothing.interaction = ""
 
         # Next, retrieve the raw data.
         if os.path.exists(out_files[1]) and not force:
-           with open(out_files[1], 'rb') as fp:
+            with open(out_files[1], 'r') as fp:
                 tsv_text = '\n'.join(fp.readlines())
         else:
             self.log('Retrieving raw data...')
             resp = self.sess.get('https://ping-dataportal.ucsd.edu/applications/DataExploration/curves/%s_PING_curves/%s_PING_Corrected%d.tsv?cache=false' % (
                 self.username, self.username, cookie))
             tsv_text = str(resp.text)
-            with open(out_files[1], 'wb') as fp:
+            with open(out_files[1], 'w') as fp:
                 fp.write(tsv_text)
 
         # Parse the raw data
@@ -182,7 +183,7 @@ def skip_pairing(key1, key2):
 
 def find_one_relationship(all_data, key1, key2, covariates=[],
                           rsq_thresh=0., plot=False):
-    print key1, key2, covariates
+    print(key1, key2, covariates)
 
     # Limit to data without nan
     idx = np.ones(all_data[key1].shape, dtype=bool)
@@ -279,7 +280,7 @@ def search_all_pairwise(plot=True, **kwargs):
                 result = sess.regress_multistep(key1, key2, plot=plot, **kwargs)
                 results.append(result)
             except Exception as e:
-                print "Exception: %s" % str(e)
+                print("Exception: %s" % str(e))
             else:
                 if plot:
                     if result is None:

@@ -42,7 +42,7 @@ class AsymmetryPCA(object):
 
         good_keys = np.asarray(good_keys)
         data_mat = np.asarray(data_mat)
-        print data_mat.shape
+        print(data_mat.shape)
 
         # Eliminate subjects with zero asymmetry in anything (likely artifacts)
         key_nan_idx = np.isnan(data_mat).sum(1) >= 0.95 * data_mat.shape[1]
@@ -57,9 +57,9 @@ class AsymmetryPCA(object):
                                                      noasymm_idx))
         data_mat = data_mat[:, good_subj_idx]
 
-        print "Eliminated %d keys, %d subjects." % (
+        print("Eliminated %d keys, %d subjects." % (
             sum(np.logical_not(good_key_idx)),
-            sum(np.logical_not(good_subj_idx)))
+            sum(np.logical_not(good_subj_idx))))
 
         # Compute PCA and dump the results
         self.subj_ids = data['SubjID'][good_subj_idx]
@@ -81,16 +81,16 @@ class AsymmetryPCA(object):
         mean_asymmetry = self.data_mat.mean(axis=1)
 
         for pi, pc in enumerate(self.get_components()):
-            print "%2d: (%.2f):" % (pi, self.pca.explained_variance_ratio_[pi])
+            print("%2d: (%.2f):" % (pi, self.pca.explained_variance_ratio_[pi]))
             sort_idx = np.argsort(np.abs(pc * mean_asymmetry))
             for key, coeff, mag in zip(self.good_keys[sort_idx], pc[sort_idx], mean_asymmetry[sort_idx]):
                 # if np.sign(mag) == hemi_sign:
-                print "\t%s%.4f %-50s (%.3e / %.3e)" % (
+                print("\t%s%.4f %-50s (%.3e / %.3e)" % (
                     ' ' if mag*coeff >= 0 else '',
                     mag*coeff,
                     key,
                     coeff,
-                    mag)
+                    mag))
 
         return self.pca
 
@@ -98,7 +98,7 @@ class AsymmetryPCA(object):
         # Now, take this factor and compare it to behavioral data
         # (or, should I throw the behavior in the PCA?)
         tbx_data = get_tbx_data(dict(zip(self.good_keys, self.data_mat)))
-        print 'Found %d TBX keys.' % len(tbx_data)
+        print('Found %d TBX keys.' % len(tbx_data))
 
         for pi, proj in enumerate(self.get_projections()):
             for ti, (key, val) in enumerate(tbx_data.items()):
@@ -111,7 +111,7 @@ class AsymmetryPCA(object):
         # Now, take this factor and compare it to hisory data
         # (or, should I throw the behavior in the PCA?)
         fdh_data = get_fdh_data(dict(zip(self.good_keys, self.data_mat)))
-        print 'Found %d FDH keys.' % len(fdh_data)
+        print('Found %d FDH keys.' % len(fdh_data))
 
         for pi, pc in enumerate(self.get_projections()):
             for ti, (key, val) in enumerate(fdh_data.items()):

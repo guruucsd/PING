@@ -20,7 +20,7 @@ else:
     export_all_data(export_data, out_file=csv_file)
 
     for key in sorted(export_data.keys()):
-        print key
+        print(key)
 
 # Upload the new spreadsheet.
 sess = PINGUploadSession()

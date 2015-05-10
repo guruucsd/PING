@@ -50,7 +50,7 @@ def update_data_dictionary(data_dict, update_dict=None, update_csv=None,
         # Below here, using csv_file
         if data_type is None:
             # Merge the two together.
-            with open(gene_file, 'rb') as fp:
+            with open(gene_file, 'r') as fp:
                 csv_data = np.recfromcsv(fp)
             out_dict = copy.copy(data_dict)
             out_dict.update(csv_data)
@@ -65,10 +65,10 @@ def update_data_dictionary(data_dict, update_dict=None, update_csv=None,
 
 def export_all_data(export_data, out_file):
 
-    keys = export_data.keys()
+    keys = list(export_data.keys())
 
     # Now export as csv
-    with open(out_file, 'wb') as fp:
+    with open(out_file, 'w') as fp:
         w = csv.writer(fp)
         w.writerow(keys)
         for row_idx in range(len(export_data['SubjID'])):

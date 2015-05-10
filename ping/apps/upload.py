@@ -8,7 +8,7 @@ class PINGUploadSession(PINGSession):
 
     def upload_spreadsheet(self, csv_file):
         files = {
-            'userfile': open(csv_file, 'rb')}
+            'userfile': open(csv_file, 'r')}
         payload = {
             'MAX_FILE_SIZE': 20000000,
             'project': 'PING',

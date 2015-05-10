@@ -178,11 +178,11 @@ def dump_regressions_csv(regressions, group_names, measure_names):
             header_vals = ['%s_%s' % (group_name, stat_name)
                            for si, stat_name in enumerate(stat_names)
                            for group_name in group_names]
-            print '\t'.join([''] + header_vals)
+            print('\t'.join([''] + header_vals))
         col_vals = ['%.10f' % regressions[mi][gi, si + 2]
                     for si, stat_name in enumerate(stat_names)
                     for gi, group_name in enumerate(group_names)]
-        print '\t'.join([measure_name] + col_vals)
+        print('\t'.join([measure_name] + col_vals))
 
 
 def plot_stat_distributions(stats, group_names):
@@ -219,7 +219,7 @@ def loop_show_asymmetry(prefix,
     regressions = []
     measure_names = get_twohemi_keys(keys, prefix=prefix)
     for pi, prop_name in enumerate(measure_names):
-        # print "Comparing %d (%s)..." % (pi, prop_name)
+        # print("Comparing %d (%s)..." % (pi, prop_name))
         gn, ss, rv = compare_group_asymmetry(data, prop_name=prop_name, plots=plots,
                                          grouping_prop_names=grouping_prop_names)
         stats.append(ss)

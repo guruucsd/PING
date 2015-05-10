@@ -105,17 +105,17 @@ class PINGSNPSession(PINGSession):
                         int(gene[3]) - range/2 <= cur_basepair and
                         cur_basepair <= int(gene[4]) + range/2):
                     matched_snps.append(row)
-                    print "hit #%4d (chromosome %s)" % (
-                        len(matched_snps), cur_chromosome)
+                    print("Hit #%4d (chromosome %s)" % (
+                        len(matched_snps), cur_chromosome))
                     break
-        print matched_snps
+        print(matched_snps)
         return matched_snps
 
     def download_snps(self, all_snps):
         """Download actual data from subjects"""
         template_url = 'https://ping-dataportal.ucsd.edu/applications/SNPs/download.php?_v=&project_name=PING&snps=%s'
         fetch_url = template_url % ('%0A'.join([s[0] for s in all_snps]))
-        print fetch_url
+        print(fetch_url)
         import pdb; pdb.set_trace()
 
     def parse_PING_output(self, output_file):

@@ -43,13 +43,13 @@ class GWASSession(PINGSession):
                     results.append(self.get_results(id=cur_id, force=force,
                                                     raw=raw, out_dir=out_dir))
                 except Exception as e:
-                    print "Failed to get id=%s: %s" % (cur_id, str(e))
+                    print("Failed to get id=%s: %s" % (cur_id, str(e)))
                     ids.append(None)
 
         # Fetch
         out_file = os.path.join(out_dir, '%s_GWAS.csv' % id)
         if os.path.exists(out_file) and not force:
-            with open(out_file, 'rb') as fp:
+            with open(out_file, 'r') as fp:
                 out_text = '\n'.join(fp.readlines())
         else:
             self.log("Retrieving results for id=%s ..." % id)
@@ -61,7 +61,7 @@ class GWASSession(PINGSession):
 
         # Cache the result
         if not os.path.exists(out_file):
-            with open(out_file, 'wb') as fp:
+            with open(out_file, 'w') as fp:
                 fp.write(out_text)
             self.log("Wrote results to disk at %s." % out_file)
 
@@ -83,16 +83,16 @@ class GWASSession(PINGSession):
             start_time = datetime.datetime.now()
             url = 'https://ping-dataportal.ucsd.edu/applications/GWAS/startRun.php?project_name=PING&com=%s&covariates=%s' % (
                 measure, '+'.join(covariates))
-            print url
+            print(url)
             resp = self.sess.get(url)
             time_diff = datetime.datetime.now() - start_time
 
             self.log("Completed run for measure=%s (time=%s)" % (measure, str(time_diff)))
-            print "Results info:", self.get_results_ids(force=True)[-1]
+            print("Results info:", self.get_results_ids(force=True)[-1])
         except Exception as e:
-            print e
+            print(e)
         else:
-            print resp.text
+            print(resp.text)
 
     def launch_and_retrieve_run(self, measure, covariates=['Age_At_IMGExam'], out_dir='download/gwas'):
         result_id = self.launch_run(measure=measure, covariates=covariates)

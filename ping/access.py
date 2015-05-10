@@ -1,13 +1,13 @@
 """
 Accessing PING data
 """
-import md5
+import hashlib
 import os
 
 import numpy as np
 import pandas
 import requests
-import statsmodels.formula.api as smf
+# import statsmodels.formula.api as smf
 
 PING_DATA = None
 
@@ -31,12 +31,12 @@ class PINGSession(object):
 
     def log(self, message, verbosity=1):
         if self.verbosity >= verbosity:
-            print message
+            print(message)
 
     def login(self):
         payload = {
             'username': self.username,
-            'pw': md5.md5(self.passwd).hexdigest(),
+            'pw': hashlib.md5(self.passwd.encode()).hexdigest(),
             'ac': 'log',
             'url': ''}
 
@@ -56,7 +56,7 @@ class PINGSession(object):
         out_text = str(resp.text)
 
         if out_file:
-            with open(out_file, 'wb') as fp:
+            with open(out_file, 'w') as fp:
                 fp.write(out_text)
 
         return out_text
@@ -108,7 +108,7 @@ def load_PING_data(scrub_fields=False, csv_path=None, username=None, passwd=None
         #         resid = smf.ols(formula, data=data).fit().resid
         #         data[key] = resid
         #     except Exception as e:
-        #         print "Failed (%s): %s" % (key, e)
+        #         print("Failed (%s): %s" % (key, e))
         PING_DATA = data
 
     return PING_DATA

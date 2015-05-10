@@ -15,8 +15,10 @@ def test_grouping():
 
 def test_gwas():
     sys.argv = [sys.argv[0], 'display', 'MRI_cort_area_ctx_rh_frontalpole']
-    with assert_raises_regexp(Exception, 'id not found'):
+    try:
         import gwas
+    except Exception as e:
+        assert_true('id not found' in str(e))
 
 
 def test_regress():
@@ -30,4 +32,5 @@ def test_similarity():
 
 
 def test_upload():
+    sys.argv = sys.argv[0:1]
     import upload
