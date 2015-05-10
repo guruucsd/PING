@@ -15,7 +15,7 @@ EXPORTED_PING_SPREADSHEET = 'csv/PING_userdefined.csv'
 
 def load_user_spreadsheet():
     print("Loading derived data...")
-    data = pandas.read_csv(EXPORTED_PING_SPREADSHEET)
+    data = pandas.read_csv(EXPORTED_PING_SPREADSHEET, low_memory=False)
     new_data = dict()
     for key in data.keys():
         new_data[key.replace('.', '_')] = data[key].as_matrix()
