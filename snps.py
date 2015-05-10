@@ -50,3 +50,6 @@ if sys.argv[1] in ['view', 'download']:
         if sys.argv[1] == 'download':
             sess.login()
             sess.download_snps(all_snps)
+
+else:
+    raise NotImplementedError('Unknown command: %s' % sys.argv[1])
