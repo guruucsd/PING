@@ -45,8 +45,8 @@ def build_similarity_matrix(all_data, good_keys=None, filter_fn=None, standardiz
     if standardize:
         data_mat = scipy.stats.mstats.zscore(data_mat, axis=1)
         assert np.all(np.abs(data_mat.sum(axis=1)) < 1E-4)
-    print "Found %d keys; removed %d subjects w/ missing data." % (
-        data_mat.shape[1], bad_idx.sum())
+    print("Found %d keys; removed %d subjects w/ missing data." % (
+        data_mat.shape[1], bad_idx.sum()))
 
     # Compute a correlation matrix
     dist_mat = scipy.spatial.distance.pdist(data_mat, 'correlation')
@@ -78,13 +78,13 @@ def compute_similarity_matrices(data):
 
     # 1. Compute similarity matrices
     for mat_type, filt_fn in filt_fns.items():
-        print "Computing similarity matrix for %s" % (mat_type)
+        print("Computing similarity matrix for %s" % (mat_type))
 
         sim_mat, good_keys = build_similarity_matrix(data,
                                                      filter_fn=filt_fn,
                                                      standardize=False)
         sim_dict[mat_type] = sim_mat
-        print [v.shape for v in sim_dict.values()]
+        print([v.shape for v in sim_dict.values()])
     return sim_dict
 
 
@@ -100,8 +100,8 @@ def compare_similarity_matrices(sim_dict):
             key2 = compare_keys[kj]
             r, pval = compare_similarity_vectors(sim_dict[key1],
                                                   sim_dict[key2])
-            print "%s vs. %s: r**2=%.3f (p=%.3f)" % (
-                key1, key2, r**2, pval)
+            print("%s vs. %s: r**2=%.3f (p=%.3f)" % (
+                key1, key2, r**2, pval))
             mat_compare_mat[mat_idx] = r
             mat_idx += 1
 

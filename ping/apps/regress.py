@@ -182,7 +182,7 @@ def skip_pairing(key1, key2):
 
 def find_one_relationship(all_data, key1, key2, covariates=[],
                           rsq_thresh=0., plot=False):
-    print key1, key2, covariates
+    print(key1, key2, covariates)
 
     # Limit to data without nan
     idx = np.ones(all_data[key1].shape, dtype=bool)
@@ -279,7 +279,7 @@ def search_all_pairwise(plot=True, **kwargs):
                 result = sess.regress_multistep(key1, key2, plot=plot, **kwargs)
                 results.append(result)
             except Exception as e:
-                print "Exception: %s" % str(e)
+                print("Exception: %s" % str(e))
             else:
                 if plot:
                     if result is None:

@@ -105,7 +105,7 @@ def get_derived_data(prefix=None):
     if prefix is None:
         prefix = []
 
-    print "Computing derived data..."
+    print("Computing derived data...")
     data = compute_all_asymmetries(prefix=prefix)
     data = merge_by_key(data, compute_all_totals(prefix=prefix))
 
@@ -114,7 +114,7 @@ def get_derived_data(prefix=None):
     try:
         pc_dict = compute_component_loadings(prefix=prefix)
     except Exception as e:
-        print "Skipping PCA: %s" % e
+        print("Skipping PCA: %s" % e)
     else:
         recoded_keys = ['ALL_%s' % k if k != 'SubjID' else k
                         for k in pc_dict.keys()]

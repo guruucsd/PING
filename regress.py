@@ -34,7 +34,7 @@ def search_all_pairwise(all_data):
 
     # Now, output the sorted result.
     for key, p, r in sorted(results, lambda v1, v2: int(10000 * (abs(v1[2]) - abs(v2[2])))):
-        print "Significant at %.2e (r=%.3f): %s" % (p, r, key)
+        print("Significant at %.2e (r=%.3f): %s" % (p, r, key))
 
 
 
@@ -61,7 +61,7 @@ def search_all_vs_one(all_data, key, rsq_thresh=0., covariates=[], plot=False):
 
     # Now, output the sorted result.
     for all_key, p, r in sorted(results, lambda v1, v2: int(10000 * (v1[2] - v2[2]))):
-        print "Significant at %.2e (r=%.3f): %s" % (p, r, all_key)
+        print("Significant at %.2e (r=%.3f): %s" % (p, r, all_key))
 
 
 
@@ -75,7 +75,7 @@ def print_legend():
         "SLF": "Superior Longitudinal Fasiculus"}
 
     for key, val in legend.items():
-        print '%5s: %s' % (key, val)
+        print('%5s: %s' % (key, val))
 
 
 if __name__ == '__main__':
@@ -100,10 +100,10 @@ if __name__ == '__main__':
         try:
             plt.figure()
         except:
-            print "Plotting not available."
+            print("Plotting not available.")
             plot = False
         else:
-            print "Plotting detected and will be used!"
+            print("Plotting detected and will be used!")
             plot = True
             plt.close()
 
