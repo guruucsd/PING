@@ -65,7 +65,7 @@ def update_data_dictionary(data_dict, update_dict=None, update_csv=None,
 
 def export_all_data(export_data, out_file):
 
-    keys = export_data.keys()
+    keys = list(export_data.keys())
 
     # Now export as csv
     with open(out_file, 'w') as fp:

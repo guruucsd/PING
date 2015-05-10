@@ -90,7 +90,7 @@ def compute_similarity_matrices(data):
 
 def compare_similarity_matrices(sim_dict):
     # 2. Compare similarity matrices.
-    compare_keys = sim_dict.keys()
+    compare_keys = list(sim_dict.keys())
     n_keys = len(compare_keys)
 
     mat_compare_mat = np.zeros((n_keys * (n_keys - 1) / 2,))
@@ -108,7 +108,7 @@ def compare_similarity_matrices(sim_dict):
 
 def visualize_similarity_matrices(sim_dict):
     # Visualize similarity matrices
-    compare_keys = sim_dict.keys()
+    compare_keys = list(sim_dict.keys())
     n_keys = len(compare_keys)
 
     fh = plt.figure(figsize=(16, 6))
