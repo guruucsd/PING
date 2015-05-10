@@ -1,13 +1,13 @@
 """
 Accessing PING data
 """
-import md5
+import hashlib
 import os
 
 import numpy as np
 import pandas
 import requests
-import statsmodels.formula.api as smf
+# import statsmodels.formula.api as smf
 
 PING_DATA = None
 
@@ -36,7 +36,7 @@ class PINGSession(object):
     def login(self):
         payload = {
             'username': self.username,
-            'pw': md5.md5(self.passwd).hexdigest(),
+            'pw': hashlib.md5(self.passwd.encode()).hexdigest(),
             'ac': 'log',
             'url': ''}
 

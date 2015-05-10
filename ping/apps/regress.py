@@ -2,8 +2,8 @@
 Run the data browser tools from the command-line.
 """
 import datetime
+import hashlib
 import json
-import md5
 import os
 import re
 
@@ -51,7 +51,8 @@ smoothing.interaction = ""
             'interaction': '',
             'expert': self.expert_mode_script(X, Y, covariates, limits)}
         out_files = [os.path.join(cache_dir, '%s_%s.txt') % (
-                         md5.md5(payload['expert']).hexdigest(), ftype)
+                         hashlib.md5(payload['expert'].encode()).hexdigest(),
+                         ftype)
                      for ftype in ['executeR', 'tsv']]
 
         # First, generate the regression and store the result.
