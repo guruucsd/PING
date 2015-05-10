@@ -11,6 +11,8 @@ import scipy.stats
 from ping.access import col2prop, load_PING_data, get_twohemi_keys
 from ping.asymmetry import get_asymmetry_index
 from ping.utils import do_and_plot_regression
+from ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
+                                 equalize_xlims, equalize_ylims)
 
 
 def make_groups(data, grouping_prop_names):
@@ -118,7 +120,6 @@ def compare_group_asymmetry(data, prop_name, grouping_prop_names, plots):
     # Test whether variances differ
     if 'stats' in plots:
         dist_mat = scipy.spatial.distance.squareform(stats[:, 2])
-        dist_mat = np.ma.masked_where(np.triu(dist_mat == np.nan), dist_mat)
         sig_mat = stats[:, 3] <= (0.05 / stats.shape[0])
 
         fh3 = plt.figure()
@@ -135,38 +136,6 @@ def compare_group_asymmetry(data, prop_name, grouping_prop_names, plots):
         equalize_ylims(fh2)
 
     return group_names, stats, regressions
-
-
-def plot_symmetric_matrix_as_triangle(mat, ax=None, lbls=None, vmin=0, vmax=1):
-    if ax is None:
-        ax = plt.figure().gca()
-
-    ax.set_axis_bgcolor(ax.get_figure().get_facecolor())
-    ax.imshow(mat, vmin=vmin, vmax=vmax, interpolation='none')
-    ax.set_frame_on(False)
-
-    if lbls:
-        sz = mat.shape[0]
-        ax.set_xticks(range(sz - 1))
-        ax.set_xticklabels(lbls[:sz - 1])
-        ax.set_yticks(range(1, sz))
-        ax.set_yticklabels(lbls[1:])
-
-
-def equalize_xlims(fh):
-    xlims = np.asarray([ax.get_xlim() for ax in fh.get_axes()])
-    xlim = [xlims[:, 0].min(), xlims[:, 1].max()]
-
-    for ax in fh.get_axes():
-        ax.set_xlim(xlim)
-
-
-def equalize_ylims(fh):
-    ylims = np.asarray([ax.get_ylim() for ax in fh.get_axes()])
-    ylim = [ylims[:, 0].min(), ylims[:, 1].max()]
-
-    for ax in fh.get_axes():
-        ax.set_ylim(ylim)
 
 
 def dump_regressions_csv(regressions, group_names, measure_names):
