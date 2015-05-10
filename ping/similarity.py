@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 
 from .access import load_PING_data, which_hemi
 from .asymmetry import is_ai_prop_name
+from .utils.plotting import plot_symmetric_matrix_as_triangle
 
 
 def get_good_keys(all_data, filter_fn):
@@ -114,10 +115,9 @@ def visualize_similarity_matrices(sim_dict):
 
     fh = plt.figure(figsize=(16, 6))
     for ki, key in enumerate(compare_keys):
-        ax = fh.add_subplot(1, n_keys, ki)
-        full_mat = scipy.spatial.distance.squareform(sim_dict[key])
-        full_mat += np.eye(full_mat.shape[0])
-        ax.imshow(full_mat, vmin=-1, vmax=1, interpolation='none')
+        ax = fh.add_subplot(1, n_keys, ki + 1)
+        plot_symmetric_matrix_as_triangle(sim_dict[key], ax=ax,
+                                          vmin=0, vmax=2)
         ax.set_title(key)
 
     return ax
