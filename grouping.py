@@ -15,15 +15,15 @@ from ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
 from research.asymmetry import get_asymmetry_index
 
 
-def make_groups(data, grouping_prop_names):
-    """ Group data by the unique values of `grouping_prop_name`"""
+def make_groups(data, grouping_keys):
+    """ Group data by the unique values of `grouping_key`"""
 
-    if not isinstance(grouping_prop_names, list):
-        grouping_prop_names = [grouping_prop_names]
+    if not isinstance(grouping_keys, list):
+        grouping_keys = [grouping_keys]
 
     # Group
     grouping_index = group_names = []
-    for gpn in grouping_prop_names:
+    for gpn in grouping_keys:
         grouping_data = np.asarray(data[gpn].tolist())
         prop_groups = (set(np.unique(grouping_data)) -
                        set(['Not yet established', 'nan']))
@@ -44,14 +44,14 @@ def make_groups(data, grouping_prop_names):
     return group_names, grouping_index
 
 
-def compare_group_asymmetry(data, prop_name, grouping_prop_names, plots):
-    """ Groups data according to grouping_prop_names, computes
-    asymmetry index for prop_name, and graphs."""
+def compare_group_asymmetry(data, key, grouping_keys, plots):
+    """ Groups data according to grouping_keys, computes
+    asymmetry index for key, and graphs."""
 
-    group_names, grouping_index = make_groups(data, grouping_prop_names)
+    group_names, grouping_index = make_groups(data, grouping_keys)
 
     age_data = np.asarray(data['Age_At_IMGExam'].tolist())
-    prop_ai = get_asymmetry_index(data, prop_name)
+    prop_ai = get_asymmetry_index(data, key)
 
     n_subplots = len(group_names)
     n_rows = int(np.round(np.sqrt(n_subplots)))
@@ -59,10 +59,10 @@ def compare_group_asymmetry(data, prop_name, grouping_prop_names, plots):
 
     if 'regressions' in plots:
         fh1 = plt.figure(figsize=(18, 10))
-        fh1.suptitle('%s regression' % prop_name)
+        fh1.suptitle('%s regression' % key)
     if 'distributions' in plots:
         fh2 = plt.figure(figsize=(18, 10))
-        fh2.suptitle('%s distributions' % prop_name)
+        fh2.suptitle('%s distributions' % key)
         n_bins = 15
         bins = np.linspace(prop_ai[~np.isnan(prop_ai)].min(),
                            prop_ai[~np.isnan(prop_ai)].max(),
@@ -175,7 +175,7 @@ def plot_stat_distributions(stats, group_names):
 
 
 def loop_show_asymmetry(prefix,
-                        grouping_prop_names=['Gender', 'FDH_23_Handedness_Prtcpnt'],
+                        grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'],
                         plots=['regressions', 'distributions']):
     """ Loop over all properties to show asymmetry."""
     data = load_PING_data()
@@ -187,10 +187,10 @@ def loop_show_asymmetry(prefix,
     stats = []
     regressions = []
     measure_names = get_twohemi_keys(keys, prefix=prefix)
-    for pi, prop_name in enumerate(measure_names):
-        # print("Comparing %d (%s)..." % (pi, prop_name))
-        gn, ss, rv = compare_group_asymmetry(data, prop_name=prop_name, plots=plots,
-                                         grouping_prop_names=grouping_prop_names)
+    for pi, key in enumerate(measure_names):
+        # print("Comparing %d (%s)..." % (pi, key))
+        gn, ss, rv = compare_group_asymmetry(data, key=key, plots=plots,
+                                         grouping_keys=grouping_keys)
         stats.append(ss)
         regressions.append(rv)
 
@@ -229,12 +229,12 @@ if __name__ == '__main__':
     # loop_show_asymmetry(prefix='DTI_fiber_vol')
 
     # Doesn't work... sex is missing!
-    # loop_show_asymmetry(prefix='DTI_fiber_vol', grouping_prop_names=['Gender', 'FDH_23_Handedness_Prtcpnt'])
+    # loop_show_asymmetry(prefix='DTI_fiber_vol', grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'])
 
     #
     #loop_show_asymmetry(prefix=['MRI_cort_area', 'MRI_cort_thick', 'MRI_subcort_vol', 'DTI_fiber_vol'],
-    #                    grouping_prop_names=['Gender', 'FDH_23_Handedness_Prtcpnt'])
+    #                    grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'])
 
     loop_show_asymmetry(prefix=['MRI_cort_thick', 'MRI_cort_area', 'DTI_fiber_vol'],  # area_ctx_rh_frontalpole'],
-                        grouping_prop_names=['FDH_23_Handedness_Prtcpnt'],
+                        grouping_keys=['FDH_23_Handedness_Prtcpnt'],
                         plots=['regression_stats'])

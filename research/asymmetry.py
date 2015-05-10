@@ -3,15 +3,15 @@ Functions related to asymmetry
 """
 import numpy as np
 
-from ping.access import get_bilateral_hemi_keys, get_nonhemi_prop_name
+from ping.access import get_bilateral_hemi_keys, get_nonhemi_key
 
 
-def get_ai_prop_name(rh_prop_name):
-    return '%s_AI' % get_nonhemi_prop_name(rh_prop_name)
+def get_ai_key(rh_key):
+    return '%s_AI' % get_nonhemi_key(rh_key)
 
 
-def is_ai_prop_name(prop_name):
-    return prop_name is not None and prop_name.endswith('_AI')
+def is_ai_key(key):
+    return key is not None and key.endswith('_AI')
 
 
 def asymmetry_index(left, right, mask_nan=False):
@@ -25,15 +25,15 @@ def asymmetry_index(left, right, mask_nan=False):
     return aidx
 
 
-def get_asymmetry_index(data, prop_name, mask_nan=False):
-    """ Get the correponding left and right values for the prop_name,
+def get_asymmetry_index(data, key, mask_nan=False):
+    """ Get the correponding left and right values for the key,
     and returns the asymmetry index."""
 
-    left_prop_name, right_prop_name = get_bilateral_hemi_keys(data, prop_name)
+    left_key, right_key = get_bilateral_hemi_keys(data, key)
 
     # Select data within the group
-    LH_data = np.asarray(data[left_prop_name].tolist())
-    RH_data = np.asarray(data[right_prop_name].tolist())
+    LH_data = np.asarray(data[left_key].tolist())
+    RH_data = np.asarray(data[right_key].tolist())
 
     # Compute an asymmetry index
     prop_asymmetry = asymmetry_index(LH_data, RH_data, mask_nan=mask_nan)

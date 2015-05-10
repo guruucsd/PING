@@ -12,12 +12,12 @@ PING_DATA = None
 raw_input = raw_input if 'raw_input' in dir() else input
 
 
-def get_lh_prop_name(prop_name):
-    return prop_name.replace('_rh_', '_lh_').replace('_Right_', '_Left_').replace('_R_', '_L_')
+def get_lh_key(key):
+    return key.replace('_rh_', '_lh_').replace('_Right_', '_Left_').replace('_R_', '_L_')
 
 
-def get_nonhemi_prop_name(prop_name):
-    return prop_name.replace('_rh_', '_').replace('_Right_', '_').replace('_R_', '_')
+def get_nonhemi_key(key):
+    return key.replace('_rh_', '_').replace('_Right_', '_').replace('_R_', '_')
 
 
 def col2prop(col_name):
@@ -121,32 +121,32 @@ def get_twohemi_keys(all_keys, prefix=None):
         prefix = np.asarray(prefix)
 
     good_keys = []
-    for prop_name in all_keys:
-        if which_hemi(prop_name) != 'rh':
+    for key in all_keys:
+        if which_hemi(key) != 'rh':
             continue
-        elif prefix is not None and not np.any([p in prop_name for p in prefix]):
+        elif prefix is not None and not np.any([p in key for p in prefix]):
             continue
-        if 'vent' in prop_name.lower() and 'ventral' not in prop_name.lower():
+        if 'vent' in key.lower() and 'ventral' not in key.lower():
             continue
-        good_keys.append(prop_name)
+        good_keys.append(key)
     return np.asarray(good_keys)
 
 
 
-def get_bilateral_hemi_keys(data, prop_name):
+def get_bilateral_hemi_keys(data, key):
     """ Given one hemisphere's property name,
     return both."""
 
-    if 'Left' in prop_name or 'Right' in prop_name:
-        left_prop_name = prop_name.replace('Right', 'Left')
-        right_prop_name = prop_name.replace('Left', 'Right')
-    elif '_lh_' in prop_name or '_rh_' in prop_name:
-        left_prop_name = prop_name.replace('_rh_', '_lh_')
-        right_prop_name = prop_name.replace('_lh_', '_rh_')
-    elif '_L_' in prop_name or '_R_' in prop_name:
-        left_prop_name = prop_name.replace('_R_', '_L_')
-        right_prop_name = prop_name.replace('_L_', '_R_')
+    if 'Left' in key or 'Right' in key:
+        left_key = key.replace('Right', 'Left')
+        right_key = key.replace('Left', 'Right')
+    elif '_lh_' in key or '_rh_' in key:
+        left_key = key.replace('_rh_', '_lh_')
+        right_key = key.replace('_lh_', '_rh_')
+    elif '_L_' in key or '_R_' in key:
+        left_key = key.replace('_R_', '_L_')
+        right_key = key.replace('_L_', '_R_')
     else:
-        raise ValueError("Unknown format for prop_name='%s'" % prop_name)
+        raise ValueError("Unknown format for key='%s'" % key)
 
-    return left_prop_name, right_prop_name
+    return left_key, right_key

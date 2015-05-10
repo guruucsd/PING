@@ -6,10 +6,10 @@ import os
 import numpy as np
 import pandas
 
-from .asymmetry import (get_asymmetry_index, get_ai_prop_name,
-                        is_ai_prop_name)
+from .asymmetry import (get_asymmetry_index, get_ai_key,
+                        is_ai_key)
 from .multivariate import AsymmetryPCA
-from ping.access import (get_lh_prop_name, get_nonhemi_prop_name,
+from ping.access import (get_lh_key, get_nonhemi_key,
                          load_PING_data, get_twohemi_keys)
 from ping.data.export import export_all_data, merge_by_key
 
@@ -21,11 +21,11 @@ def compute_all_totals(prefix):
     export_data = dict((('SubjID', data['SubjID'],),))
 
     # Process & plot the data.
-    for prop_name in get_twohemi_keys(data.keys(), prefix=prefix):
-        lh_prop_name = get_lh_prop_name(prop_name)
-        dest_prop_name = get_nonhemi_prop_name(prop_name)
-        dest_prop_name += '_LH_PLUS_RH'
-        export_data[dest_prop_name] = data[prop_name] + data[lh_prop_name]
+    for key in get_twohemi_keys(data.keys(), prefix=prefix):
+        lh_key = get_lh_key(key)
+        dest_key = get_nonhemi_key(key)
+        dest_key += '_LH_PLUS_RH'
+        export_data[dest_key] = data[key] + data[lh_key]
 
     return export_data
 
@@ -37,22 +37,22 @@ def compute_all_asymmetries(prefix):
     export_data = dict((('SubjID', data['SubjID'],),))
 
     # Process & plot the data.
-    for prop_name in get_twohemi_keys(data.keys(), prefix=prefix):
-        dest_prop_name = get_ai_prop_name(prop_name)
-        export_data[dest_prop_name] = get_asymmetry_index(data, prop_name,
+    for key in get_twohemi_keys(data.keys(), prefix=prefix):
+        dest_key = get_ai_key(key)
+        export_data[dest_key] = get_asymmetry_index(data, key,
                                                           mask_nan=False)
 
     # Add one property for total asymmetry
     n_subj = len(data['SubjID'])
     for p in prefix:
         total_asymmetry = np.zeros((n_subj,))
-        good_keys = filter(lambda k: k.startswith(p) and is_ai_prop_name(k),
+        good_keys = filter(lambda k: k.startswith(p) and is_ai_key(k),
                            export_data.keys())
         for key in good_keys:
             values = export_data[key].copy()
             values[np.isnan(values)] = 0.
             total_asymmetry += export_data[key]**2
-        total_ai_key = get_ai_prop_name(p + '_TOTAL')
+        total_ai_key = get_ai_key(p + '_TOTAL')
         export_data[total_ai_key] = np.sqrt(total_asymmetry)
         assert len(export_data[total_ai_key]) == n_subj
 

@@ -5,7 +5,7 @@ import numpy as np
 from scipy.stats import pearsonr
 from sklearn.decomposition import PCA
 
-from .asymmetry import get_asymmetry_index, is_ai_prop_name
+from .asymmetry import get_asymmetry_index, is_ai_key
 from ping.access import (load_PING_data, get_twohemi_keys,
                            get_fdh_data, get_tbx_data)
 from ping.utils import do_and_plot_regression
@@ -31,7 +31,7 @@ class AsymmetryPCA(object):
         good_keys = get_twohemi_keys(keys)
         if len(good_keys) == 0:
             # We got asymmetry indices directly
-            good_keys = [key for key in keys if is_ai_prop_name(key)]
+            good_keys = [key for key in keys if is_ai_key(key)]
             for key in good_keys:
                 data_mat.append(data[key])
         else:

@@ -7,7 +7,7 @@ from ping.analysis.similarity import (compare_similarity_matrices,
                                       compute_similarity_matrices,
                                       visualize_similarity_matrices)
 from ping.utils import filter_dict
-from research.asymmetry import is_ai_prop_name
+from research.asymmetry import is_ai_key
 from research.computed_measures import get_all_data
 
 
@@ -15,7 +15,7 @@ from research.computed_measures import get_all_data
 prefixes = ['MRI_cort_area', 'MRI_cort_thick', 'MRI_subcort_vol', 'DTI_fiber_vol']
 
 filt_fns = {
-    'ai': lambda key: is_ai_prop_name(key) and '_TOTAL' not in key,
+    'ai': lambda key: is_ai_key(key) and '_TOTAL' not in key,
 }
 
 
