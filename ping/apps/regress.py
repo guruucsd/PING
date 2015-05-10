@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 from scipy.stats import linregress
 
 from ..access import PINGSession
-from ..asymmetry import compute_all_asymmetries
+from ..computed_measures import compute_all_asymmetries
 
 
 class PINGDataSession(PINGSession):
@@ -133,7 +133,7 @@ smoothing.interaction = ""
         else:
             raise NotImplementedError(AI)
 
-    def regress_multistep(self, X, Y, covariates=['Age_At_IMGExam', 'Gender', 'FDH_23_Handedness_Prtcpnt'], limits=[], plot=False, cache_dir='download'):
+    def regress_multistep(self, X, Y, covariates=['Age_At_IMGExam', 'Gender', 'FDH_23_Handedness_Prtcpnt'], limits=[], plot=False, cache_dir='download/regress'):
         self.log('Multi-step regression for %s vs. %s' % (X, Y))
         out = []
         # Get relevant covariates

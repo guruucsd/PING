@@ -14,7 +14,7 @@ def is_ai_prop_name(prop_name):
     return prop_name is not None and prop_name.endswith('_AI')
 
 
-def asymmetry_index(left, right, mask_nan=True):
+def asymmetry_index(left, right, mask_nan=False):
     """ Left and right should be arrays"""
     left = np.asarray(left)
     right = np.asarray(right)
@@ -25,7 +25,7 @@ def asymmetry_index(left, right, mask_nan=True):
     return aidx
 
 
-def get_asymmetry_index(data, prop_name, mask_nan=True):
+def get_asymmetry_index(data, prop_name, mask_nan=False):
     """ Get the correponding left and right values for the prop_name,
     and returns the asymmetry index."""
 
@@ -38,4 +38,3 @@ def get_asymmetry_index(data, prop_name, mask_nan=True):
     # Compute an asymmetry index
     prop_asymmetry = asymmetry_index(LH_data, RH_data, mask_nan=mask_nan)
     return prop_asymmetry
-

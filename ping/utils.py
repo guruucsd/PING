@@ -15,14 +15,15 @@ def filter_dict(d, filter_fn):
     return out_dict
 
 
-def do_and_plot_regression(X, Y, covariates=[], xlabel='', ylabel='', title='', ax=None):
+def do_and_plot_regression(X, Y, covariates=[], xlabel='', ylabel='',
+                           title='', ax=None):
     assert not np.any(np.isnan(X))
     assert not np.any(np.isnan(Y))
 
     # Regress out stuff
     if covariates:
         raise NotImplementedException('covariates')
-    m, b, rval,  pval, stderr = linregress(X, Y)
+    m, b, rval, pval, stderr = linregress(X, Y)
     if not ax:
         fh = plt.figure()
         ax = ax
@@ -52,4 +53,4 @@ def do_and_plot_regression(X, Y, covariates=[], xlabel='', ylabel='', title='', 
     ax.set_ylabel(ylabel)
     ax.set_ylim([-0.4, 0.4])
 
-    return yvals_mean, yvals_std
+    return m, b, rval, pval

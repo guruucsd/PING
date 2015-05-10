@@ -105,6 +105,7 @@ def compare_similarity_matrices(sim_dict):
             mat_compare_mat[mat_idx] = r
             mat_idx += 1
 
+
 def visualize_similarity_matrices(sim_dict):
     # Visualize similarity matrices
     compare_keys = sim_dict.keys()
@@ -115,7 +116,7 @@ def visualize_similarity_matrices(sim_dict):
         ax = fh.add_subplot(1, n_keys, ki)
         full_mat = scipy.spatial.distance.squareform(sim_dict[key])
         full_mat += np.eye(full_mat.shape[0])
-        ax.imshow(full_mat, vmin=-1, vmax=1)
+        ax.imshow(full_mat, vmin=-1, vmax=1, interpolation='none')
         ax.set_title(key)
 
     return ax
