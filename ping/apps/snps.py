@@ -114,19 +114,13 @@ class PINGSNPSession(PINGSession):
 
     def download_snps(self, all_snps):
         """Download actual data from subjects"""
-        template_url = self.make_url('applications/SNPs/download.php?_v=&project_name={project_name}&snps=%s')
-        fetch_url = template_url % ('%0A'.join([s[0] for s in all_snps]))
-        print(fetch_url)
-        import pdb; pdb.set_trace()
+        snp_ids = [s if isinstance(s, six.string_types) else s[0]
+                   for s in all_snps]
+        snp_txt = self.download_file('applications/SNPs/download.php?_v=&project_name={project_name}&snps=%s' % (
+                                         '%0A'.join(snp_ids)),
+                                     out_file='download/snps/%s.csv' % '_'.join(snp_ids))
 
-    def parse_PING_output(self, output_file):
-        """DEPRECATED: Use download_snps to download and parse.
-        Parse data from the """
-
-        with open(output_file) as fp:
-            alltext = fp.readlines()[0]
-        lines = alltext.split(' ')[4:]
+        lines = snp_txt.split(' ')[4:]
         header = lines[0]
-        import pdb; pdb.set_trace()
-        return lines
 
+        return lines
