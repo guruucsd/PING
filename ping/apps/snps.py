@@ -30,7 +30,7 @@ class PINGSNPSession(PINGSession):
     def get_gene_metadata(self, gene_name):
         """Gene metadata contains gene names, chromosome location, and
         base pair range."""
-        all_genes = self.get_genes()
+        all_genes = self.get_genes_dict()
 
         idx = np.asarray([gene_name in g[8] for g in all_genes])
         return all_genes[idx]
