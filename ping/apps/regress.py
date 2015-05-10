@@ -44,7 +44,7 @@ smoothing.interaction = ""
             '_v': '',
             'cookie': cookie,
             'user_name': self.username,
-            'project_name': 'PING',
+            'project_name': self.project_name,
             'command': '+'.join(covariates),
             'yvalue': Y,
             'functionOf': X,

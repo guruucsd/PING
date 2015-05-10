@@ -11,7 +11,7 @@ class PINGUploadSession(PINGSession):
             'userfile': open(csv_file, 'r')}
         payload = {
             'MAX_FILE_SIZE': 20000000,
-            'project': 'PING',
+            'project': self.project_name,
             'version': ''}
 
         self.log("Uploading spreadsheet %s to server..." % csv_file)
