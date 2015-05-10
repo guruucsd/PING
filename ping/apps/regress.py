@@ -275,7 +275,7 @@ def search_all_pairwise(plot=True, **kwargs):
                 result = sess.regress_multistep(key1, key2, plot=plot, **kwargs)
                 results.append(result)
             except Exception as e:
-                print("Exception: %s" % str(e))
+                print("Exception: %s" % str(e))  # force print
             else:
                 if plot:
                     if result is None:

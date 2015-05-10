@@ -83,11 +83,11 @@ class GWASSession(PINGSession):
             time_diff = datetime.datetime.now() - start_time
 
             self.log("Completed run for measure=%s (time=%s)" % (measure, str(time_diff)))
-            print("Results info:", self.get_results_ids(force=True)[-1])
+            self.log("Results info:", self.get_results_ids(force=True)[-1])
         except Exception as e:
             print(e)
         else:
-            print(resp.text)
+            self.log(resp.text)
 
     def launch_and_retrieve_run(self, measure, covariates=['Age_At_IMGExam'], out_dir='download/gwas'):
         result_id = self.launch_run(measure=measure, covariates=covariates)

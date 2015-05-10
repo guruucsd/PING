@@ -106,10 +106,11 @@ class PINGSNPSession(PINGSession):
                         int(gene[3]) - range/2 <= cur_basepair and
                         cur_basepair <= int(gene[4]) + range/2):
                     matched_snps.append(row)
-                    print("Hit #%4d (chromosome %s)" % (
+                    self.log("Hit #%4d (chromosome %s)" % (
                         len(matched_snps), cur_chromosome))
                     break
-        print(matched_snps)
+        self.log(matched_snps)
+
         return matched_snps
 
     def download_snps(self, all_snps):
