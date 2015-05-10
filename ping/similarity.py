@@ -117,7 +117,7 @@ def visualize_similarity_matrices(sim_dict):
     for ki, key in enumerate(compare_keys):
         ax = fh.add_subplot(1, n_keys, ki + 1)
         plot_symmetric_matrix_as_triangle(sim_dict[key], ax=ax,
-                                          vmin=0, vmax=2)
+                                          vmin=-1, vmax=1)
         ax.set_title(key)
 
     return ax
