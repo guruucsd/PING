@@ -3,7 +3,8 @@ Build similarity matrices for cortical area (left, right) and asymmetry
 """
 import copy
 import numpy as np
-import scipy
+import scipy.spatial
+import scipy.stats
 from matplotlib import pyplot as plt
 
 from .access import load_PING_data, which_hemi

@@ -44,7 +44,8 @@ class GWASSession(PINGSession):
                                                     raw=raw, out_dir=out_dir))
                 except Exception as e:
                     print("Failed to get id=%s: %s" % (cur_id, str(e)))
-                    ids.append(None)
+                    results.append(None)
+            return results
 
         # Fetch
         out_file = os.path.join(out_dir, '%s_GWAS.csv' % id)
@@ -61,6 +62,11 @@ class GWASSession(PINGSession):
 
         # Cache the result
         if not os.path.exists(out_file):
+            # Make the directory, write the file.
+            dir_path = os.path.dirname(out_file)
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
+
             with open(out_file, 'w') as fp:
                 fp.write(out_text)
             self.log("Wrote results to disk at %s." % out_file)

@@ -10,6 +10,7 @@ import requests
 # import statsmodels.formula.api as smf
 
 PING_DATA = None
+raw_input = raw_input if 'raw_input' in dir() else input
 
 
 class PINGSession(object):
@@ -49,13 +50,19 @@ class PINGSession(object):
         else:
             self.log("Logged in as %s successfully." % self.username)
 
-    def get_spreadsheet(self, out_file=None):
+    def download_PING_spreadsheet(self, out_file=None):
         url = 'https://ping-dataportal.ucsd.edu/applications/Documents/downloadDoc.php?project_name=PING&version=&file=../usercache_PING_%s.csv' % (
             self.username)
+        self.log("Downloading PING spreadsheet from %s" % url)
         resp = self.sess.get(url)
-        out_text = str(resp.text)
+        self.log("Download completed.")
+        out_text = resp.text.encode()
 
         if out_file:
+            # Make the directory and dump the file.
+            dir_path = os.path.dirname(out_file)
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
             with open(out_file, 'w') as fp:
                 fp.write(out_text)
 
@@ -85,10 +92,20 @@ def load_PING_data(scrub_fields=False, csv_path=None, username=None, passwd=None
             print("Downloading PING data...")
             sess = PINGSession(username=username, passwd=passwd)
             sess.login()
-            sess.get_spreadsheet(out_file=csv_path)
+            sess.download_PING_spreadsheet(out_file=csv_path)
 
         print("Loading PING data...")
-        data = pandas.read_csv(csv_path)
+        try:
+            data = pandas.read_csv(csv_path, low_memory=False)
+        except ValueError as ve:
+            # Corrupt spreadsheet. Re-GET
+            print("Error loading the PING data: %s" % ve)
+            yn = raw_input("The PING spreadsheet is corrupt. Delete and download? (y/N) > ")
+            if yn.lower() == 'y':
+                os.remove(csv_path)
+                return load_PING_data(scrub_fields=scrub_fields, csv_path=csv_path,
+                                      username=username, passwd=passwd, force=True)
+            raise ve
 
         # Convert dots to underscores
         print("Converting PING data...")

@@ -6,7 +6,7 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy
+import scipy.stats
 
 from ping.access import col2prop, load_PING_data, get_twohemi_keys
 from ping.asymmetry import get_asymmetry_index

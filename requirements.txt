@@ -1,2 +1,10 @@
+matplotlib
+numpy
+pandas
+python-dateutil
+pytz
 requests
-statsmodels
+scikit-learn
+scipy
+six
+# statsmodels
