@@ -17,9 +17,8 @@ class GWASSession(PINGSession):
         self.log("Retrieving all result IDs ...")
 
         if self.result_ids is None or force:
-            url = self.make_url('applications/GWAS/getListOfRuns.php?project_name={project_name}')
-            resp = self.sess.get(url)
-            self.result_ids = json.loads(resp.text)['runs']
+            resp_text = self.download_file('applications/GWAS/getListOfRuns.php?project_name={project_name}')
+            self.result_ids = json.loads(resp_text)['runs']
             self.log("Fetched %d result ID(s)" % len(self.result_ids))
         return self.result_ids
 
@@ -55,22 +54,13 @@ class GWASSession(PINGSession):
                 out_text = '\n'.join(fp.readlines())
         else:
             self.log("Retrieving results for id=%s ..." % id)
-            url = self.make_url('applications/GWAS/downloadRunResult.php?project_name={project_name}&id=%s') % id
-            resp = self.sess.get(url)
-            out_text = str(resp.text)
+            out_text = self.download_file('applications/GWAS/downloadRunResult.php?project_name={project_name}&id=%s') % id,
+                                          out_file=out_file)
             if out_text == '':
-                raise Exception('id not found: %s' % id)
-
-        # Cache the result
-        if not os.path.exists(out_file):
-            # Make the directory, write the file.
-            dir_path = os.path.dirname(out_file)
-            if not os.path.exists(dir_path):
-                os.makedirs(dir_path)
-
-            with open(out_file, 'w') as fp:
-                fp.write(out_text)
-            self.log("Wrote results to disk at %s." % out_file)
+                os.remove(out_file)
+                raise Exception('Results for GWAS ID=%s not found.' % id)
+            else:
+                self.log("Wrote results to disk at %s." % out_file)
 
         # Parse the result
         results = [lin.split('\t') for lin in out_text.split('\n')]
@@ -88,10 +78,8 @@ class GWASSession(PINGSession):
             #     return
 
             start_time = datetime.datetime.now()
-            url = self.make_url('applications/GWAS/startRun.php?project_name={project_name}&com=%s&covariates=%s') % (
-                measure, '+'.join(covariates))
-            print(url)
-            resp = self.sess.get(url)
+            resp = self.make_request('applications/GWAS/startRun.php?project_name={project_name}&com=%s&covariates=%s' % (
+                                         measure, '+'.join(covariates))
             time_diff = datetime.datetime.now() - start_time
 
             self.log("Completed run for measure=%s (time=%s)" % (measure, str(time_diff)))
