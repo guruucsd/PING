@@ -80,7 +80,7 @@ def compute_component_loadings(prefix):
 
 def combine_genetic_data(export_data, gene_file):
     # Merge the two together.
-    with open(gene_file, 'rb') as fp:
+    with open(gene_file, 'r') as fp:
         gene_data = np.recfromcsv(fp)
 
     all_idx = []

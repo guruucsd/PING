@@ -56,7 +56,7 @@ class PINGSession(object):
         out_text = str(resp.text)
 
         if out_file:
-            with open(out_file, 'wb') as fp:
+            with open(out_file, 'w') as fp:
                 fp.write(out_text)
 
         return out_text

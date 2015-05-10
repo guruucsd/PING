@@ -49,7 +49,7 @@ class GWASSession(PINGSession):
         # Fetch
         out_file = os.path.join(out_dir, '%s_GWAS.csv' % id)
         if os.path.exists(out_file) and not force:
-            with open(out_file, 'rb') as fp:
+            with open(out_file, 'r') as fp:
                 out_text = '\n'.join(fp.readlines())
         else:
             self.log("Retrieving results for id=%s ..." % id)
@@ -61,7 +61,7 @@ class GWASSession(PINGSession):
 
         # Cache the result
         if not os.path.exists(out_file):
-            with open(out_file, 'wb') as fp:
+            with open(out_file, 'w') as fp:
                 fp.write(out_text)
             self.log("Wrote results to disk at %s." % out_file)
 

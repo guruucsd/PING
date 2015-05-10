@@ -59,14 +59,14 @@ smoothing.interaction = ""
         if os.path.exists(out_files[0]) and not force:
             if abort_if_done:
                 return
-            with open(out_files[0], 'rb') as fp:
+            with open(out_files[0], 'r') as fp:
                 r_text = '\n'.join(fp.readlines())
         else:
             url = 'https://ping-dataportal.ucsd.edu/applications/DataExploration/executeR.php'
             self.log("Computing regression for %s vs. %s..." % (X, Y))
             resp = self.sess.post(url, data=payload)
             r_text = str(resp.text)
-            with open(out_files[0], 'wb') as fp:
+            with open(out_files[0], 'w') as fp:
                 fp.write(r_text)
 
         # Parse the regression result
@@ -86,14 +86,14 @@ smoothing.interaction = ""
 
         # Next, retrieve the raw data.
         if os.path.exists(out_files[1]) and not force:
-           with open(out_files[1], 'rb') as fp:
+            with open(out_files[1], 'r') as fp:
                 tsv_text = '\n'.join(fp.readlines())
         else:
             self.log('Retrieving raw data...')
             resp = self.sess.get('https://ping-dataportal.ucsd.edu/applications/DataExploration/curves/%s_PING_curves/%s_PING_Corrected%d.tsv?cache=false' % (
                 self.username, self.username, cookie))
             tsv_text = str(resp.text)
-            with open(out_files[1], 'wb') as fp:
+            with open(out_files[1], 'w') as fp:
                 fp.write(tsv_text)
 
         # Parse the raw data
