@@ -44,7 +44,8 @@ class GWASSession(PINGSession):
                                                     raw=raw, out_dir=out_dir))
                 except Exception as e:
                     print("Failed to get id=%s: %s" % (cur_id, str(e)))
-                    ids.append(None)
+                    results.append(None)
+            return results
 
         # Fetch
         out_file = os.path.join(out_dir, '%s_GWAS.csv' % id)
