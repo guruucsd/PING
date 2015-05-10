@@ -38,7 +38,7 @@ class PINGSNPSession(PINGSession):
 
     def get_snp_metadata(self, snp):
         snp_reader = csv.reader(open('csv/genes/PING_SNPs.txt'))
-        snp_reader.next()  # skip header
+        next(snp_reader)  # skip header
 
         for row in snp_reader:
             # Format: ['SNP', 'Chromosome', 'Basepair', 'Allele1', 'Allele2']
@@ -86,12 +86,12 @@ class PINGSNPSession(PINGSession):
 
         matched_snps = []
         snp_reader = csv.reader(open('csv/genes/PING_SNPs.txt'))
-        snp_reader.next()  # skip header
 
         all_chromosomes = [int(g[1][3:]) for g in gene_metadata]
         min_chromosome = np.min(all_chromosomes)
         max_chromosome = np.max(all_chromosomes)
 
+        next(snp_reader)  # skip header
         for row in snp_reader:
             # Format: ['SNP', 'Chromosome', 'Basepair', 'Allele1', 'Allele2']
 
