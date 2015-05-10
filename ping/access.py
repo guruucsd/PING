@@ -117,6 +117,9 @@ smoothing.interaction = ""
         return r_text
 
     def download_PING_spreadsheet(self, out_file=None):
+        # Force creation of the PING spreadsheet by running a regression
+        self.log("Do a simple regression to make sure PING spreadsheet is created.")
+        self.regress('Age_At_IMGExam', 'MRI_cort_area.ctx.total')
 
         # Now access the PING data sheet
         out_text = self.download_file(
