@@ -44,7 +44,7 @@ smoothing.interaction = ""
             '_v': '',
             'cookie': cookie,
             'user_name': self.username,
-            'project_name': 'PING',
+            'project_name': self.project_name,
             'command': '+'.join(covariates),
             'yvalue': Y,
             'functionOf': X,
@@ -62,7 +62,7 @@ smoothing.interaction = ""
             with open(out_files[0], 'r') as fp:
                 r_text = '\n'.join(fp.readlines())
         else:
-            url = 'https://ping-dataportal.ucsd.edu/applications/DataExploration/executeR.php'
+            url = self.make_url('applications/DataExploration/executeR.php')
             self.log("Computing regression for %s vs. %s..." % (X, Y))
             resp = self.sess.post(url, data=payload)
             r_text = str(resp.text)
@@ -98,8 +98,9 @@ smoothing.interaction = ""
 
         else:
             self.log('Retrieving raw data...')
-            resp = self.sess.get('https://ping-dataportal.ucsd.edu/applications/DataExploration/curves/%s_PING_curves/%s_PING_Corrected%d.tsv?cache=false' % (
+            url = self.make_url('applications/DataExploration/curves/%s_PING_curves/%s_PING_Corrected%d.tsv?cache=false' % (
                 self.username, self.username, cookie))
+            resp = self.sess.get(url)
             tsv_text = str(resp.text)
             with open(out_files[1], 'w') as fp:
                 fp.write(tsv_text)

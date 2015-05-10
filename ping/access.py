@@ -14,6 +14,10 @@ raw_input = raw_input if 'raw_input' in dir() else input
 
 
 class PINGSession(object):
+    """
+    """
+    project_name = 'PING'
+    base_url = 'https://ping-dataportal.ucsd.edu/'
 
     def __init__(self, username=None, passwd=None, verbosity=1):
         self.username = username or os.environ.get('PING_USERNAME')
@@ -34,6 +38,11 @@ class PINGSession(object):
         if self.verbosity >= verbosity:
             print(message)
 
+    def make_url(self, rel_path):
+        template_url = '{base_url}{rel_path}'.format(base_url=self.base_url,
+                                                     rel_path=rel_path)
+        return template_url.format(project_name=self.project_name)
+
     def login(self):
         payload = {
             'username': self.username,
@@ -42,16 +51,17 @@ class PINGSession(object):
             'url': ''}
 
         self.sess = requests.Session()
-        resp = self.sess.post('https://ping-dataportal.ucsd.edu/applications/User/login.php',
-                              data=payload)
-        if 'Login to Data Portal' in resp.text or resp.url != 'https://ping-dataportal.ucsd.edu/index.php':
+        url = self.make_url('applications/User/login.php')
+        self.log("Logging in as %s via %s" % (self.username, url))
+        resp = self.sess.post(url, data=payload)
+        if 'Login to Data Portal' in resp.text or resp.url != self.make_url('index.php'):
             self.sess = None
             raise Exception('Login failed.')
         else:
             self.log("Logged in as %s successfully." % self.username)
 
     def download_PING_spreadsheet(self, out_file=None):
-        url = 'https://ping-dataportal.ucsd.edu/applications/Documents/downloadDoc.php?project_name=PING&version=&file=../usercache_PING_%s.csv' % (
+        url = self.make_url('applications/Documents/downloadDoc.php?project_name={project_name}&version=&file=../usercache_PING_%s.csv') % (
             self.username)
         self.log("Downloading PING spreadsheet from %s" % url)
         resp = self.sess.get(url)
