@@ -15,8 +15,8 @@ class PINGUploadSession(PINGSession):
             'version': ''}
 
         self.log("Uploading spreadsheet %s to server..." % csv_file)
-        url = self.make_url('applications/DataExploration/upload.php')
-        resp = self.sess.post(url, data=payload, files=files)
+        resp = self.make_request('applications/DataExploration/upload.php',
+                                 verb='post', data=payload, files=files)
 
         if 'upload was successful' not in resp.text:
             raise Exception('Upload failed: %s' % str(resp.text))

@@ -62,16 +62,10 @@ smoothing.interaction = ""
             with open(out_files[0], 'r') as fp:
                 r_text = '\n'.join(fp.readlines())
         else:
-            url = self.make_url('applications/DataExploration/executeR.php')
             self.log("Computing regression for %s vs. %s..." % (X, Y))
-            resp = self.sess.post(url, data=payload)
-            r_text = str(resp.text)
-
-            dir_path = os.path.dirname(out_files[0])
-            if not os.path.exists(dir_path):
-                os.makedirs(dir_path)
-            with open(out_files[0], 'w') as fp:
-                fp.write(r_text)
+            r_text = self.download_file('applications/DataExploration/executeR.php',
+                                        verb='post', data=payload,
+                                        out_file=out_files[0])
 
         # Parse the regression result
         error_prog = re.compile('.*Error in (.+)<br>Execution halted<br>',
@@ -98,12 +92,9 @@ smoothing.interaction = ""
 
         else:
             self.log('Retrieving raw data...')
-            url = self.make_url('applications/DataExploration/curves/%s_PING_curves/%s_PING_Corrected%d.tsv?cache=false' % (
-                self.username, self.username, cookie))
-            resp = self.sess.get(url)
-            tsv_text = str(resp.text)
-            with open(out_files[1], 'w') as fp:
-                fp.write(tsv_text)
+            tsv_text = self.download_file('applications/DataExploration/curves/%s_PING_curves/%s_PING_Corrected%d.tsv?cache=false' % (
+                                              self.username, self.username, cookie),
+                                          out_file=out_files[1])
 
         # Parse the raw data
         try:
