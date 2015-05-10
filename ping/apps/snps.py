@@ -8,6 +8,7 @@ import subprocess
 import sys
 
 import numpy as np
+import six
 
 from ..access import PINGSession
 
@@ -78,7 +79,7 @@ class PINGSNPSession(PINGSession):
         Given a gene name, or entry in the gene metadata dictionary,
         return all SNPs for the PING study.
         """
-        if isinstance(gene, basestring):
+        if isinstance(gene, six.string_types):
             gene_metadata = self.get_gene_metadata(gene)
         else:
             gene_metadata = gene
