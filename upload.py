@@ -25,4 +25,4 @@ else:
 # Upload the new spreadsheet.
 sess = PINGUploadSession()
 sess.login()
-sess.upload_spreadsheet(csv_file)
+sess.upload_user_spreadsheet(csv_file)

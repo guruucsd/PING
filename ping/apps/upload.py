@@ -6,7 +6,7 @@ from ..access import PINGSession
 
 class PINGUploadSession(PINGSession):
 
-    def upload_spreadsheet(self, csv_file):
+    def upload_user_spreadsheet(self, csv_file):
         files = {
             'userfile': open(csv_file, 'r')}
         payload = {
