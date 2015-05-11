@@ -233,8 +233,10 @@ class PINGData(object):
 
         return self
 
-    def export(self, out_file):
+    def export(self, out_file, partial=True):
         keys = list(self.data_dict.keys())
+        if partial:
+            keys = list(set(keys) - set(self.PING_DATA.keys()))
 
         dir_path = os.path.dirname(out_file)
         if not os.path.exists(dir_path):
