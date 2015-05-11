@@ -161,11 +161,12 @@ class PINGData(object):
             csv_path = csv_path or os.path.join('csv', 'PING_raw_data.csv')
 
             # Download data
+            sess = PINGSession(username=username, passwd=passwd)
             if not os.path.exists(csv_path):
                 print("Downloading PING data...")
-                sess = PINGSession(username=username, passwd=passwd)
                 sess.login()
                 sess.download_PING_spreadsheet(out_file=csv_path)
+            sess.clean_PING_spreadsheet(out_file=csv_path)
 
             print("Loading PING data...")
             try:
@@ -237,6 +238,7 @@ class PINGData(object):
         keys = list(self.data_dict.keys())
         if partial:
             keys = list(set(keys) - set(self.PING_DATA.keys()))
+            keys += ['SubjID']
 
         dir_path = os.path.dirname(out_file)
         if not os.path.exists(dir_path):

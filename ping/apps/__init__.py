@@ -4,8 +4,10 @@ Accessing remote PING data & methods
 import hashlib
 import os
 import tempfile
+from six import StringIO
 
 import numpy as np
+import pandas
 import requests
 
 
@@ -114,24 +116,59 @@ smoothing.interaction = ""
         r_text = str(resp.text)
         return r_text
 
-    def download_PING_spreadsheet(self, out_file=None):
-        # Upload a dummy user spreadsheet, to get a 'pure' PING spreadsheet.
-        fname = '%s.csv' % tempfile.mkstemp()[1]
-        with open(fname, 'w') as fp:
-            fp.write("")
-        self.upload_user_spreadsheet(csv_file=fname)
-
+    def download_PING_spreadsheet(self, out_file):
         # Force creation of the PING spreadsheet by running a regression
         self.log("Do a simple regression to make sure PING spreadsheet is created.")
         self.regress('Age_At_IMGExam', 'MRI_cort_area.ctx.total')
 
         # Now access the PING data sheet
-        out_text = self.download_file(
-            rel_path='applications/Documents/downloadDoc.php?project_name={project_name}&version=&file=../usercache_PING_%s.csv' % (
-                self.username),
-            out_file=out_file)
+        self.download_file(
+             rel_path='applications/Documents/downloadDoc.php?project_name={project_name}&version=&file=../usercache_PING_%s.csv' % (
+                 self.username),
+             out_file=out_file)
 
-        return out_text
+        self.clean_PING_spreadsheet(out_file=out_file)
+
+    def clean_PING_spreadsheet(self, out_file):
+
+        good_keys = []
+
+        for dict_num, field_name in zip([1, 2], ['Name', 'variable']):
+            # Download and load the data dictionary.
+            out_file_dict = 'download/dict/PING_datadictionary0%d.csv' % dict_num
+            if not os.path.exists(out_file_dict):
+                self.download_file(
+                    rel_path='applications/Documents/downloadDoc.php?project_name={project_name}&version=&file=../PING_datadictionary0%d.csv' % (
+                        dict_num), 
+                    out_file=out_file_dict)
+            csv_dict = pandas.read_csv(out_file_dict, low_memory=False)
+            cur_keys = [k.strip().replace('-', '.').replace('+', '.')
+                          for k in csv_dict[field_name]]
+            cur_keys = [k.replace('PHXSSE', 'PHX_SSE') for k in cur_keys]
+            good_keys += cur_keys
+            
+            # Still fails to recognize:
+            # Removing non-PING entry: FDH_Pacific_Islander_Prcnt_Deri
+            # Removing non-PING entry: FDH_African_American_Prcnt_Deri
+            # Removing non-PING entry: FDH_American_Indian_Prcnt_Deriv
+            # Removing non-PING entry: FDH_English_Primary_At_Home_Der
+            # Removing non-PING entry: PHX_IMP_LKPREM_NSKI
+            # Removing non-PING entry: PHXSSE_SCI
+            # Removing non-PING entry: phenx_pin
+
+        # Remove keys as needed.
+        PING_csv = pandas.read_csv(out_file, low_memory=False)
+        PING_keys = list(PING_csv.keys())
+        for key in PING_keys:
+            if key not in good_keys:
+                self.log("Removing non-PING entry: %s" % key)
+                #import pdb; pdb.set_trace()
+                del PING_csv[key]
+                
+        # Only write output if something was scrubbed
+        if len(PING_keys) != len(PING_csv.keys()):
+            self.log("Saving cleaned PING spreadsheet to %s." % out_file)
+            PING_csv.to_csv(out_file, index=False)
 
     def upload_user_spreadsheet(self, csv_file):
         files = {
