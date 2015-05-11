@@ -7,7 +7,7 @@ import sys
 import numpy as np
 
 from ping.data import PINGData
-from research.grouping import group_and_execute
+from research.grouping import group_and_execute, parse_filter_args
 
 EXPORTED_PING_SPREADSHEET = 'csv/PING_userdefined.csv'
 
@@ -51,23 +51,6 @@ def do_usage(args):
 
 
 if __name__ == '__main__':
-
-    # Filtering / grouping defaults
-    filter_args = {
-        'prefixes': PINGData.IMAGING_PREFIX,
-        'groupings': ['FDH_23_Handedness_Prtcpnt'],
-        'limits': {}}
-    #    'MRI_cort_area_ctx_frontalpole_AI':
-    #        lambda vals: select_lowest_values(-vals)}
-
-    # Parse args
-    n_args = len(sys.argv)
-    if n_args >= 2:
-        filter_args['prefixes'] = sys.argv[1].split(',')
-    if n_args >= 3:
-        filter_args['groupings'] = sys.argv[2].split(',')
-    if n_args >= 4:
-        do_usage(sys.argv)
-
+    filter_args = parse_filter_args(sys.argv[1:])
     group_and_execute(fn=export_data, **filter_args)
 

@@ -8,6 +8,10 @@ import numpy as np
 from .data import get_derived_data, get_all_data
 
 
+class UsageException(Exception):
+    pass
+
+
 def select_lowest_values(vals, pct=0.25):
     """One possible 'limit' filter."""
     selected_idx = np.argsort(vals)[:int(np.floor(pct * len(vals)))]
@@ -79,3 +83,27 @@ def group_and_execute(fn, all_data=None, prefixes=None, groupings=None, limits=N
 
                 # Now export
                 fn(data, limits=cur_limits, group={group_key: group_val})
+
+
+def parse_filter_args(args, filter_defaults=None):
+
+    # Filtering / grouping defaults
+    filter_args = {
+        'prefixes': PINGData.IMAGING_PREFIX,
+        'groupings': ['FDH_23_Handedness_Prtcpnt'],
+        'limits': {}}
+    #    'MRI_cort_area_ctx_frontalpole_AI':
+    #        lambda vals: select_lowest_values(-vals)}
+
+    # Update defaults by those passed in
+    if filter_defaults is not None:
+        filter_args.update(filter_defaults)
+
+    # Parse args
+    n_args = len(args)
+    if n_args >= 1:
+        filter_args['prefixes'] = sys.argv[1].split(',')
+    if n_args >= 2:
+        filter_args['groupings'] = sys.argv[2].split(',')
+    if n_args >= 3:
+        raise UsageException(args)
