@@ -11,7 +11,7 @@ import numpy as np
 from ping.apps.regress import find_one_relationship, skip_key, skip_pairing
 from ping.utils import do_and_plot_regression
 from research.asymmetry import is_ai_key
-from research.computed_measures import get_derived_data
+from research.data import get_derived_data
 from research.regress import search_all_vs_itself, search_all_pairwise
 
 

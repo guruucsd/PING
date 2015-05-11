@@ -8,7 +8,7 @@ from functools import partial
 from export import EXPORTED_PING_SPREADSHEET
 from ping.apps import PINGSession
 from ping.data import PINGData
-from research.computed_measures import get_all_data
+from research.data import get_all_data
 
 
 if len(sys.argv) > 1:

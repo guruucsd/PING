@@ -1,6 +1,6 @@
 """
 """
-from .computed_measures import compute_all_asymmetries
+from .data import compute_all_asymmetries
 from ping.apps.regress import PINGDataSession
 
 
