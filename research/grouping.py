@@ -1,14 +1,16 @@
 """
 """
 import copy
+import sys
 from functools import partial
 
 import numpy as np
 
 from .data import get_derived_data, get_all_data
+from ping.data import PINGData
 
 
-class UsageException(Exception):
+class UsageError(Exception):
     pass
 
 
@@ -106,4 +108,28 @@ def parse_filter_args(args, filter_defaults=None):
     if n_args >= 2:
         filter_args['groupings'] = sys.argv[2].split(',')
     if n_args >= 3:
-        raise UsageException(args)
+        raise UsageError(args)
+
+
+def do_usage(exec_name, description=""):
+    print("\n%s [prefixes] [groupings]" % exec_name)
+
+    if description:
+        chunks = ['']
+        for w in description.split(' '):
+            extend_chunk = ' '.join([chunks[-1], w])
+            if len(extend_chunk) <= 60:
+                chunks[-1] = extend_chunk
+            else:
+                chunks.append(w)
+
+        print("\t%s" % chunks[0][1:])
+        for chunk in chunks[1:]:
+            print("\t\t%s" % chunk)
+
+    print("\nprefixes: (optional) comma-delimited list of prefixes")
+    print("\tto filter computations/results to.")
+    print("groupings: (optional) comma-delimited list of ways to")
+    print("\tsplit the data into groups. A CSV file will be output")
+    print("\tfor every combination of group unique values.")
+    print("\n")
