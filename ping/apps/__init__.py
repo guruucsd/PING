@@ -15,7 +15,7 @@ class PINGSession(object):
     project_name = 'PING'
     base_url = 'https://ping-dataportal.ucsd.edu/'
 
-    def __init__(self, username=None, passwd=None, verbosity=1):
+    def __init__(self, username=None, passwd=None, verbose=1):
         self.username = username or os.environ.get('PING_USERNAME')
         self.passwd = passwd or os.environ.get('PING_PASSWORD')
 
@@ -28,10 +28,10 @@ class PINGSession(object):
 
         self.sess = requests.Session()
         self.result_ids = None  # current dictionary of result IDs
-        self.verbosity = verbosity  # level of output
+        self.verbose = verbose  # level of output
 
-    def log(self, message, verbosity=1):
-        if self.verbosity >= verbosity:
+    def log(self, message, verbose=1):
+        if self.verbose >= verbose:
             print(message)
 
     def make_url(self, rel_path):
@@ -39,12 +39,14 @@ class PINGSession(object):
                                                      rel_path=rel_path)
         return template_url.format(project_name=self.project_name)
 
-    def make_request(self, rel_path, verb='get', **kwargs):
+    def make_request(self, rel_path, verb='get', msg=None, **kwargs):
         url = self.make_url(rel_path)
-        self.log("Downloading file from %s ..." % url)
+        msg = msg or "Sending '%s' request to %s ..." % (verb, url)
+
+        self.log(msg)
         request_fn = getattr(self.sess, verb)
         resp = request_fn(url, **kwargs)
-        self.log("Download completed.")
+        self.log("Response received.", verbose=-1)
 
         return resp
 
@@ -70,9 +72,9 @@ class PINGSession(object):
             'ac': 'log',
             'url': ''}
 
-        self.log("Logging in as %s" % (self.username))
         resp = self.make_request(rel_path='applications/User/login.php',
-                                 verb='post', data=payload)
+                                 verb='post', data=payload,
+                                 msg="Logging in as %s" % (self.username))
         if 'Login to Data Portal' in resp.text or resp.url != self.make_url('index.php'):
             raise Exception('Login failed.')
         else:
@@ -139,9 +141,9 @@ smoothing.interaction = ""
             'project': self.project_name,
             'version': ''}
 
-        self.log("Uploading spreadsheet %s to server..." % csv_file)
         resp = self.make_request('applications/DataExploration/upload.php',
-                                 verb='post', data=payload, files=files)
+                                 verb='post', data=payload, files=files,
+                                 msg="Uploading spreadsheet %s to server..." % csv_file)
 
         if 'upload was successful' not in resp.text:
             raise Exception('Upload failed: %s' % str(resp.text))
