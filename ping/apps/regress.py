@@ -51,7 +51,7 @@ class PINGDataSession(PINGSession):
 
     def parse_and_display_regression(self, tsv_text, plot=False):
         try:
-            rec = np.recfromcsv(StringIO.StringIO(tsv_text))
+            rec = np.recfromcsv(StringIO(tsv_text))
         except Exception as e:
             raise Exception("Failed to parse data response (%s): %s" % (tsv_text, e))
         else:

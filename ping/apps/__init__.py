@@ -4,8 +4,10 @@ Accessing remote PING data & methods
 import hashlib
 import os
 import tempfile
+from six import StringIO
 
 import numpy as np
+import pandas
 import requests
 
 
@@ -15,7 +17,7 @@ class PINGSession(object):
     project_name = 'PING'
     base_url = 'https://ping-dataportal.ucsd.edu/'
 
-    def __init__(self, username=None, passwd=None, verbosity=1):
+    def __init__(self, username=None, passwd=None, verbose=1):
         self.username = username or os.environ.get('PING_USERNAME')
         self.passwd = passwd or os.environ.get('PING_PASSWORD')
 
@@ -28,10 +30,10 @@ class PINGSession(object):
 
         self.sess = requests.Session()
         self.result_ids = None  # current dictionary of result IDs
-        self.verbosity = verbosity  # level of output
+        self.verbose = verbose  # level of output
 
-    def log(self, message, verbosity=1):
-        if self.verbosity >= verbosity:
+    def log(self, message, verbose=1):
+        if self.verbose >= verbose:
             print(message)
 
     def make_url(self, rel_path):
@@ -39,12 +41,14 @@ class PINGSession(object):
                                                      rel_path=rel_path)
         return template_url.format(project_name=self.project_name)
 
-    def make_request(self, rel_path, verb='get', **kwargs):
+    def make_request(self, rel_path, verb='get', msg=None, **kwargs):
         url = self.make_url(rel_path)
-        self.log("Downloading file from %s ..." % url)
+        msg = msg or "Sending '%s' request to %s ..." % (verb, url)
+
+        self.log(msg)
         request_fn = getattr(self.sess, verb)
         resp = request_fn(url, **kwargs)
-        self.log("Download completed.")
+        self.log("Response received.", verbose=-1)
 
         return resp
 
@@ -70,9 +74,9 @@ class PINGSession(object):
             'ac': 'log',
             'url': ''}
 
-        self.log("Logging in as %s" % (self.username))
         resp = self.make_request(rel_path='applications/User/login.php',
-                                 verb='post', data=payload)
+                                 verb='post', data=payload,
+                                 msg="Logging in as %s" % (self.username))
         if 'Login to Data Portal' in resp.text or resp.url != self.make_url('index.php'):
             raise Exception('Login failed.')
         else:
@@ -112,24 +116,59 @@ smoothing.interaction = ""
         r_text = str(resp.text)
         return r_text
 
-    def download_PING_spreadsheet(self, out_file=None):
-        # Upload a dummy user spreadsheet, to get a 'pure' PING spreadsheet.
-        fname = '%s.csv' % tempfile.mkstemp()[1]
-        with open(fname, 'w') as fp:
-            fp.write("")
-        self.upload_user_spreadsheet(csv_file=fname)
-
+    def download_PING_spreadsheet(self, out_file):
         # Force creation of the PING spreadsheet by running a regression
         self.log("Do a simple regression to make sure PING spreadsheet is created.")
         self.regress('Age_At_IMGExam', 'MRI_cort_area.ctx.total')
 
         # Now access the PING data sheet
-        out_text = self.download_file(
-            rel_path='applications/Documents/downloadDoc.php?project_name={project_name}&version=&file=../usercache_PING_%s.csv' % (
-                self.username),
-            out_file=out_file)
+        self.download_file(
+             rel_path='applications/Documents/downloadDoc.php?project_name={project_name}&version=&file=../usercache_PING_%s.csv' % (
+                 self.username),
+             out_file=out_file)
 
-        return out_text
+        self.clean_PING_spreadsheet(out_file=out_file)
+
+    def clean_PING_spreadsheet(self, out_file):
+
+        good_keys = []
+
+        for dict_num, field_name in zip([1, 2], ['Name', 'variable']):
+            # Download and load the data dictionary.
+            out_file_dict = 'download/dict/PING_datadictionary0%d.csv' % dict_num
+            if not os.path.exists(out_file_dict):
+                self.download_file(
+                    rel_path='applications/Documents/downloadDoc.php?project_name={project_name}&version=&file=../PING_datadictionary0%d.csv' % (
+                        dict_num), 
+                    out_file=out_file_dict)
+            csv_dict = pandas.read_csv(out_file_dict, low_memory=False)
+            cur_keys = [k.strip().replace('-', '.').replace('+', '.')
+                          for k in csv_dict[field_name]]
+            cur_keys = [k.replace('PHXSSE', 'PHX_SSE') for k in cur_keys]
+            good_keys += cur_keys
+            
+            # Still fails to recognize:
+            # Removing non-PING entry: FDH_Pacific_Islander_Prcnt_Deri
+            # Removing non-PING entry: FDH_African_American_Prcnt_Deri
+            # Removing non-PING entry: FDH_American_Indian_Prcnt_Deriv
+            # Removing non-PING entry: FDH_English_Primary_At_Home_Der
+            # Removing non-PING entry: PHX_IMP_LKPREM_NSKI
+            # Removing non-PING entry: PHXSSE_SCI
+            # Removing non-PING entry: phenx_pin
+
+        # Remove keys as needed.
+        PING_csv = pandas.read_csv(out_file, low_memory=False)
+        PING_keys = list(PING_csv.keys())
+        for key in PING_keys:
+            if key not in good_keys:
+                self.log("Removing non-PING entry: %s" % key)
+                #import pdb; pdb.set_trace()
+                del PING_csv[key]
+                
+        # Only write output if something was scrubbed
+        if len(PING_keys) != len(PING_csv.keys()):
+            self.log("Saving cleaned PING spreadsheet to %s." % out_file)
+            PING_csv.to_csv(out_file, index=False)
 
     def upload_user_spreadsheet(self, csv_file):
         files = {
@@ -139,9 +178,9 @@ smoothing.interaction = ""
             'project': self.project_name,
             'version': ''}
 
-        self.log("Uploading spreadsheet %s to server..." % csv_file)
         resp = self.make_request('applications/DataExploration/upload.php',
-                                 verb='post', data=payload, files=files)
+                                 verb='post', data=payload, files=files,
+                                 msg="Uploading spreadsheet %s to server..." % csv_file)
 
         if 'upload was successful' not in resp.text:
             raise Exception('Upload failed: %s' % str(resp.text))
