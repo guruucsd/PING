@@ -7,9 +7,8 @@ import scipy.spatial
 import scipy.stats
 from matplotlib import pyplot as plt
 
-from .access import load_PING_data, which_hemi
-from .asymmetry import is_ai_prop_name
-from .utils.plotting import plot_symmetric_matrix_as_triangle
+from ..data import which_hemi
+from ..utils.plotting import plot_symmetric_matrix_as_triangle
 
 
 def get_good_keys(all_data, filter_fn):
@@ -21,7 +20,7 @@ def get_good_keys(all_data, filter_fn):
             continue  # All data is nan!
         elif all_data[key][np.logical_not(np.isnan(all_data[key]))].std() == 0:
             continue  # Data without variation
-        elif '_Vent' in key:
+        elif '.Vent' in key.lower():
             continue  # Remove ventricles
         good_keys.append(key)
     return sorted(good_keys)
@@ -70,16 +69,19 @@ def compare_similarity_vectors(vec1, vec2):
     return scipy.stats.pearsonr(vec1, vec2)
 
 
-def compute_similarity_matrices(data):
-    filt_fns = {
-        'ai': lambda key: is_ai_prop_name(key) and '_TOTAL' not in key,
+def compute_similarity_matrices(data, filt_fns=None):
+
+    # Add default filters
+    all_filters = {
         'left': lambda key: which_hemi(key) == 'lh',
         'right': lambda key: which_hemi(key) == 'rh'}
+    if filt_fns is not None:
+        all_filters.update(filt_fns)
 
     sim_dict = dict()
 
     # 1. Compute similarity matrices
-    for mat_type, filt_fn in filt_fns.items():
+    for mat_type, filt_fn in all_filters.items():
         print("Computing similarity matrix for %s" % (mat_type))
 
         sim_mat, good_keys = build_similarity_matrix(data,

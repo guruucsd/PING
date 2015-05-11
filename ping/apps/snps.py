@@ -11,7 +11,7 @@ import sys
 import numpy as np
 import six
 
-from ..access import PINGSession
+from . import PINGSession
 
 GENES = None
 SNPS = None
@@ -126,10 +126,7 @@ class PINGSNPSession(PINGSession):
                         int(gene[3]) - range/2 <= cur_basepair and
                         cur_basepair <= int(gene[4]) + range/2):
                     matched_snps.append(row)
-                    self.log("Hit #%4d (chromosome %s)" % (
-                        len(matched_snps), cur_chromosome))
                     break
-        self.log(matched_snps)
 
         return matched_snps
 

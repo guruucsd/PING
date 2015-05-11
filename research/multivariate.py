@@ -5,10 +5,8 @@ import numpy as np
 from scipy.stats import pearsonr
 from sklearn.decomposition import PCA
 
-from .access import (load_PING_data, get_twohemi_keys,
-                     get_fdh_data, get_tbx_data)
-from .asymmetry import get_asymmetry_index, is_ai_prop_name
-from .utils import do_and_plot_regression
+from .asymmetry import get_asymmetry_index, is_ai_key
+from ping.utils import do_and_plot_regression
 
 
 class AsymmetryPCA(object):
@@ -21,28 +19,29 @@ class AsymmetryPCA(object):
         self.whiten = whiten
         self.pc_threshhold = pc_threshhold
 
-    def fit(self, data):
+    def fit(self, data, verbose=1):
         """Perform PCA on asymmetry indices.
         data is a data dictionary."""
 
+        data.filter(lambda k, v: 'fuzzy' not in k)
+        data.filter(lambda k, v: '_TOTAL_AI' not in k)
+        self.data = data
+        good_keys = self.data.get_twohemi_keys()
+
         data_mat = []
-        keys = [key for key in data.keys()
-                if 'fuzzy' not in key and '_TOTAL_AI' not in key]
-        good_keys = get_twohemi_keys(keys)
         if len(good_keys) == 0:
             # We got asymmetry indices directly
-            good_keys = [key for key in keys if is_ai_prop_name(key)]
+            good_keys = [key for key in data.data_dict.keys() if is_ai_key(key)]
             for key in good_keys:
-                data_mat.append(data[key])
+                data_mat.append(data.data_dict[key])
         else:
             # We got raw data
-            good_keys = np.asarray(keys)
+            good_keys = np.asarray(list(data.data_dict.keys()))
             for key in good_keys:
-                data_mat.append(get_asymmetry_index(data, key))
+                data_mat.append(get_asymmetry_index(data.data_dict, key))
 
         good_keys = np.asarray(good_keys)
         data_mat = np.asarray(data_mat)
-        print(data_mat.shape)
 
         # Eliminate subjects with zero asymmetry in anything (likely artifacts)
         key_nan_idx = np.isnan(data_mat).sum(1) >= 0.95 * data_mat.shape[1]
@@ -57,12 +56,15 @@ class AsymmetryPCA(object):
                                                      noasymm_idx))
         data_mat = data_mat[:, good_subj_idx]
 
-        print("Eliminated %d keys, %d subjects." % (
-            sum(np.logical_not(good_key_idx)),
-            sum(np.logical_not(good_subj_idx))))
+        if verbose >= 1:
+            print("Eliminated %d keys, %d subjects." % (
+                sum(np.logical_not(good_key_idx)),
+                sum(np.logical_not(good_subj_idx))))
+
+        print('PCA data matrix size: %s' % str(data_mat.shape))
 
         # Compute PCA and dump the results
-        self.subj_ids = data['SubjID'][good_subj_idx]
+        self.subj_ids = data.data_dict['SubjID'][good_subj_idx]
         self.data = data
         self.data_mat = data_mat
         self.good_keys = good_keys
@@ -97,7 +99,7 @@ class AsymmetryPCA(object):
     def report_behavior_correlations(self):
         # Now, take this factor and compare it to behavioral data
         # (or, should I throw the behavior in the PCA?)
-        tbx_data = get_tbx_data(dict(zip(self.good_keys, self.data_mat)))
+        tbx_data = self.data.get_tbx_data()
         print('Found %d TBX keys.' % len(tbx_data))
 
         for pi, proj in enumerate(self.get_projections()):
@@ -110,7 +112,7 @@ class AsymmetryPCA(object):
     def report_background_correlations(self):
         # Now, take this factor and compare it to hisory data
         # (or, should I throw the behavior in the PCA?)
-        fdh_data = get_fdh_data(dict(zip(self.good_keys, self.data_mat)))
+        fdh_data = self.data.get_fdh_data()
         print('Found %d FDH keys.' % len(fdh_data))
 
         for pi, pc in enumerate(self.get_projections()):
