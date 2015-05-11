@@ -38,6 +38,18 @@ def export_data(data, **kwargs):
     return cur_csv
 
 
+def do_usage(args):
+    print("\nUsage for %s:" % args[0])
+    print("\t%s [prefixes] [groupings]" % args[0])
+    print("\n\tExports data based on filtering and grouping;")
+    print("\tsetting filters and groups via command-line NYI.")
+    print("\n\tprefixes: (optional) comma-delimited list of prefixes")
+    print("\t\tto filter computations/results to.")
+    print("\tgropuings: (optional) comma-delimited list of ways to")
+    print("\t\tsplit the data into groups. A CSV file will be output")
+    print("\t\tfor every combination of group unique values.")
+
+
 if __name__ == '__main__':
 
     # Filtering / grouping defaults
@@ -54,6 +66,8 @@ if __name__ == '__main__':
         filter_args['prefixes'] = sys.argv[1].split(',')
     if n_args >= 3:
         filter_args['groupings'] = sys.argv[2].split(',')
+    if n_args >= 4:
+        do_usage(sys.argv)
 
     group_and_execute(fn=export_data, **filter_args)
 
