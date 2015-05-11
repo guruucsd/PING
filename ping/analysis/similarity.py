@@ -7,7 +7,7 @@ import scipy.spatial
 import scipy.stats
 from matplotlib import pyplot as plt
 
-from ..access import load_PING_data, which_hemi
+from ..data import which_hemi
 from ..utils.plotting import plot_symmetric_matrix_as_triangle
 
 
@@ -20,7 +20,7 @@ def get_good_keys(all_data, filter_fn):
             continue  # All data is nan!
         elif all_data[key][np.logical_not(np.isnan(all_data[key]))].std() == 0:
             continue  # Data without variation
-        elif '_Vent' in key:
+        elif '.Vent' in key.lower():
             continue  # Remove ventricles
         good_keys.append(key)
     return sorted(good_keys)

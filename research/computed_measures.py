@@ -1,5 +1,6 @@
 """
 """
+import collections
 import copy
 import os
 
@@ -9,65 +10,61 @@ import pandas
 from .asymmetry import (get_asymmetry_index, get_ai_key,
                         is_ai_key)
 from .multivariate import AsymmetryPCA
-from ping.access import (get_lh_key, get_nonhemi_key,
-                         load_PING_data, get_twohemi_keys)
-from ping.data.export import export_all_data, merge_by_key
+from ping.data import PINGData, get_lh_key, get_nonhemi_key
 
 
-def compute_all_totals(prefix):
+def compute_all_totals(filtered_data):
     """ Loop over all properties to show asymmetry."""
-    data = load_PING_data(scrub_fields=False)
-
-    export_data = dict((('SubjID', data['SubjID'],),))
 
     # Process & plot the data.
-    for key in get_twohemi_keys(data.keys(), prefix=prefix):
+    out_data = PINGData(dict(SubjID=filtered_data.data_dict['SubjID']))
+    for key in filtered_data.get_twohemi_keys():
         lh_key = get_lh_key(key)
         dest_key = get_nonhemi_key(key)
         dest_key += '_LH_PLUS_RH'
-        export_data[dest_key] = data[key] + data[lh_key]
+        out_data.data_dict[dest_key] = filtered_data.data_dict[key] + filtered_data.data_dict[lh_key]
 
-    return export_data
+    return out_data
 
 
-def compute_all_asymmetries(prefix):
+def compute_all_asymmetries(filtered_data):
     """ Loop over all properties to show asymmetry."""
-    data = load_PING_data(scrub_fields=False)
-
-    export_data = dict((('SubjID', data['SubjID'],),))
-
     # Process & plot the data.
-    for key in get_twohemi_keys(data.keys(), prefix=prefix):
+    out_data = PINGData(dict(SubjID=filtered_data.data_dict['SubjID']))
+    for key in filtered_data.get_twohemi_keys():
         dest_key = get_ai_key(key)
-        export_data[dest_key] = get_asymmetry_index(data, key,
-                                                          mask_nan=False)
+        out_data.data_dict[dest_key] = get_asymmetry_index(filtered_data.data_dict,
+                                                           key, mask_nan=False)
 
     # Add one property for total asymmetry
-    n_subj = len(data['SubjID'])
-    for p in prefix:
+    n_subj = out_data.get_num_subjects()
+    for p in filtered_data.IMAGING_PREFIX:
+        # Compute total asymmetry per subject
         total_asymmetry = np.zeros((n_subj,))
-        good_keys = filter(lambda k: k.startswith(p) and is_ai_key(k),
-                           export_data.keys())
+        good_keys = filter(lambda k: (k.startswith(p) and 
+                                      is_ai_key(k)),
+                           out_data.data_dict.keys())
         for key in good_keys:
-            values = export_data[key].copy()
-            values[np.isnan(values)] = 0.
-            total_asymmetry += export_data[key]**2
+            values = out_data.data_dict[key].copy()
+            values[np.isnan(values)] = 0. # summing, so is ok.
+            total_asymmetry += out_data.data_dict[key]**2
+
         total_ai_key = get_ai_key(p + '_TOTAL')
-        export_data[total_ai_key] = np.sqrt(total_asymmetry)
-        assert len(export_data[total_ai_key]) == n_subj
+        out_data.data_dict[total_ai_key] = np.sqrt(total_asymmetry)
 
-    return export_data
+    return out_data
 
 
-def compute_component_loadings(prefix):
-    all_data = compute_all_asymmetries(prefix)
+def compute_component_loadings(filtered_data, verbose=0):
+    asymmetry_data = compute_all_asymmetries(filtered_data)
 
     pca = AsymmetryPCA(whiten=True)
-    pca.fit(all_data)
+    pca.fit(asymmetry_data, verbose=verbose)
 
-    pca.report_asymmetry_loadings()
-    pca.report_behavior_correlations()
-    pca.report_background_correlations()
+    if verbose >= 1:
+        pca.report_asymmetry_loadings()
+        pca.report_behavior_correlations()
+        pca.report_background_correlations()
 
     pc_projections = pca.get_projections()
     keys = ['PC%d' % pi for pi in range(pc_projections.shape[0])]
@@ -75,69 +72,39 @@ def compute_component_loadings(prefix):
     pc_dict = dict(zip(keys, pc_projections))
     pc_dict['SubjID'] = pca.subj_ids
 
-    return pc_dict
+    return PINGData(pc_dict)
 
 
-def combine_genetic_data(export_data, gene_file):
-    # Merge the two together.
-    with open(gene_file, 'r') as fp:
-        gene_data = np.recfromcsv(fp)
-
-    all_idx = []
-    for subj_id in export_data['SubjID']:
-        x_subj_id = '"%s"' % subj_id
-        if x_subj_id in gene_data['subjid']:
-            all_idx.append(gene_data['subjid'].tolist().index(x_subj_id))
-        else:
-            all_idx.append(np.nan)
-
-    for key in gene_data.dtype.names:
-        if key == 'subjid':
-            continue
-        vals = [gene_data[idx] if np.logical_not(np.isnan(idx)) else np.nan
-                for idx in all_idx]
-        export_data[key] = vals
-
-    return export_data
-
-
-def get_derived_data(prefix=None):
-    if prefix is None:
-        prefix = []
-
+def get_derived_data(filtered_data, tag=None, verbose=0):
     print("Computing derived data...")
-    data = compute_all_asymmetries(prefix=prefix)
-    data = merge_by_key(data, compute_all_totals(prefix=prefix))
+
+    data = compute_all_asymmetries(filtered_data)
+    data.merge(compute_all_totals(filtered_data))
 
     # Add principle components as a whole,
     #   then for each prefix seperately.
-    try:
-        pc_dict = compute_component_loadings(prefix=prefix)
-    except Exception as e:
-        print("Skipping PCA: %s" % e)
-    else:
-        recoded_keys = ['ALL_%s' % k if k != 'SubjID' else k
-                        for k in pc_dict.keys()]
-        data = merge_by_key(data, dict(zip(recoded_keys, pc_dict.values())))
-
-        for p in prefix:
-            pc_dict = compute_component_loadings(prefix=p)
-            recoded_keys = ['%s_%s' % (p, k) if k != 'SubjID' else k
-                            for k in pc_dict.keys()]
-            data = merge_by_key(data, dict(zip(recoded_keys, pc_dict.values())))
-
+    cl = compute_component_loadings(filtered_data, verbose=verbose)
+    data.merge(cl, tag=tag)
     return data
 
 
-def get_all_data(prefix, force=False):
-    ping_data = copy.deepcopy(load_PING_data())
-    all_data = get_derived_data(prefix=prefix)
+def get_all_data(all_data=None, filter_fns=None, verbose=0):
+    if all_data is None:
+        all_data = PINGData()
 
-    all_data = merge_by_key(ping_data, all_data)
+    if filter_fns is None:
+        filter_fns = dict()
 
-    # Now scrub every field.
-    for key, val in all_data.items():
-        if not isinstance(val, np.ndarray):
-            all_data[key] = np.asarray(val)
+    # Now get derived data for each filter separately,
+    # and all filters together.
+    for key in ['ALL'] + list(filter_fns.keys()):
+        filtered_data = copy.deepcopy(all_data)
+        if key == 'ALL':
+            filtered_data.filter(list(filter_fns.values()))
+        else:
+            filtered_data.filter(filter_fns[key])
+        computed_data = get_derived_data(filtered_data, tag='%s_%%s' % key,
+                                         verbose=verbose)
+        all_data.merge(computed_data)
 
     return all_data

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
 
-from ping.access import col2prop, load_PING_data, get_twohemi_keys
+from ping.data import PINGData
 from ping.utils import do_and_plot_regression
 from ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
                                  equalize_xlims, equalize_ylims)
@@ -178,26 +178,26 @@ def loop_show_asymmetry(prefix,
                         grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'],
                         plots=['regressions', 'distributions']):
     """ Loop over all properties to show asymmetry."""
-    data = load_PING_data()
-
-    # Remove 'fuzzy':
-    keys = [key for key in data.keys() if 'fuzzy' not in key]
+    data = PINGData()
+    data.filter(lambda k, v: 'fuzzy' not in k)  # Remove 'fuzzy'
+    data.filter([lambda k, v: k.startswith(p)
+                 for p in prefix])
 
     # Process & plot the data.
     stats = []
     regressions = []
-    measure_names = get_twohemi_keys(keys, prefix=prefix)
-    for pi, key in enumerate(measure_names):
+    measure_keys = data.get_twohemi_keys()
+    for pi, key in enumerate(measure_keys):
         # print("Comparing %d (%s)..." % (pi, key))
         gn, ss, rv = compare_group_asymmetry(data, key=key, plots=plots,
-                                         grouping_keys=grouping_keys)
+                                             grouping_keys=grouping_keys)
         stats.append(ss)
         regressions.append(rv)
 
     if 'regression_stats' in plots:
         dump_regressions_csv(regressions,
                              group_names=gn,
-                             measure_names=measure_names)
+                             measure_names=measure_keys)
 
     if 'stat_distributions' in plots:
         plot_stat_distributions(stats, group_names=gn)
@@ -207,34 +207,7 @@ def loop_show_asymmetry(prefix,
 if __name__ == '__main__':
     import warnings
     warnings.warn('Code to group by handedness or gender should be extracted and generalized.')
-    # Grey volume vs. thickness vs. area
-    # vol_name = col2prop('MRI_subcort_vol-Right-Cerebral-Cortex')
-    # thick_name = col2prop('MRI_cort_thick-ctx-rh-mean')
-    # area_name = col2prop('MRI_cort_area-ctx-rh-total')
-    # loop_show_asymmetry(prefix=[vol_name, thick_name, area_name])
 
-    # Results: MRI_subcort_vol-Right-Cerebral-Cortex
-    # loop_show_asymmetry(prefix='MRI_subcort_vol')
-
-    # Results: 
-    # loop_show_asymmetry(prefix='MRI_cort_thick')
-
-    # Results: 
-    # loop_show_asymmetry(prefix='MRI_cort_area')
-
-    # Results: A LOT
-    # loop_show_asymmetry(prefix='DTI_fiber_vol')
-
-    # Results: Examine on sex
-    # loop_show_asymmetry(prefix='DTI_fiber_vol')
-
-    # Doesn't work... sex is missing!
-    # loop_show_asymmetry(prefix='DTI_fiber_vol', grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'])
-
-    #
-    #loop_show_asymmetry(prefix=['MRI_cort_area', 'MRI_cort_thick', 'MRI_subcort_vol', 'DTI_fiber_vol'],
-    #                    grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'])
-
-    loop_show_asymmetry(prefix=['MRI_cort_thick', 'MRI_cort_area', 'DTI_fiber_vol'],  # area_ctx_rh_frontalpole'],
+    loop_show_asymmetry(prefix=PINGData.IMAGING_PREFIX,  # area_ctx_rh_frontalpole'],
                         grouping_keys=['FDH_23_Handedness_Prtcpnt'],
                         plots=['regression_stats'])

@@ -3,6 +3,7 @@ Accessing remote PING data & methods
 """
 import hashlib
 import os
+import tempfile
 
 import numpy as np
 import requests
@@ -112,6 +113,12 @@ smoothing.interaction = ""
         return r_text
 
     def download_PING_spreadsheet(self, out_file=None):
+        # Upload a dummy user spreadsheet, to get a 'pure' PING spreadsheet.
+        fname = '%s.csv' % tempfile.mkstemp()[1]
+        with open(fname, 'w') as fp:
+            fp.write("")
+        self.upload_user_spreadsheet(csv_file=fname)
+
         # Force creation of the PING spreadsheet by running a regression
         self.log("Do a simple regression to make sure PING spreadsheet is created.")
         self.regress('Age_At_IMGExam', 'MRI_cort_area.ctx.total')
@@ -123,3 +130,18 @@ smoothing.interaction = ""
             out_file=out_file)
 
         return out_text
+
+    def upload_user_spreadsheet(self, csv_file):
+        files = {
+            'userfile': open(csv_file, 'r')}
+        payload = {
+            'MAX_FILE_SIZE': 20000000,
+            'project': self.project_name,
+            'version': ''}
+
+        self.log("Uploading spreadsheet %s to server..." % csv_file)
+        resp = self.make_request('applications/DataExploration/upload.php',
+                                 verb='post', data=payload, files=files)
+
+        if 'upload was successful' not in resp.text:
+            raise Exception('Upload failed: %s' % str(resp.text))
