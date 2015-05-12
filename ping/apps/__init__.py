@@ -62,7 +62,7 @@ class PINGSession(object):
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
 
-            with open(out_file, 'w') as fp:
+            with open(out_file, 'wb') as fp:
                 fp.write(out_text)
 
         return out_text
@@ -137,11 +137,17 @@ smoothing.interaction = ""
             # Download and load the data dictionary.
             out_file_dict = 'download/dict/PING_datadictionary0%d.csv' % dict_num
             if not os.path.exists(out_file_dict):
+                self.login()
                 self.download_file(
                     rel_path='applications/Documents/downloadDoc.php?project_name={project_name}&version=&file=../PING_datadictionary0%d.csv' % (
                         dict_num), 
                     out_file=out_file_dict)
-            csv_dict = pandas.read_csv(out_file_dict, low_memory=False)
+            try:
+                csv_dict = pandas.read_csv(out_file_dict, low_memory=False)
+            except Exception as e:
+                self.log("Failed to download %s: %s" % (out_file_dict, str(e)))
+                return
+
             cur_keys = [k.strip().replace('-', '.').replace('+', '.')
                           for k in csv_dict[field_name]]
             cur_keys = [k.replace('PHXSSE', 'PHX_SSE') for k in cur_keys]

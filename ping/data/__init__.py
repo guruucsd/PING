@@ -187,7 +187,7 @@ class PINGData(object):
             # Convert dots to underscores
             print("Converting PING data...")
             new_data = dict()
-            for key, val in data.items():
+            for key, val in data.iteritems():
                 if scrub_keys:
                     key = key.replace('.', '_')
                 if scrub_values:

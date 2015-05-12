@@ -189,7 +189,7 @@ def loop_show_asymmetry(prefix,
     measure_keys = data.get_twohemi_keys()
     for pi, key in enumerate(measure_keys):
         # print("Comparing %d (%s)..." % (pi, key))
-        gn, ss, rv = compare_group_asymmetry(data, key=key, plots=plots,
+        gn, ss, rv = compare_group_asymmetry(data.data_dict, key=key, plots=plots,
                                              grouping_keys=grouping_keys)
         stats.append(ss)
         regressions.append(rv)
