@@ -43,24 +43,25 @@ anatomical_name = {
     'transversetemporal': 'transverse temporal',
 
 
-    'ATR': 'anterior thalamic radiations',
-    'CST': 'cortico-spinal',
-    'CgC': 'cingulum (cingulate)',
-    'CgH': 'cingulum (parahippocampal)',
-    'CC': 'corpus callosum',
-    'Fx': 'fornix',
-    'Fxcut': 'fornix (no fimbria)',
-    'IFO': 'inferior-fronto-occipital fasciculus',
     'IFSFC': 'inferior frontal superior frontal cortex',
+    'SIFC': 'striatal inferior frontal cortex',
+    'Unc': 'uncinate fasciculus',
+    'ATR': 'anterior thalamic radiations',
+    'fSCS': 'superior cortico-striate (frontal)',
+    'IFO': 'inferior-fronto-occipital fasciculus',
+    'CgC': 'cingulum (cingulate)',
     'ILF': 'inferior longitudinal fasciculus',
     'SCS': 'superior cortico-striate',
-    'SIFC': 'striatal inferior frontal cortex',
-    'SLF': 'superior longitudinal fasciculus',
-    'Unc': 'uncinate fasciculus',
-    'fSCS': 'superior cortico-striate (frontal)',
     'pSCS': 'superior cortico-striate (parietal)',
     'pSLF': 'superior longitudinal fasciculus (parietal)',
-    'tSLF': 'superior longitudinal fasciculus (temporal)',}
+    'tSLF': 'superior longitudinal fasciculus (temporal)',
+    'SLF': 'superior longitudinal fasciculus',
+    'CgH': 'cingulum (parahippocampal)',
+    'CST': 'cortico-spinal',
+    'CC': 'corpus callosum',
+    'Fx': 'fornix',
+    'Fxcut': 'fornix (no fimbria)',}
+
 
 anatomical_order = np.asarray([
     'frontalpole',
@@ -98,24 +99,24 @@ anatomical_order = np.asarray([
     'medialorbitofrontal',
 
     # Fiber tracts
-    'ATR', #: 'anterior thalamic radiations',
-    'CST', #: 'cortico-spinal',
-    'CgC', #: 'cingulum (cingulate)',
-    'CgH', #: 'cingulum (parahippocampal)',
-    'Fx', #: 'fornix',
-    'Fxcut', #: 'fornix (no fimbria)',
-    'IFO', #: 'inferior-fronto-occipital fasiculus',
     'IFSFC', #: 'inferior frontal superior frontal cortex',
+    'SIFC', #: 'striatal inferior frontal cortex',
+    'Unc', #: 'uncinate fasiculus',
+    'ATR', #: 'anterior thalamic radiations',
+    'fSCS', #: 'superior cortico-striate (frontal)',
+    'IFO', #: 'inferior-fronto-occipital fasiculus',
+    'CgC', #: 'cingulum (cingulate)',
     'ILF', #: 'inferior longitudinal fasiculus',
     'SCS', #: 'superior cortico-striate',
-    'SIFC', #: 'striatal inferior frontal cortex',
-    'SLF', #: 'superior longitudinal fasiculus',
-    'Unc', #: 'uncinate fasiculus',
-    'fSCS', #: 'superior cortico-striate (frontal)',
     'pSCS', #: 'superior cortico-striate (parietal)',
     'pSLF', #: 'superior longitudinal fasiculus (parietal)',
     'tSLF', #: 'superior longitudinal fasiculus (temporal)',}
-
+    'SLF', #: 'superior longitudinal fasiculus',
+    'CgH', #: 'cingulum (parahippocampal)',
+    'CST', #: 'cortico-spinal',
+    'CC', #: 'cortico-spinal',
+    'Fx', #: 'fornix',
+    'Fxcut', #: 'fornix (no fimbria)',
 
     # Subcortical
     'Accumbens.area',
@@ -128,6 +129,7 @@ anatomical_order = np.asarray([
 
 
 def get_anatomical_name(key):
+    """Returns a proper anatomical name, or the key if not found."""
     global anatomical_name
     return  anatomical_name.get(key, key)
 
@@ -150,25 +152,47 @@ def anatomical_sort(keys):
     
     global anatomical_order
 
-    # Parse keys into their anatomical roots
-    keys = sorted(keys)
-    prefix_of = lambda k: k.split('.')[0]
-    key_prefix = [prefix_of(key) for key in keys]
-    anatomical_keys = np.asarray([key[(len(prefix_of(key)) + 1):]
-                                  for key in keys])
+    # Normalize the form of the key
+    normd_keys = sorted([get_nonhemi_key(k) for k in keys])
+    keys = np.asarray(keys)
+
+    # Select every prefix match with the key
+    # Fair warning: I add a dummy character to avoid
+    #   adding one on the prefix in the next step...
+    #   which would be tough with the empty string logic!
+    key_prefixes = [[''] + [p + "." for p in PINGData.IMAGING_PREFIX 
+                            if k.startswith(p)]
+                    for k in normd_keys]
+    # Get the substring without the prefix (or the key itself
+    #   if no prefix was found)
+    anatomical_keys = np.asarray([k[len(p[-1]):]
+                                  for k, p in zip(normd_keys, key_prefixes)])
     print(anatomical_keys)
 
-    # Map across the arrays
-    index = np.argsort(anatomical_order)
-    sorted_ao = anatomical_order[index]
-    sorted_index = np.searchsorted(anatomical_order, anatomical_keys)
+    # Find map from the structures in anatomical_order into the 'keys' list.
+    index = np.argsort(anatomical_keys)
+    sorted_ak = anatomical_keys[index]
+    sorted_index = np.searchsorted(sorted_ak, anatomical_order)
 
+    # Now use that map to reorder the keys themselves.
     keys_index = np.take(index, sorted_index, mode="clip")
-    missing_mask = anatomical_order[keys_index] != anatomical_keys
+    good_mask = anatomical_keys[keys_index] == anatomical_order
 
-    result = anatomical_order[keys_index]
-    result[missing_mask] = anatomical_keys[missing_mask]
+    # Grab the reordered keys, append any keys not found.
+    result = keys[keys_index[good_mask]]
+
+    # Find which keys remain, then append.    
+    all_keys_index = set(np.arange(len(keys)))
+    found_keys_index = set(np.unique(keys_index[good_mask]))
+    missing_keys_idx = np.asarray(list(all_keys_index - found_keys_index), dtype=int)
+    if len(missing_keys_idx) != 0:
+        import pdb; pdb.set_trace()
+        if len(result) == 0:
+            result = keys[missing_keys_idx]
+        else:
+            result = np.concatenate(result, keys[missing_keys_idx])
     print(result)
+    assert len(result) == len(keys)
 
     # Everything else that remains is added alphabetically.
     return result
@@ -184,7 +208,8 @@ def get_rh_key_from_lh_key(key):
 
 def get_nonhemi_key(key):
     return get_rh_key_from_lh_key(key) \
-        .replace('.rh.', '.').replace('.Right.', '.').replace('.R_', '_')
+        .replace('.rh.', '.').replace('.Right.', '.').replace('.R_', '_') \
+        .replace('_AI', '').replace('_LH_PLUS_RH', '')  # hacks... for now
 
 
 def is_nonimaging_key(key):
