@@ -151,7 +151,8 @@ class PINGData(object):
     """
     PING_DATA = None  # shared
     IMAGING_PREFIX = ['MRI_cort_area', 'MRI_cort_thick',
-                      'MRI_subcort_vol', 'DTI_fiber_vol']
+                      'MRI_subcort_vol', 'DTI_fiber_vol',
+                      'DTI_fiber_FA', 'DTI_fiber_LD', 'DTI_fiber_TD']
 
     def __init__(self, data=None, scrub_keys=False, scrub_values=True, csv_path=None, username=None, passwd=None, force=False):
         if data is not None:
