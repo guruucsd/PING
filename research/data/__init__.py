@@ -63,7 +63,7 @@ def compute_all_asymmetries(filtered_data):
 def compute_component_loadings(filtered_data, verbose=0):
     asymmetry_data = compute_all_asymmetries(filtered_data)
 
-    pca = AsymmetryPCA(whiten=True)
+    pca = AsymmetryPCA(whiten=False)
     pca.fit(asymmetry_data, verbose=verbose)
 
     if verbose >= 1:

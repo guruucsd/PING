@@ -3,6 +3,7 @@ File for investigating asymmetry from PING data, based on each subject's
 asymmetry index
 """
 import os
+from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -117,6 +118,7 @@ def compare_group_asymmetry(data, key, grouping_keys, plots):
                         for gi, gsamps1 in enumerate(group_samples)
                         for gsamps2 in group_samples[gi + 1:]])
 
+
     # Test whether variances differ
     if 'stats' in plots:
         dist_mat = scipy.spatial.distance.squareform(stats[:, 2])
@@ -135,7 +137,7 @@ def compare_group_asymmetry(data, key, grouping_keys, plots):
         equalize_xlims(fh2)
         equalize_ylims(fh2)
 
-    return group_names, stats, regressions
+    return group_names, stats, regressions, group_samples
 
 
 def dump_regressions_csv(regressions, group_names, measure_names):
@@ -148,11 +150,79 @@ def dump_regressions_csv(regressions, group_names, measure_names):
                            for si, stat_name in enumerate(stat_names)
                            for group_name in group_names]
             print('\t'.join([''] + header_vals))
-        col_vals = ['%.10f' % regressions[mi][gi, si + 2]
+
+        row_vals = ['%.10f' % regressions[mi][gi, si + 2]
                     for si, stat_name in enumerate(stat_names)
                     for gi, group_name in enumerate(group_names)]
-        print('\t'.join([measure_name] + col_vals))
+        print('\t'.join([measure_name] + row_vals))
 
+
+def plot_regressions_scatter(regressions, group_names, measure_names):
+    # Dump a tsv of group rvals, pvals, and coeff of variation
+    n_measures = len(regressions)
+    stat_names = ['rval', 'pval']
+    color_arr = ['b', 'g', 'r', 'k', 'y', 'c'][:len(group_names)]
+
+    prefix = np.unique([m[:12] for m in measure_names])
+    all_xvals = dict([(gn, []) for gn in group_names])
+    all_yvals = dict([(gn, []) for gn in group_names])
+
+    for p in prefix:
+        prefix_idx = np.asarray([m.startswith(p) for m in measure_names])
+
+        p_xvals = dict()
+        p_yvals = dict()
+        for gi, group_name in enumerate(group_names):
+            # Plot rval vs. pval
+            group_xvals = np.asarray([regressions[mi][gi, 2]
+                                      for mi in np.nonzero(prefix_idx)[0]])
+            group_yvals = np.asarray([regressions[mi][gi, 3]
+                                      for mi in np.nonzero(prefix_idx)[0]])
+
+            good_idx = ~np.logical_or(np.isnan(group_xvals),
+                                      np.isnan(group_yvals))
+            p_xvals[group_name] = group_xvals[good_idx]
+            p_yvals[group_name] = group_yvals[good_idx]
+
+            all_xvals[group_name] += group_xvals[good_idx].tolist()
+            all_yvals[group_name] += group_yvals[good_idx].tolist()
+
+        fh = plt.figure(figsize=(18, 8))
+        ax1 = fh.add_subplot(1, 2, 1)
+        ax1.hist(np.asarray([p_xvals[gn] for gn in group_names]).T,
+                 bins=20,
+                 color=color_arr)
+        ax1.legend(group_names)
+        ax2 = fh.add_subplot(1, 2, 2)
+        ax2.hist(np.asarray([p_yvals[gn] for gn in group_names]).T,
+                 bins=20,
+                 color=color_arr)
+        fh.suptitle(p)
+
+    # Bar plot (total)
+    fh = plt.figure(figsize=(18, 8))
+    ax1 = fh.add_subplot(1, 2, 1)
+    ax1.hist(np.asarray([all_xvals[gn] for gn in group_names]).T,
+             bins=50,
+             color=color_arr)
+    ax1.legend(group_names)
+    ax2 = fh.add_subplot(1, 2, 2)
+    ax2.hist(np.asarray([all_yvals[gn] for gn in group_names]).T,
+             bins=50,
+             color=color_arr)
+    fh.suptitle('Over all measures')
+
+    #ax = plt.figure(figsize=(18, 8)).gca()
+    ax1.scatter(np.asarray([all_xvals[gn] for gn in group_names]).T,
+                30 * np.asarray([all_yvals[gn] for gn in group_names]).T,
+                c=color_arr)
+
+    #fh.suptitle('Over all measures')
+
+
+        # ax.scatter(np.asarray(list(col_xvals.values())), np.asarray(list(col_yvals.values())))
+        #import pdb; pdb.set_trace()
+    plt.show()
 
 def plot_stat_distributions(stats, group_names):
     # Show the distribution of stats, to see if there are
@@ -169,10 +239,26 @@ def plot_stat_distributions(stats, group_names):
             ax1 = fh4.add_subplot(2, len(lbls), pi)
             ax1.hist(pvals[:, li], [0.0001, 0.001, 0.01, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60])
             ax1.set_title(lbl)
+            if li == 0:
+                ax1.set_ylabel(stat_name)
             pi += 1
     equalize_xlims(fh4)
     equalize_ylims(fh4)
 
+    means = np.asarray([ss[:, 0] for ss in stats])
+    stds = np.asarray([ss[:, 2] for ss in stats])
+    good_idx = ~np.logical_or(np.isnan(means.sum(1)), np.isnan(stds.sum(1)))
+
+    import pdb; pdb.set_trace()
+    fh = plt.figure(figsize=(18, 8))
+    ax1 = fh.add_subplot(1, 2, 1)
+    ax1.hist(means[good_idx], bins=25)
+    ax1.set_xlabel('mean')
+
+    ax2 = fh.add_subplot(1, 2, 2)
+    ax2.hist(stds[good_idx], bins=25)
+    ax2.set_xlabel('standard deviation')
+    ax2.legend(group_names)
 
 def loop_show_asymmetry(prefix,
                         grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'],
@@ -180,24 +266,33 @@ def loop_show_asymmetry(prefix,
     """ Loop over all properties to show asymmetry."""
     data = PINGData()
     data.filter(lambda k, v: 'fuzzy' not in k)  # Remove 'fuzzy'
-    data.filter([lambda k, v: k.startswith(p)
+    data.filter([partial(lambda k, v, p: (k.startswith(p) or
+                                          k in grouping_keys or
+                                          k == 'Age_At_IMGExam'),
+                         p=p)
                  for p in prefix])
 
     # Process & plot the data.
     stats = []
     regressions = []
     measure_keys = data.get_twohemi_keys()
-    for pi, key in enumerate(measure_keys):
+    for pi, key in enumerate(sorted(measure_keys)):
         # print("Comparing %d (%s)..." % (pi, key))
-        gn, ss, rv = compare_group_asymmetry(data.data_dict, key=key, plots=plots,
-                                             grouping_keys=grouping_keys)
+        print(key)
+        gn, ss, rv, gs = compare_group_asymmetry(data.data_dict, key=key, plots=plots,
+                                                 grouping_keys=grouping_keys)
         stats.append(ss)
         regressions.append(rv)
+        group_samples.append(gs)
 
     if 'regression_stats' in plots:
         dump_regressions_csv(regressions,
                              group_names=gn,
                              measure_names=measure_keys)
+
+        plot_regressions_scatter(regressions,
+                                 group_names=gn, 
+                                 measure_names=measure_keys)
 
     if 'stat_distributions' in plots:
         plot_stat_distributions(stats, group_names=gn)
@@ -208,6 +303,6 @@ if __name__ == '__main__':
     import warnings
     warnings.warn('Code to group by handedness or gender should be extracted and generalized.')
 
-    loop_show_asymmetry(prefix=PINGData.IMAGING_PREFIX,  # area_ctx_rh_frontalpole'],
-                        grouping_keys=['FDH_23_Handedness_Prtcpnt'],
-                        plots=['regression_stats'])
+    loop_show_asymmetry(prefix=PINGData.IMAGING_PREFIX, #['MRI_cort_thick'],  # area_ctx_rh_frontalpole'],
+                        grouping_keys=['Gender'],
+                        plots=['stat_distributions'])
