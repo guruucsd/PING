@@ -4,9 +4,10 @@ Plotting utilities
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.spatial
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-def plot_symmetric_matrix_as_triangle(mat, ax=None, lbls=None, vmin=0, vmax=1):
+def plot_symmetric_matrix_as_triangle(mat, ax=None, xlabels=None, xlabels_class=None, vmin=0, vmax=1):
     """Plot symmetric matrix (like a covariance matrix) as a lower triangle."""
 
     # Scrub inputs
@@ -24,37 +25,39 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, lbls=None, vmin=0, vmax=1):
     ax.set_axis_bgcolor(ax.get_figure().get_facecolor())
     img = ax.imshow(mat, vmin=vmin, vmax=vmax, interpolation='nearest')
     ax.set_frame_on(False)
-    plt.colorbar(img)
+    ax.tick_params(labelsize=16)
 
-    lbl_class = lambda lbl: lbl.split('.')[0]
-    if not lbls:
+    # create an axes on the right side of ax. The width of cax will be 5%
+    # of ax and the padding between cax and ax will be fixed at 0.05 inch.
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.10)
+    plt.colorbar(img, cax=cax)
+
+    # Now label.
+    if xlabels is None:
         ax.set_xticks([])
         ax.set_yticks([])
+
+    elif xlabels_class is None or len(np.unique(xlabels_class)) == 1:
+        sz = mat.shape[0]
+        ax.set_xticks(range(sz))
+        ax.set_xticklabels(xlabels, rotation='vertical')
+        ax.set_yticks(range(sz))
+        ax.set_yticklabels(xlabels)
+
     else:
-        lbl_classes = np.unique([lbl_class(lbl) for lbl in lbls])
-        if len(lbl_classes) == 1:
-            sz = mat.shape[0]
-            ax.set_xticks(range(sz - 1))
-            ax.set_xticklabels(lbls[:sz - 1])
-            ax.set_yticks(range(1, sz))
-            ax.set_yticklabels(lbls[1:])
-        else:
-            border_idx = [0]
-            border_lbls = [lbl_class(lbls[0])]
-            for li, lbl in enumerate(lbls[1:]):
-                if lbl_class(lbl) != border_lbls[-1]:
-                    print('Adding %s after %s' % (lbl_class(lbl),
-                                                  border_lbls[-1]))
-                    # Add the previous again at the border, to
-                    #   clarify the boundary.
-                    # border_idx.append(li - 1)
-                    # border_lbls.append(border_lbls[-1])
-                    # Now add the new one
-                    border_idx.append(li)
-                    border_lbls.append(lbl_class(lbl))
-            ax.set_yticks(border_idx)
-            ax.set_yticklabels(border_lbls)
-            ax.set_xticks([])
+        border_idx = [0]
+        border_lbls = [xlabel_class[0]]
+        for li, lbl_cls in enumerate(xlabel_class[1:]):
+            if lbl_cls != border_lbls[-1]:
+                print('Adding %s after %s' % (lbl_cls,
+                                              border_lbls[-1]))
+                border_idx.append(li)
+                border_lbls.append(lbl_cls)
+        ax.set_xticks(border_idx)
+        ax.set_xticklabels(border_lbls, rotation='vertical')
+        ax.set_yticks(border_idx)
+        ax.set_yticklabels(border_lbls)
 
 
 

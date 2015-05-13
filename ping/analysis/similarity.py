@@ -2,17 +2,20 @@
 Build similarity matrices for cortical area (left, right) and asymmetry
 """
 import copy
+from collections import OrderedDict
+
 import numpy as np
 import scipy.spatial
 import scipy.stats
 from matplotlib import pyplot as plt
 
 from .partial_corr import partial_corr
+from .stats import pdist_nan
 from ..data import which_hemi
 from ..utils.plotting import plot_symmetric_matrix_as_triangle
 
 
-def get_good_keys(all_data, filter_fn):
+def get_good_keys(all_data, filter_fn, sort_fn=sorted):
     good_keys = []
     rej_reason = []
     for key in all_data.keys():
@@ -25,24 +28,37 @@ def get_good_keys(all_data, filter_fn):
         elif np.isnan(all_data[key]).sum() == len(all_data[key]):
             rej_reason.append('all nan')
             continue  # All data is nan!
-        elif all_data[key][np.logical_not(np.isnan(all_data[key]))].std() == 0:
+        elif all_data[key][~np.isnan(all_data[key])].std() == 0:
             rej_reason.append('std=0')
             continue  # Data without variation
         elif np.any([substr in key.lower()
-                    for substr in ['.vent', 'fuzzy', 'total', '.mean', '.white.matter', '.cortex', 'allfib']]):
-            rej_reason.append('substr')
+                    for substr in ['.vent', 'fuzzy', 'bankssts', 'total']]):
+            rej_reason.append('substr-ctx')
+            continue  # Remove ventricles
+        elif np.any([substr in key.lower()
+                    for substr in ['.mean', '.white.matter', '.cortex']]):
+            rej_reason.append('substr-subctx')
+            continue  # Remove ventricles
+        elif np.any([substr in key.lower()
+                    for substr in ['allfib', '_slf', '_scs', '_fxcut']]):
+            rej_reason.append('substr-fiber')
             continue  # Remove ventricles
         good_keys.append(key)
-    assert len(good_keys) > 0
-    return sorted(good_keys)
+
+    if len(good_keys) == 0:
+        raise ValueError("Filtered out all fields!")
+
+    return sort_fn(good_keys)
 
 
-def build_similarity_matrix(all_data, good_keys=None, filter_fn=None, standardize=False):
+def build_similarity_matrix(all_data, good_keys=None, filter_fn=None,
+                            standardize=False, sort_fn=sorted,
+                            metric='correlation'):
     """
     """
     # Filter keys
     if not good_keys:
-        good_keys = sorted(get_good_keys(all_data, filter_fn))
+        good_keys = sort_fn(get_good_keys(all_data, filter_fn))
 
     # Convert data dictionary into a data matrix
     data_mat = []
@@ -50,20 +66,26 @@ def build_similarity_matrix(all_data, good_keys=None, filter_fn=None, standardiz
         data_mat.append(all_data[key])
     data_mat = np.asarray(data_mat)
 
-    # Remove subjects with any nan, and standardize values
-    bad_idx = np.isnan(data_mat.sum(axis=0))
-    good_idx = np.logical_not(bad_idx)
-    data_mat = data_mat[:, good_idx]
-    if standardize:
-        data_mat = scipy.stats.mstats.zscore(data_mat, axis=1)
-        assert np.all(np.abs(data_mat.sum(axis=1)) < 1E-4)
-    print("Found %d keys; removed %d subjects w/ missing data." % (
-        data_mat.shape[1], bad_idx.sum()))
+    if metric != 'partial-correlation':
+        dist_mat = pdist_nan(data_mat, metric=metric, standardize=standardize)
+        corr_mat = 1 - dist_mat
 
-    # Compute a correlation matrix
-    dist_mat = scipy.spatial.distance.pdist(data_mat, 'correlation')
-    corr_mat = partial_corr(data_mat.T)
+    else:
+        # Remove subjects with any nan, and standardize values
+        # bad_idx = np.isnan(data_mat.sum(axis=0))
+        # good_idx = np.logical_not(bad_idx)
+        # assert good_idx.sum() > 0, "You rejected all data!"
 
+        # data_mat = data_mat[:, good_idx]
+        if standardize:
+            for ri in range(data_mat.shape[0]):
+                data_mat[ri] = scipy.stats.mstats.zscore(
+                    data_mat[~np.isnan(data_mat[ri])])
+            # assert np.all(np.abs(data_mat.sum(axis=1)) < 1E-4)
+        # print("Found %d keys; removed %d subjects w/ missing data." % (
+            # data_mat.shape[1], bad_idx.sum()))
+        corr_mat = partial_corr(data_mat.T, verbose=1)
+        corr_mat[np.isnan(corr_mat)] = 0  # some values with std=0
     assert not np.isnan(corr_mat.sum())
 
     return corr_mat, good_keys
@@ -91,27 +113,22 @@ def compare_similarity_vectors(vec1, vec2, metric='correlation'):
         return (np.trace(np.dot(vec1 - vec2, vec1 - vec2)), np.nan)
 
 
-def compute_similarity_matrices(data, filt_fns=None):
+def compute_similarity_matrices(data, filt_fns=None, **kwargs):
+    if filt_fns is None:
+        # Default filter: one group of everything!
+        filt_fns = dict(all=lambda k: True)
 
-    # Add default filters
-    all_filters = {
-        'left': lambda key: which_hemi(key) == 'lh',
-        'right': lambda key: which_hemi(key) == 'rh'}
-    if filt_fns is not None:
-        all_filters.update(filt_fns)
-
-    sim_dict = dict()
-
-    # 1. Compute similarity matrices
-    for mat_type, filt_fn in all_filters.items():
+    sim_dict = OrderedDict()
+    sim_keys = OrderedDict()
+    for mat_type, filt_fn in filt_fns.items():
         print("Computing similarity matrix for %s" % (mat_type))
 
         sim_mat, good_keys = build_similarity_matrix(data,
                                                      filter_fn=filt_fn,
-                                                     standardize=False)
+                                                     **kwargs)
         sim_dict[mat_type] = sim_mat
-        print([v.shape for v in sim_dict.values()])
-    return sim_dict, good_keys
+        sim_keys[mat_type] = good_keys
+    return sim_dict, sim_keys
 
 
 def compare_similarity_matrices(sim_dict):
@@ -132,12 +149,12 @@ def compare_similarity_matrices(sim_dict):
             mat_idx += 1
 
 
-def visualize_similarity_matrices(sim_dict, labels=None, dynamic_color=True):
+def visualize_similarity_matrices(sim_dict, labels=None, class_labels=None, dynamic_color=True):
     # Visualize similarity matrices
     compare_keys = list(sim_dict.keys())
     n_keys = len(compare_keys)
-
     fh = plt.figure(figsize=(16, 6))
+
     for ki, key in enumerate(compare_keys):
         vmin, vmax = -1, 1
         if dynamic_color:
@@ -147,7 +164,8 @@ def visualize_similarity_matrices(sim_dict, labels=None, dynamic_color=True):
         ax = fh.add_subplot(1, n_keys, ki + 1)
         plot_symmetric_matrix_as_triangle(sim_dict[key], ax=ax,
                                           vmin=vmin, vmax=vmax,
-                                          lbls=labels if ki == 0 else None)
+                                          xlabels=labels if ki == 0 else None,
+                                          xlabels_class=class_labels if ki == 0 else None)
         ax.set_title(key)
 
     return ax

@@ -27,7 +27,10 @@ Testing: Valentina Borghesani, valentinaborghesani@gmail.com
 import numpy as np
 from scipy import stats, linalg
 
-def partial_corr(C):
+from statsmodels.regression.linear_model import OLS
+
+
+def partial_corr(C, verbose=0):
     """
     Returns the sample linear partial correlation coefficients between pairs of variables in C, controlling 
     for the remaining variables in C.
@@ -47,22 +50,32 @@ def partial_corr(C):
     """
     
     C = np.asarray(C)
+    C = C[~np.isnan(C.sum(1))]
+
     p = C.shape[1]
     P_corr = np.zeros((p, p), dtype=np.float)
+    if verbose >= 1:
+        print("Looping over %d variables..." % p)
     for i in range(p):
+        if i % 25 == 24:
+            print("\tLoop %d of %d" % (i + 1, p))
         P_corr[i, i] = 1
         for j in range(i+1, p):
             idx = np.ones(p, dtype=np.bool)
             idx[i] = False
             idx[j] = False
+            #beta_i = OLS(C[:, idx], C[:, j]).fit().params.squeeze()
+            #beta_j = OLS(C[:, idx], C[:, i]).fit().params.squeeze()
+
             beta_i = linalg.lstsq(C[:, idx], C[:, j])[0]
             beta_j = linalg.lstsq(C[:, idx], C[:, i])[0]
 
-            res_j = C[:, j] - C[:, idx].dot( beta_i)
+            res_j = C[:, j] - C[:, idx].dot(beta_i)
             res_i = C[:, i] - C[:, idx].dot(beta_j)
             
             corr = stats.pearsonr(res_i, res_j)[0]
             P_corr[i, j] = corr
             P_corr[j, i] = corr
-        
+    if verbose >= 1:
+        print("Done.")
     return P_corr

@@ -16,12 +16,179 @@ from ..apps import PINGSession
 raw_input = raw_input if 'raw_input' in dir() else input
 
 
-def get_lh_key(key):
+anatomical_name = {
+    'bankssts': 'superior temporal sulcus',
+    'caudalanteriorcingulate': 'caudal anterior cingulate',
+    'caudalmiddlefrontal': 'caudal middle frontal',
+    'frontalpole': 'frontal pole',
+    'inferiorparietal': 'inferior parietal',
+    'inferiortemporal': 'inferior temporal',
+    'isthmuscingulate': 'isthmus cingulate',
+    'lateraloccipital': 'lateral occipital',
+    'lateralorbitofrontal': 'lateral orbitofrontal',
+    'medialorbitofrontal': 'medial orbitofrontal',
+    'middletemporal': 'middle temporal',
+    'parahippocampal': 'pars hippocampal',
+    'parsopercularis': 'pars opercularis',
+    'parsorbitalis': 'pars orbitalis',
+    'parstriangularis': 'pars triangularis',
+    'posteriorcingulate': 'posterior cingulate',
+    'rostralanteriorcingulate': 'rostral anterior cingulate',
+    'rostralmiddlefrontal': 'rostral middle frontal',
+    'superiorfrontal': 'superior frontal',
+    'superiorparietal': 'superior parietal',
+    'superiortemporal': 'superior temporal',
+    'supramarginal': 'supramarginal',
+    'temporalpole': 'temporal pole',
+    'transversetemporal': 'transverse temporal',
+
+
+    'ATR': 'anterior thalamic radiations',
+    'CST': 'cortico-spinal',
+    'CgC': 'cingulum (cingulate)',
+    'CgH': 'cingulum (parahippocampal)',
+    'CC': 'corpus callosum',
+    'Fx': 'fornix',
+    'Fxcut': 'fornix (no fimbria)',
+    'IFO': 'inferior-fronto-occipital fasciculus',
+    'IFSFC': 'inferior frontal superior frontal cortex',
+    'ILF': 'inferior longitudinal fasciculus',
+    'SCS': 'superior cortico-striate',
+    'SIFC': 'striatal inferior frontal cortex',
+    'SLF': 'superior longitudinal fasciculus',
+    'Unc': 'uncinate fasciculus',
+    'fSCS': 'superior cortico-striate (frontal)',
+    'pSCS': 'superior cortico-striate (parietal)',
+    'pSLF': 'superior longitudinal fasciculus (parietal)',
+    'tSLF': 'superior longitudinal fasciculus (temporal)',}
+
+anatomical_order = np.asarray([
+    'frontalpole',
+    'superiorfrontal',
+    'rostralmiddlefrontal',
+    'lateralorbitofrontal',
+    'parsorbitalis',
+    'parstriangularis',
+    'parsopercularis',
+    'caudalmiddlefrontal',
+    'precentral',
+    'postcentral',
+    'supramarginal',
+    'superiorparietal',
+    'inferiorparietal',
+    'lateraloccipital',
+    'inferiortemporal',
+    'middletemporal',
+    'superiortemporal',
+    'transversetemporal',
+    'temporalpole',
+    #
+    'entorhinal',
+    'parahippocampal',
+    'fusiform',
+    'lingual',
+    'pericalcarine',
+    'cuneus',
+    'precuneus',
+    'isthmuscingulate',
+    'posteriorcingulate',
+    'paracentral',
+    'caudalanteriorcingulate',
+    'rostralanteriorcingulate',
+    'medialorbitofrontal',
+
+    # Fiber tracts
+    'ATR', #: 'anterior thalamic radiations',
+    'CST', #: 'cortico-spinal',
+    'CgC', #: 'cingulum (cingulate)',
+    'CgH', #: 'cingulum (parahippocampal)',
+    'Fx', #: 'fornix',
+    'Fxcut', #: 'fornix (no fimbria)',
+    'IFO', #: 'inferior-fronto-occipital fasiculus',
+    'IFSFC', #: 'inferior frontal superior frontal cortex',
+    'ILF', #: 'inferior longitudinal fasiculus',
+    'SCS', #: 'superior cortico-striate',
+    'SIFC', #: 'striatal inferior frontal cortex',
+    'SLF', #: 'superior longitudinal fasiculus',
+    'Unc', #: 'uncinate fasiculus',
+    'fSCS', #: 'superior cortico-striate (frontal)',
+    'pSCS', #: 'superior cortico-striate (parietal)',
+    'pSLF', #: 'superior longitudinal fasiculus (parietal)',
+    'tSLF', #: 'superior longitudinal fasiculus (temporal)',}
+
+
+    # Subcortical
+    'Accumbens.area',
+    'Amygdala',
+    'Hippocampus',
+    'Caudate',
+    'Pallidum',
+    'Putamen',
+    'Thalamus.Proper'])
+
+
+def get_anatomical_name(key):
+    global anatomical_name
+    return  anatomical_name.get(key, key)
+
+
+def anatomical_sort(keys):
+    """Group keys by prefix, then by brain location."""
+    # import numpy as np
+    # x = np.array([3,5,7,1,9,8,6,6])
+    # y = np.array([2,1,5,10,100,6])
+    # 
+    # index = np.argsort(x)
+    # sorted_x = x[index]
+    # sorted_index = np.searchsorted(sorted_x, y)
+    # 
+    # yindex = np.take(index, sorted_index, mode="clip")
+    # mask = x[yindex] != y
+    # 
+    # result = np.ma.array(yindex, mask=mask)
+    # print result    
+    
+    global anatomical_order
+
+    # Parse keys into their anatomical roots
+    keys = sorted(keys)
+    prefix_of = lambda k: k.split('.')[0]
+    key_prefix = [prefix_of(key) for key in keys]
+    anatomical_keys = np.asarray([key[(len(prefix_of(key)) + 1):]
+                                  for key in keys])
+    print(anatomical_keys)
+
+    # Map across the arrays
+    index = np.argsort(anatomical_order)
+    sorted_ao = anatomical_order[index]
+    sorted_index = np.searchsorted(anatomical_order, anatomical_keys)
+
+    keys_index = np.take(index, sorted_index, mode="clip")
+    missing_mask = anatomical_order[keys_index] != anatomical_keys
+
+    result = anatomical_order[keys_index]
+    result[missing_mask] = anatomical_keys[missing_mask]
+    print(result)
+
+    # Everything else that remains is added alphabetically.
+    return result
+    
+
+def get_lh_key_from_rh_key(key):
     return key.replace('.rh.', '.lh.').replace('.Right.', '.Left.').replace('.R_', '.L_')
 
 
+def get_rh_key_from_lh_key(key):
+    return key.replace('.lh.', '.rh.').replace('.Left.', '.Right.').replace('.L_', '.R_')
+
+
 def get_nonhemi_key(key):
-    return key.replace('.rh.', '.').replace('.Right.', '.').replace('.R_', '_')
+    return get_rh_key_from_lh_key(key) \
+        .replace('.rh.', '.').replace('.Right.', '.').replace('.R_', '_')
+
+
+def is_nonimaging_key(key):
+    return not np.any([key.startswith(p) for p in PINGData.IMAGING_PREFIX])
 
 
 def get_bilateral_hemi_keys(key):
@@ -150,7 +317,7 @@ class PINGData(object):
     a dictionary of parallel arrays, with "SubjID" representing the primary key.
     """
     PING_DATA = None  # shared
-    IMAGING_PREFIX = ['MRI_cort_area', 'MRI_cort_thick',
+    IMAGING_PREFIX = ['MRI_cort_area.ctx', 'MRI_cort_thick.ctx',
                       'MRI_subcort_vol', 'DTI_fiber_vol',
                       'DTI_fiber_FA', 'DTI_fiber_LD', 'DTI_fiber_TD']
 

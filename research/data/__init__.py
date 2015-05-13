@@ -10,7 +10,7 @@ import pandas
 from ..asymmetry import (get_asymmetry_index, get_ai_key,
                          is_ai_key)
 from ..multivariate import AsymmetryPCA
-from ping.data import PINGData, get_lh_key, get_nonhemi_key
+from ping.data import PINGData, get_lh_key_from_rh_key, get_nonhemi_key
 
 
 def compute_all_totals(filtered_data):
@@ -19,7 +19,7 @@ def compute_all_totals(filtered_data):
     # Process & plot the data.
     out_data = PINGData(dict(SubjID=filtered_data.data_dict['SubjID']))
     for key in filtered_data.get_twohemi_keys():
-        lh_key = get_lh_key(key)
+        lh_key = get_lh_key_from_rh_key(key)
         dest_key = get_nonhemi_key(key)
         dest_key += '_LH_PLUS_RH'
         out_data.data_dict[dest_key] = filtered_data.data_dict[key] + filtered_data.data_dict[lh_key]
