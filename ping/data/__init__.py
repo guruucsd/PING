@@ -131,7 +131,41 @@ anatomical_order = np.asarray([
 def get_anatomical_name(key):
     """Returns a proper anatomical name, or the key if not found."""
     global anatomical_name
-    return  anatomical_name.get(key, key)
+    normd_key = norm_key(key)
+    return  anatomical_name.get(normd_key, normd_key)
+
+
+def norm_key(key):
+    return norm_keys([key])[0]
+
+
+def get_prefix(key):
+    return get_prefixes([key])[0]
+
+
+def get_prefixes(keys):
+    normd_keys = sorted([get_nonhemi_key(k) for k in keys])
+
+    # Select every prefix match with the key
+    # Fair warning: I add a dummy character to avoid
+    #   adding one on the prefix in the next step...
+    #   which would be tough with the empty string logic!
+    # Get the substring without the prefix (or the key itself
+    #   if no prefix was found)
+    key_prefixes = [[''] + [p + "." for p in PINGData.IMAGING_PREFIX 
+                            if k.startswith(p)]
+                    for k in normd_keys]
+    return key_prefixes
+
+
+def norm_keys(keys):
+    """remove prefix, get nonhemi version"""
+
+    normd_keys = sorted([get_nonhemi_key(k) for k in keys])
+    key_prefixes = get_prefixes(normd_keys)
+    anatomical_keys = np.asarray([k[len(p[-1]):]
+                                  for k, p in zip(normd_keys, key_prefixes)])
+    return anatomical_keys
 
 
 def anatomical_sort(keys, regroup_results=True):
@@ -153,20 +187,8 @@ def anatomical_sort(keys, regroup_results=True):
     global anatomical_order
 
     # Normalize the form of the key
-    normd_keys = sorted([get_nonhemi_key(k) for k in keys])
     keys = np.asarray(keys)
-
-    # Select every prefix match with the key
-    # Fair warning: I add a dummy character to avoid
-    #   adding one on the prefix in the next step...
-    #   which would be tough with the empty string logic!
-    key_prefixes = [[''] + [p + "." for p in PINGData.IMAGING_PREFIX 
-                            if k.startswith(p)]
-                    for k in normd_keys]
-    # Get the substring without the prefix (or the key itself
-    #   if no prefix was found)
-    anatomical_keys = np.asarray([k[len(p[-1]):]
-                                  for k, p in zip(normd_keys, key_prefixes)])
+    anatomical_keys = norm_keys(keys)
     print(anatomical_keys)
 
     # Find map from the structures in anatomical_order into the 'keys' list.

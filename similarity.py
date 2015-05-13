@@ -23,7 +23,6 @@ from research.grouping import parse_filter_args
 def do_usage(args, error_msg=None):
     if error_msg is not None:
         print("*** ERROR *** : %s" % error_msg)
-    print("\nUsage: %s [prefix]" % args[0])
     print("\nUsage: %s [prefix] [what]" % args[0])
     print("\tCompare asymmetry correlation matrix with LH/RH structural covariance matrices.")
     print("\t\tprefix: (optional) comma-separated list of prefixes to include in the analysis.")

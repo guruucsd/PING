@@ -15,6 +15,19 @@ from ..data import which_hemi
 from ..utils.plotting import plot_symmetric_matrix_as_triangle
 
 
+def is_bad_key(key):
+    if np.any([substr in key.lower()
+                for substr in ['.vent', 'fuzzy', 'bankssts', 'total']]):
+        return True
+    elif np.any([substr in key.lower()
+                for substr in ['.mean', '.white.matter', '.cortex']]):
+        return True
+    elif np.any([substr in key.lower()
+                for substr in ['allfib', '_slf', '_scs', '_fxcut']]):
+        return True
+    return False
+
+
 def get_good_keys(all_data, filter_fn, sort_fn=sorted):
     good_keys = []
     rej_reason = []
@@ -31,24 +44,18 @@ def get_good_keys(all_data, filter_fn, sort_fn=sorted):
         elif all_data[key][~np.isnan(all_data[key])].std() == 0:
             rej_reason.append('std=0')
             continue  # Data without variation
-        elif np.any([substr in key.lower()
-                    for substr in ['.vent', 'fuzzy', 'bankssts', 'total']]):
-            rej_reason.append('substr-ctx')
-            continue  # Remove ventricles
-        elif np.any([substr in key.lower()
-                    for substr in ['.mean', '.white.matter', '.cortex']]):
-            rej_reason.append('substr-subctx')
-            continue  # Remove ventricles
-        elif np.any([substr in key.lower()
-                    for substr in ['allfib', '_slf', '_scs', '_fxcut']]):
-            rej_reason.append('substr-fiber')
-            continue  # Remove ventricles
+        elif is_bad_key(key):
+            rej_reason.append('substr')
+            continue
         good_keys.append(key)
 
     if len(good_keys) == 0:
         raise ValueError("Filtered out all fields!")
 
-    return sort_fn(good_keys)
+    if sort_fn is not None:
+        return sort_fn(good_keys)
+    else:
+        return good_keys
 
 
 def build_similarity_matrix(all_data, good_keys=None, filter_fn=None,
