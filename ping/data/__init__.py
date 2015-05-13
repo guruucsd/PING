@@ -87,13 +87,14 @@ def filter_data(data_dict, filter_fns, tag=None):
             # If we got here, we have a valid key and a valid fn
             filter_vals = data_dict[filter_key]
             filter_output = fn(filter_key, filter_vals[selected_idx])
-            if isinstance(filter_output, bool):
+            if isinstance(filter_output, bool) or isinstance(filter_output, np.bool_):
                 if not filter_output:
                     selected_keys.remove(filter_key)
                 break  # accepted as whole, skip below logic for efficiency.
             new_idx = np.zeros(selected_idx.shape)
             new_idx[selected_idx] = filter_output
             selected_idx = np.logical_and(selected_idx, new_idx)
+            assert  np.any(selected_idx), 'All items were filtered out.'
 
     # Pull out filtered values and 'tag' the key
     # (this makes documenting results much easier)
@@ -103,7 +104,9 @@ def filter_data(data_dict, filter_fns, tag=None):
             tagged_key = key
         else:
             tagged_key = '%s_%s' % (key, tag)
+
         filtered_data[tagged_key] = np.asarray(data_dict[key])[selected_idx]
+
     return filtered_data
 
 
