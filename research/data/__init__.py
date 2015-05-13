@@ -39,19 +39,24 @@ def compute_all_asymmetries(filtered_data):
     # Add one property for total asymmetry
     n_subj = out_data.get_num_subjects()
     for p in filtered_data.IMAGING_PREFIX:
-        # Compute total asymmetry per subject
-        total_asymmetry = np.zeros((n_subj,))
         good_keys = filter(lambda k: (k.startswith(p) and 
                                       is_ai_key(k)),
                            out_data.data_dict.keys())
+        good_keys = list(good_keys)
+        if len(good_keys) == 0:
+            continue
+
+        # Compute total asymmetry per subject
+        total_asymmetry = np.zeros((n_subj,))
+        total_measures = np.zeros((n_subj,))
         for key in good_keys:
-            values = out_data.data_dict[key].copy()
-            values[np.isnan(values)] = 0. # summing, so is ok.
-            total_asymmetry += out_data.data_dict[key]**2
-
+            values = out_data.data_dict[key]
+            good_idx = np.logical_not(np.isnan(values))
+            total_asymmetry[good_idx] += values[good_idx]**2
+            total_measures[good_idx] += 1
         total_ai_key = get_ai_key(p + '_TOTAL')
-        out_data.data_dict[total_ai_key] = np.sqrt(total_asymmetry)
-
+        out_data.data_dict[total_ai_key] = np.sqrt(total_asymmetry / total_measures)
+        print(total_ai_key, out_data.data_dict[total_ai_key])
     return out_data
 
 
