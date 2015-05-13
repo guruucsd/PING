@@ -185,12 +185,8 @@ def anatomical_sort(keys):
     all_keys_index = set(np.arange(len(keys)))
     found_keys_index = set(np.unique(keys_index[good_mask]))
     missing_keys_idx = np.asarray(list(all_keys_index - found_keys_index), dtype=int)
-    if len(missing_keys_idx) != 0:
-        import pdb; pdb.set_trace()
-        if len(result) == 0:
-            result = keys[missing_keys_idx]
-        else:
-            result = np.concatenate(result, keys[missing_keys_idx])
+    result = np.concatenate([result, keys[missing_keys_idx]])
+
     print(result)
     assert len(result) == len(keys)
 
