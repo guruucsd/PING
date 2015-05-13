@@ -49,7 +49,7 @@ class PINGSNPSession(PINGSession):
             self.log("Downloading PING SNP metadata...")
             self.download_file('data/PING/data_uncorrected/SNPs/PING_SNPs.txt',
                                out_file=self.SNP_metadata_file)
-        snp_reader = csv.reader(open(self.NP_metadata_file, 'r'))
+        snp_reader = csv.reader(open(self.SNP_metadata_file, 'r'))
         next(snp_reader)  # skip header
 
         for row in snp_reader:
