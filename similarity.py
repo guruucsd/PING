@@ -24,14 +24,16 @@ def do_usage(args, error_msg=None):
     if error_msg is not None:
         print("*** ERROR *** : %s" % error_msg)
     print("\nUsage: %s [prefix]" % args[0])
+    print("\nUsage: %s [prefix] [what]" % args[0])
     print("\tCompare asymmetry correlation matrix with LH/RH structural covariance matrices.")
-    print("\t\tprefix: [optional] comma-separated list of prefixes to include in the analysis.")
+    print("\t\tprefix: (optional) comma-separated list of prefixes to include in the analysis.")
+    print("\t\twhat: (optional) comma-separated list of LH/RH/AI.")
 
 
 if __name__ != '__main__':
     pass
 
-elif len(sys.argv) > 3:
+elif len(sys.argv) > 4:
     do_usage("Too many arguments.")
 
 else:
@@ -51,13 +53,17 @@ else:
     # Determine filters for selecting the similarity groupings. 
     split_by_hemi = np.any([which_hemi(k) for k in p_data.data_dict.keys()])
     if split_by_hemi:
-        filt_fns = OrderedDict({
-            'Asymmetry Index': lambda key: (is_ai_key(key) and '_TOTAL' not in key) or is_nonimaging_key(key),
-            'Left Hemisphere': lambda key: which_hemi(key) == 'lh' or is_nonimaging_key(key),
-            'Right Hemisphere': lambda key: which_hemi(key) == 'rh' or is_nonimaging_key(key)})
+        filt_fns = OrderedDict((
+            ('Asymmetry Index', lambda key: (is_ai_key(key) and '_TOTAL' not in key) or is_nonimaging_key(key)),
+            ('Left Hemisphere', lambda key: which_hemi(key) == 'lh' or is_nonimaging_key(key)),
+            ('Right Hemisphere', lambda key: which_hemi(key) == 'rh' or is_nonimaging_key(key))))
     else:
         filt_fns = {
             'all': lambda key: True}
+
+    # Get the key locations
+    key_locations = list(filt_fns.keys()) if len(sys.argv) <= 3 else sys.argv[3].split(',')
+    filt_fns = {k: filt_fns[k] for k in key_locations}
 
     # Do the similarity computation; order by anatomy.
     sim_dict, sim_keys = compute_similarity_matrices(p_data.data_dict,
