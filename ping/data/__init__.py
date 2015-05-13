@@ -134,7 +134,7 @@ def get_anatomical_name(key):
     return  anatomical_name.get(key, key)
 
 
-def anatomical_sort(keys):
+def anatomical_sort(keys, regroup_results=True):
     """Group keys by prefix, then by brain location."""
     # import numpy as np
     # x = np.array([3,5,7,1,9,8,6,6])
@@ -186,6 +186,15 @@ def anatomical_sort(keys):
     found_keys_index = set(np.unique(keys_index[good_mask]))
     missing_keys_idx = np.asarray(list(all_keys_index - found_keys_index), dtype=int)
     result = np.concatenate([result, keys[missing_keys_idx]])
+
+    if regroup_results:
+        import pdb; pdb.set_trace()
+        # Regroup keys by prefix; useful when there are multiple prefixes.
+        regrouped_results = []
+        for p in PINGData.IMAGING_PREFIX:
+            regrouped_results += [k for k in result if k.startswith(p)]
+        regrouped_results += [k for k in result if k not in regrouped_results]
+        result = regrouped_results
 
     print(result)
     assert len(result) == len(keys)
