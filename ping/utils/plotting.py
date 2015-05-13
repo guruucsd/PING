@@ -7,7 +7,7 @@ import scipy.spatial
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-def plot_symmetric_matrix_as_triangle(mat, ax=None, xlabels=None, xlabels_class=None, vmin=0, vmax=1):
+def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None, class_labels=None, vmin=0, vmax=1):
     """Plot symmetric matrix (like a covariance matrix) as a lower triangle."""
 
     # Scrub inputs
@@ -34,21 +34,21 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, xlabels=None, xlabels_class=
     plt.colorbar(img, cax=cax)
 
     # Now label.
-    if xlabels is None:
+    if labels is None:
         ax.set_xticks([])
         ax.set_yticks([])
 
-    elif xlabels_class is None or len(np.unique(xlabels_class)) == 1:
+    elif class_labels is None or len(np.unique(class_labels)) == 1:
         sz = mat.shape[0]
         ax.set_xticks(range(sz))
-        ax.set_xticklabels(xlabels, rotation='vertical')
+        ax.set_xticklabels(class_labels, rotation='vertical')
         ax.set_yticks(range(sz))
-        ax.set_yticklabels(xlabels)
+        ax.set_yticklabels(class_labels)
 
     else:
         border_idx = [0]
-        border_lbls = [xlabel_class[0]]
-        for li, lbl_cls in enumerate(xlabel_class[1:]):
+        border_lbls = [class_labels[0]]
+        for li, lbl_cls in enumerate(class_labels[1:]):
             if lbl_cls != border_lbls[-1]:
                 print('Adding %s after %s' % (lbl_cls,
                                               border_lbls[-1]))

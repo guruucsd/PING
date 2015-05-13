@@ -164,8 +164,8 @@ def visualize_similarity_matrices(sim_dict, labels=None, class_labels=None, dyna
         ax = fh.add_subplot(1, n_keys, ki + 1)
         plot_symmetric_matrix_as_triangle(sim_dict[key], ax=ax,
                                           vmin=vmin, vmax=vmax,
-                                          xlabels=labels if ki == 0 else None,
-                                          xlabels_class=class_labels if ki == 0 else None)
+                                          labels=labels if ki == 0 else None,
+                                          class_labels=class_labels if ki == 0 else None)
         ax.set_title(key)
 
     return ax

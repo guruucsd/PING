@@ -128,10 +128,10 @@ def compare_group_asymmetry(data, key, grouping_keys, plots):
         fh3.suptitle(str(['%.2e' % s for s in stats[:, 3]]))
 
         ax1 = fh3.add_subplot(1, 2, 1)
-        plot_symmetric_matrix_as_triangle(dist_mat, ax=ax1, xlabels=group_names)
+        plot_symmetric_matrix_as_triangle(dist_mat, ax=ax1, labels=group_names)
 
         ax2 = fh3.add_subplot(1, 2, 2, axisbg=fh3.get_facecolor())
-        plot_symmetric_matrix_as_triangle(sig_mat, ax=ax2, xlabels=group_names)
+        plot_symmetric_matrix_as_triangle(sig_mat, ax=ax2, labels=group_names)
 
     if 'distributions' in plots:
         equalize_xlims(fh2)
