@@ -49,7 +49,7 @@ class PINGSNPSession(PINGSession):
             self.log("Downloading PING SNP metadata...")
             self.download_file('data/PING/data_uncorrected/SNPs/PING_SNPs.txt',
                                out_file=self.SNP_metadata_file)
-        snp_reader = csv.reader(open(self.NP_metadata_file, 'r'))
+        snp_reader = csv.reader(open(self.SNP_metadata_file, 'r'))
         next(snp_reader)  # skip header
 
         for row in snp_reader:
@@ -79,12 +79,13 @@ class PINGSNPSession(PINGSession):
         cur_basepair = int(snp_metadata[2])
         cur_chromosome = 'chr%s' % snp_metadata[1]
         all_genes = self.get_genes_dict()
+        matched_genes = []
         for gene in all_genes:
             if (cur_chromosome == gene[1] and
                     int(gene[3]) - range/2 <= cur_basepair and
                     cur_basepair <= int(gene[4]) + range/2):
-                return gene
-        return None
+                matched_genes.append(gene)
+        return matched_genes
 
     def get_snps_from_gene(self, gene, chromosome=None, range=100):
         """
@@ -130,7 +131,7 @@ class PINGSNPSession(PINGSession):
 
         return matched_snps
 
-    def download_snps(self, all_snps):
+    def download_subject_snps(self, all_snps):
         """Download actual data from subjects"""
         snp_ids = [s if isinstance(s, six.string_types) else s[0]
                    for s in all_snps]

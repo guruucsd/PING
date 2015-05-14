@@ -22,7 +22,7 @@ def select_lowest_values(vals, pct=0.25):
     return out_idx
 
 
-def group_and_execute(fn, all_data=None, prefixes=None, groupings=None, limits=None):
+def group_and_execute(fn, all_data=None, prefixes=None, groupings=None, limits=None, verbose=0):
     """Filters and/or groups data, then runs the given function."""
 
     # Massage inputs because Python sucks at default args
@@ -41,7 +41,7 @@ def group_and_execute(fn, all_data=None, prefixes=None, groupings=None, limits=N
 
     if not groupings and not limits:
         print("Case 1: Apply %s filters, return the result." % len(filter_fns))
-        data = get_all_data(all_data=all_data, filter_fns=filter_fns)
+        data = get_all_data(all_data=all_data, filter_fns=filter_fns, verbose=verbose)
         return fn(data)
         # data.export(out_file=EXPORTED_PING_SPREADSHEET)
 
@@ -49,7 +49,7 @@ def group_and_execute(fn, all_data=None, prefixes=None, groupings=None, limits=N
         filter_fns.update(limits)
 
         print("Case 2: Apply %s filters, return the result." % len(filter_fns))
-        data = get_all_data(all_data=all_data, filter_fns=filter_fns)
+        data = get_all_data(all_data=all_data, filter_fns=filter_fns, verbose=verbose)
         return fn(data, limits=limits)
         # filter_and_export(data, limits=limits)
 
@@ -61,7 +61,7 @@ def group_and_execute(fn, all_data=None, prefixes=None, groupings=None, limits=N
 
         # Get the data (first pass), for filtering.
         print("Computing data for unfiltered groups...")
-        data = get_all_data(filter_fns=filter_fns)
+        data = get_all_data(filter_fns=filter_fns, verbose=verbose)
 
         for group_key in groupings:
             group_vals = np.asarray(data.data_dict[group_key])
@@ -81,7 +81,7 @@ def group_and_execute(fn, all_data=None, prefixes=None, groupings=None, limits=N
 
                 # Recompute derived data based on group.
                 print("Recomputing data for group %s..." % group_val)
-                group_data = get_all_data(all_data=group_data, filter_fns=filter_fns)
+                group_data = get_all_data(all_data=group_data, filter_fns=filter_fns, verbose=verbose)
 
                 # Now export
                 fn(data, limits=cur_limits, group={group_key: group_val})
@@ -92,7 +92,7 @@ def parse_filter_args(args, filter_defaults=None):
     # Filtering / grouping defaults
     filter_args = {
         'prefixes': PINGData.IMAGING_PREFIX,
-        'groupings': ['FDH_23_Handedness_Prtcpnt'],
+        'groupings': [],
         'limits': {}}
     #    'MRI_cort_area_ctx_frontalpole_AI':
     #        lambda vals: select_lowest_values(-vals)}
@@ -109,6 +109,7 @@ def parse_filter_args(args, filter_defaults=None):
         filter_args['groupings'] = sys.argv[2].split(',')
     if n_args >= 3:
         raise UsageError(args)
+    return filter_args
 
 
 def do_usage(exec_name, description=""):

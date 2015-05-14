@@ -69,8 +69,10 @@ class AsymmetryPCA(object):
         self.data_mat = data_mat
         self.good_keys = good_keys
 
+        if not self.whiten:
+            data_mat = (data_mat - data_mat.mean(0)) / data_mat.std(0)
         self.pca = PCA(whiten=self.whiten)
-        self.pca.fit(data_mat.T)
+        self.pca.fit(np.abs(data_mat).T)
 
     def get_components(self):
         selected_idx = self.pca.explained_variance_ratio_ >= self.pc_threshhold
@@ -80,16 +82,16 @@ class AsymmetryPCA(object):
         return np.dot(self.get_components(), self.data_mat)
 
     def report_asymmetry_loadings(self):
-        mean_asymmetry = self.data_mat.mean(axis=1)
+        mean_asymmetry = self.data_mat.std(axis=1)**2
 
         for pi, pc in enumerate(self.get_components()):
             print("%2d: (%.2f):" % (pi, self.pca.explained_variance_ratio_[pi]))
-            sort_idx = np.argsort(np.abs(pc * mean_asymmetry))
+            sort_idx = np.argsort(np.abs(pc))
             for key, coeff, mag in zip(self.good_keys[sort_idx], pc[sort_idx], mean_asymmetry[sort_idx]):
                 # if np.sign(mag) == hemi_sign:
                 print("\t%s%.4f %-50s (%.3e / %.3e)" % (
                     ' ' if mag*coeff >= 0 else '',
-                    mag*coeff,
+                    coeff,
                     key,
                     coeff,
                     mag))

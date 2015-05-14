@@ -43,5 +43,5 @@ if __name__ == '__main__':
         do_usage(sys.argv[0], ("Exports data based on filtering and grouping; "
                                "setting filters and groups via command-line NYI."))
     else:
-        group_and_execute(fn=export_data, **filter_args)
+        group_and_execute(fn=export_data, verbose=1, **filter_args)
 

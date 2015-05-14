@@ -16,12 +16,231 @@ from ..apps import PINGSession
 raw_input = raw_input if 'raw_input' in dir() else input
 
 
-def get_lh_key(key):
+anatomical_name = {
+    'bankssts': 'superior temporal sulcus',
+    'caudalanteriorcingulate': 'caudal anterior cingulate',
+    'caudalmiddlefrontal': 'caudal middle frontal',
+    'frontalpole': 'frontal pole',
+    'inferiorparietal': 'inferior parietal',
+    'inferiortemporal': 'inferior temporal',
+    'isthmuscingulate': 'isthmus cingulate',
+    'lateraloccipital': 'lateral occipital',
+    'lateralorbitofrontal': 'lateral orbitofrontal',
+    'medialorbitofrontal': 'medial orbitofrontal',
+    'middletemporal': 'middle temporal',
+    'parahippocampal': 'pars hippocampal',
+    'parsopercularis': 'pars opercularis',
+    'parsorbitalis': 'pars orbitalis',
+    'parstriangularis': 'pars triangularis',
+    'posteriorcingulate': 'posterior cingulate',
+    'rostralanteriorcingulate': 'rostral anterior cingulate',
+    'rostralmiddlefrontal': 'rostral middle frontal',
+    'superiorfrontal': 'superior frontal',
+    'superiorparietal': 'superior parietal',
+    'superiortemporal': 'superior temporal',
+    'supramarginal': 'supramarginal',
+    'temporalpole': 'temporal pole',
+    'transversetemporal': 'transverse temporal',
+
+
+    'IFSFC': 'inferior frontal superior frontal cortex',
+    'SIFC': 'striatal inferior frontal cortex',
+    'Unc': 'uncinate fasciculus',
+    'ATR': 'anterior thalamic radiations',
+    'fSCS': 'superior cortico-striate (frontal)',
+    'IFO': 'inferior-fronto-occipital fasciculus',
+    'CgC': 'cingulum (cingulate)',
+    'ILF': 'inferior longitudinal fasciculus',
+    'SCS': 'superior cortico-striate',
+    'pSCS': 'superior cortico-striate (parietal)',
+    'pSLF': 'superior longitudinal fasciculus (parietal)',
+    'tSLF': 'superior longitudinal fasciculus (temporal)',
+    'SLF': 'superior longitudinal fasciculus',
+    'CgH': 'cingulum (parahippocampal)',
+    'CST': 'cortico-spinal',
+    'CC': 'corpus callosum',
+    'Fx': 'fornix',
+    'Fxcut': 'fornix (no fimbria)',}
+
+
+anatomical_order = np.asarray([
+    'frontalpole',
+    'superiorfrontal',
+    'rostralmiddlefrontal',
+    'lateralorbitofrontal',
+    'parsorbitalis',
+    'parstriangularis',
+    'parsopercularis',
+    'caudalmiddlefrontal',
+    'precentral',
+    'postcentral',
+    'supramarginal',
+    'superiorparietal',
+    'inferiorparietal',
+    'lateraloccipital',
+    'inferiortemporal',
+    'middletemporal',
+    'superiortemporal',
+    'transversetemporal',
+    'temporalpole',
+    #
+    'entorhinal',
+    'parahippocampal',
+    'fusiform',
+    'lingual',
+    'pericalcarine',
+    'cuneus',
+    'precuneus',
+    'isthmuscingulate',
+    'posteriorcingulate',
+    'paracentral',
+    'caudalanteriorcingulate',
+    'rostralanteriorcingulate',
+    'medialorbitofrontal',
+
+    # Fiber tracts
+    'IFSFC', #: 'inferior frontal superior frontal cortex',
+    'SIFC', #: 'striatal inferior frontal cortex',
+    'Unc', #: 'uncinate fasiculus',
+    'ATR', #: 'anterior thalamic radiations',
+    'fSCS', #: 'superior cortico-striate (frontal)',
+    'IFO', #: 'inferior-fronto-occipital fasiculus',
+    'CgC', #: 'cingulum (cingulate)',
+    'ILF', #: 'inferior longitudinal fasiculus',
+    'SCS', #: 'superior cortico-striate',
+    'pSCS', #: 'superior cortico-striate (parietal)',
+    'pSLF', #: 'superior longitudinal fasiculus (parietal)',
+    'tSLF', #: 'superior longitudinal fasiculus (temporal)',}
+    'SLF', #: 'superior longitudinal fasiculus',
+    'CgH', #: 'cingulum (parahippocampal)',
+    'CST', #: 'cortico-spinal',
+    'CC', #: 'cortico-spinal',
+    'Fx', #: 'fornix',
+    'Fxcut', #: 'fornix (no fimbria)',
+
+    # Subcortical
+    'Accumbens.area',
+    'Amygdala',
+    'Hippocampus',
+    'Caudate',
+    'Pallidum',
+    'Putamen',
+    'Thalamus.Proper'])
+
+
+def get_anatomical_name(key):
+    """Returns a proper anatomical name, or the key if not found."""
+    global anatomical_name
+    normd_key = norm_key(key)
+    return  anatomical_name.get(normd_key, normd_key)
+
+
+def norm_key(key):
+    return norm_keys([key])[0]
+
+
+def get_prefix(key):
+    return get_prefixes([key])[0]
+
+
+def get_prefixes(keys):
+    normd_keys = sorted([get_nonhemi_key(k) for k in keys])
+
+    # Select every prefix match with the key
+    # Fair warning: I add a dummy character to avoid
+    #   adding one on the prefix in the next step...
+    #   which would be tough with the empty string logic!
+    # Get the substring without the prefix (or the key itself
+    #   if no prefix was found)
+    key_prefixes = [[''] + [p + "." for p in PINGData.IMAGING_PREFIX 
+                            if k.startswith(p)]
+                    for k in normd_keys]
+    return key_prefixes
+
+
+def norm_keys(keys):
+    """remove prefix, get nonhemi version"""
+
+    normd_keys = sorted([get_nonhemi_key(k) for k in keys])
+    key_prefixes = get_prefixes(normd_keys)
+    anatomical_keys = np.asarray([k[len(p[-1]):]
+                                  for k, p in zip(normd_keys, key_prefixes)])
+    return anatomical_keys
+
+
+def anatomical_sort(keys, regroup_results=True):
+    """Group keys by prefix, then by brain location."""
+    # import numpy as np
+    # x = np.array([3,5,7,1,9,8,6,6])
+    # y = np.array([2,1,5,10,100,6])
+    # 
+    # index = np.argsort(x)
+    # sorted_x = x[index]
+    # sorted_index = np.searchsorted(sorted_x, y)
+    # 
+    # yindex = np.take(index, sorted_index, mode="clip")
+    # mask = x[yindex] != y
+    # 
+    # result = np.ma.array(yindex, mask=mask)
+    # print result    
+    
+    global anatomical_order
+
+    # Normalize the form of the key
+    keys = np.asarray(keys)
+    anatomical_keys = norm_keys(keys)
+    print(anatomical_keys)
+
+    # Find map from the structures in anatomical_order into the 'keys' list.
+    index = np.argsort(anatomical_keys)
+    sorted_ak = anatomical_keys[index]
+    sorted_index = np.searchsorted(sorted_ak, anatomical_order)
+
+    # Now use that map to reorder the keys themselves.
+    keys_index = np.take(index, sorted_index, mode="clip")
+    good_mask = anatomical_keys[keys_index] == anatomical_order
+
+    # Grab the reordered keys, append any keys not found.
+    result = keys[keys_index[good_mask]]
+
+    # Find which keys remain, then append.    
+    all_keys_index = set(np.arange(len(keys)))
+    found_keys_index = set(np.unique(keys_index[good_mask]))
+    missing_keys_idx = np.asarray(list(all_keys_index - found_keys_index), dtype=int)
+    result = np.concatenate([result, keys[missing_keys_idx]])
+
+    if regroup_results:
+        import pdb; pdb.set_trace()
+        # Regroup keys by prefix; useful when there are multiple prefixes.
+        regrouped_results = []
+        for p in PINGData.IMAGING_PREFIX:
+            regrouped_results += [k for k in result if k.startswith(p)]
+        regrouped_results += [k for k in result if k not in regrouped_results]
+        result = regrouped_results
+
+    print(result)
+    assert len(result) == len(keys)
+
+    # Everything else that remains is added alphabetically.
+    return result
+    
+
+def get_lh_key_from_rh_key(key):
     return key.replace('.rh.', '.lh.').replace('.Right.', '.Left.').replace('.R_', '.L_')
 
 
+def get_rh_key_from_lh_key(key):
+    return key.replace('.lh.', '.rh.').replace('.Left.', '.Right.').replace('.L_', '.R_')
+
+
 def get_nonhemi_key(key):
-    return key.replace('.rh.', '.').replace('.Right.', '.').replace('.R_', '_')
+    return get_rh_key_from_lh_key(key) \
+        .replace('.rh.', '.').replace('.Right.', '.').replace('.R_', '_') \
+        .replace('_AI', '').replace('_LH_PLUS_RH', '')  # hacks... for now
+
+
+def is_nonimaging_key(key):
+    return not np.any([key.startswith(p) for p in PINGData.IMAGING_PREFIX])
 
 
 def get_bilateral_hemi_keys(key):
@@ -87,13 +306,14 @@ def filter_data(data_dict, filter_fns, tag=None):
             # If we got here, we have a valid key and a valid fn
             filter_vals = data_dict[filter_key]
             filter_output = fn(filter_key, filter_vals[selected_idx])
-            if isinstance(filter_output, bool):
+            if isinstance(filter_output, bool) or isinstance(filter_output, np.bool_):
                 if not filter_output:
                     selected_keys.remove(filter_key)
                 break  # accepted as whole, skip below logic for efficiency.
             new_idx = np.zeros(selected_idx.shape)
             new_idx[selected_idx] = filter_output
             selected_idx = np.logical_and(selected_idx, new_idx)
+            assert  np.any(selected_idx), 'All items were filtered out.'
 
     # Pull out filtered values and 'tag' the key
     # (this makes documenting results much easier)
@@ -103,7 +323,9 @@ def filter_data(data_dict, filter_fns, tag=None):
             tagged_key = key
         else:
             tagged_key = '%s_%s' % (key, tag)
+
         filtered_data[tagged_key] = np.asarray(data_dict[key])[selected_idx]
+
     return filtered_data
 
 
@@ -147,8 +369,9 @@ class PINGData(object):
     a dictionary of parallel arrays, with "SubjID" representing the primary key.
     """
     PING_DATA = None  # shared
-    IMAGING_PREFIX = ['MRI_cort_area', 'MRI_cort_thick',
-                      'MRI_subcort_vol', 'DTI_fiber_vol']
+    IMAGING_PREFIX = ['MRI_cort_area.ctx', 'MRI_cort_thick.ctx',
+                      'MRI_subcort_vol', 'DTI_fiber_vol',
+                      'DTI_fiber_FA', 'DTI_fiber_LD', 'DTI_fiber_TD']
 
     def __init__(self, data=None, scrub_keys=False, scrub_values=True, csv_path=None, username=None, passwd=None, force=False):
         if data is not None:
