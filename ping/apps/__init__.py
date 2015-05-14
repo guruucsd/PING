@@ -62,8 +62,8 @@ class PINGSession(object):
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
 
-            with open(out_file, 'wb') as fp:
-                fp.write(out_text)
+            with open(out_file, 'w') as fp:
+                fp.write(out_text.encode('utf-8'))
 
         return out_text
 
@@ -146,6 +146,7 @@ smoothing.interaction = ""
                 csv_dict = pandas.read_csv(out_file_dict, low_memory=False)
             except Exception as e:
                 self.log("Failed to download %s: %s" % (out_file_dict, str(e)))
+                import pdb; pdb.set_trace()
                 return
 
             cur_keys = [k.strip().replace('-', '.').replace('+', '.')
