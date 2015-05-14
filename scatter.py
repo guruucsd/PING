@@ -30,6 +30,25 @@ from research.data import get_all_data
 from research.grouping import parse_filter_args
 
 
+def compute_key_data(data, key):
+    # Now the hard part, ... interpreting the keys.
+    # keys can be direct data arrays, *or* they can *across* keys (with operations).
+    if key in data:
+        # Easy case: it's just a data request!
+        return data[key]
+    elif ':' not in key:
+        # OK, it's nothing we know, error
+        raise ValueError("key %s not found, nor of a computable format (suffix:function)" % key)
+    else:
+        # a key/operator pair
+        suffix, op = key.split(':')
+        keys = [k for k in data if k.endswith(suffix)]
+        f_data = {k: data[k][~np.isnan(data[k])] for k in keys}
+        assert not np.any([np.any(np.isnan(v)) for v in f_data.values()]), "NO nan ANYWHERE..."
+
+        return {k: getattr(f_data[k], op)() for k in keys}
+
+
 def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None, 
                     x_labels=None, y_labels=None, color_fn=None,
                     ax=None):
@@ -45,24 +64,6 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
         color_key = [color_key]
     if ax is None:
         ax = plt.figure().gca()
-
-    # Now the hard part, ... interpreting the keys.
-    # keys can be direct data arrays, *or* they can *across* keys (with operations).
-    def compute_key_data(data, key):
-        if key in data:
-            # Easy case: it's just a data request!
-            return data[key]
-        elif ':' not in key:
-            # OK, it's nothing we know, error
-            raise ValueError("key %s not found, nor of a computable format (suffix:function)" % key)
-        else:
-            # a key/operator pair
-            suffix, op = key.split(':')
-            keys = [k for k in data if k.endswith(suffix)]
-            f_data = {k: data[k][~np.isnan(data[k])] for k in keys}
-            assert not np.any([np.any(np.isnan(v)) for v in f_data.values()]), "NO nan ANYWHERE..."
-
-            return {k: getattr(f_data[k], op)() for k in keys}
 
     # Now get all the data, and manipulate as needed
     kwargs = {
@@ -105,26 +106,26 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
     kwargs['s'] = 1000  * kwargs['s'] / (kwargs['s'].max(0) - kwargs['s'].min(0))
     kwargs['c'] = colors[kwargs['c']].ravel()
 
-    #kwargs['c'] = 5 * kwargs['c'] / (kwargs['c'].max(1) - kwargs['c'].min(1))
-
-    # Do a final filter to eliminate bad measures (some have no variance, for example)
-
+    # Now plot it, and annotate it!
     ax.scatter(**kwargs)
 
-    plot_it = lambda v, varr, dist=1.5: np.abs(varr.mean() - v) >= dist * varr.std()
+    # Interesting if it's outside of some range of values
+    is_interesting = lambda v, varr, dist=1.5: np.abs(varr.mean() - v) >= dist * varr.std()
 
     for label, x, y, s, c in zip(common_keys, kwargs['x'], kwargs['y'], kwargs['s'], kwargs['c']):
-        if (plot_it(x, kwargs['x']) or plot_it(y, kwargs['y']) or plot_it(s, kwargs['s'], 2.)):
+        annotations = [key for key, sval in zip(['x', 'y', 's'], [1.5, 1.5, 2])
+                       if is_interesting(locals()[key], kwargs[key], sval)]
+        if len(annotations) > 0:
             plt.annotate(
-                get_anatomical_name(get_nonhemi_key(label)), 
+                '%s (%s)' % (get_anatomical_name(get_nonhemi_key(label)), ', '.join(annotations)),
                 xy = (x, y), xytext = (-20, 20),
                 textcoords = 'offset points', ha = 'right', va = 'bottom',
                 bbox = dict(boxstyle = 'round,pad=0.5', fc = c, alpha = 0.5),
-                arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
+                arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'),
+                )
 
     plt.show()
 
-    import pdb; pdb.set_trace()
     return ax
 
 
