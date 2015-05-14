@@ -103,7 +103,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
                                       for k, val in sdata.items()
                                       if np.any([ck in k for ck in common_keys])])
 
-    kwargs['s'] = 1000  * kwargs['s'] / (kwargs['s'].max(0) - kwargs['s'].min(0))
+    kwargs['s'] = 1000  * kwargs['s'] / np.abs(kwargs['s']).mean()
     kwargs['c'] = colors[kwargs['c']].ravel()
 
     # Now plot it, and annotate it!
