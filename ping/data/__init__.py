@@ -253,7 +253,7 @@ def get_rh_key_from_lh_key(key):
 def get_nonhemi_key(key):
     return get_rh_key_from_lh_key(key) \
         .replace('.rh.', '.').replace('.Right.', '.').replace('.R_', '_') \
-        .replace('_AI', '').replace('_LH_PLUS_RH', '')  # hacks... for now
+        .replace('_AI', '').replace('_LH_PLUS_RH', '').replace('_TOTAL', '')  # hacks... for now
 
 
 def is_nonimaging_key(key):
@@ -494,6 +494,20 @@ class PINGData(object):
                 for key in keys:
                     row.append(self.data_dict[key][row_idx])
                 w.writerow(row)
+
+    def purge_empty_subjects(self):
+        # Find # of nan numeric measures
+        any_good = np.zeros((self.get_num_subjects(),))
+        for key in self.data_dict.keys():
+            try:
+                any_good += ~np.isnan(self.data_dict[key])
+            except TypeError:
+                continue
+        # Remove subjects with no non-nan numeric measures.
+        for key in self.data_dict.keys():
+            self.data_dict[key] = self.data_dict[key][any_good > 0]
+        assert len(next(iter(self.data_dict.values()))) > 0
+
 
     def get_num_subjects(self):
         if len(self.data_dict) == 0:
