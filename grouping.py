@@ -12,7 +12,8 @@ import scipy.stats
 from ping.data import PINGData
 from ping.utils import do_and_plot_regression
 from ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
-                                 equalize_xlims, equalize_ylims)
+                                 equalize_xlims, equalize_ylims,
+                                 plot_normalized_hist)
 from research.asymmetry import get_asymmetry_index
 
 
@@ -103,12 +104,10 @@ def compare_group_asymmetry(data, key, grouping_keys, plots):
         # Plot the distribution result
         if 'distributions' in plots:
             ax2 = fh2.add_subplot(n_rows, n_cols, gi + 1)
-            x, _, h = ax2.hist(group_ai, normed=True, bins=bins)
-            for item in h:
-                item.set_height(item.get_height() / sum(x))
-
+            plot_normalized_hist(group_ai, ax2, bins=bins)
             ax2.set_title(params['title'])
             ax2.set_xlabel(params['ylabel'])
+            ax2.set_ylims([0, 0.25])
     regressions = np.asarray(regressions)
 
     # stats[:, n]: 0:mean_stat: 1:mean_pval; 2:std_stat, 3:std_pval
@@ -189,27 +188,33 @@ def plot_regressions_scatter(regressions, group_names, measure_names):
 
         fh = plt.figure(figsize=(18, 8))
         ax1 = fh.add_subplot(1, 2, 1)
-        ax1.hist(np.asarray([p_xvals[gn] for gn in group_names]).T,
-                 bins=20,
-                 color=color_arr)
+        plot_normalized_hist(
+            [p_xvals[gn] for gn in group_names]).T,
+            ax=ax1,
+            bins=20,
+            color=color_arr)
         ax1.legend(group_names)
         ax2 = fh.add_subplot(1, 2, 2)
-        ax2.hist(np.asarray([p_yvals[gn] for gn in group_names]).T,
-                 bins=20,
-                 color=color_arr)
+        plot_normalized_hist(
+            np.asarray([p_yvals[gn] for gn in group_names]).T,
+            ax=ax2,
+            bins=20,
+            color=color_arr)
         fh.suptitle(p)
 
     # Bar plot (total)
     fh = plt.figure(figsize=(18, 8))
     ax1 = fh.add_subplot(1, 2, 1)
-    ax1.hist(np.asarray([all_xvals[gn] for gn in group_names]).T,
-             bins=50,
-             color=color_arr)
+    plot_normalized_hist(np.asarray([all_xvals[gn] for gn in group_names]).T,
+                         ax=ax1,
+                         bins=50,
+                         color=color_arr)
     ax1.legend(group_names)
     ax2 = fh.add_subplot(1, 2, 2)
-    ax2.hist(np.asarray([all_yvals[gn] for gn in group_names]).T,
-             bins=50,
-             color=color_arr)
+    plot_normalized_hist(np.asarray([all_yvals[gn] for gn in group_names]).T,
+                         ax=ax2,
+                         bins=50,
+                         color=color_arr)
     fh.suptitle('Over all measures')
 
     #ax = plt.figure(figsize=(18, 8)).gca()
@@ -217,12 +222,6 @@ def plot_regressions_scatter(regressions, group_names, measure_names):
                 30 * np.asarray([all_yvals[gn] for gn in group_names]).T,
                 c=color_arr)
 
-    #fh.suptitle('Over all measures')
-
-
-        # ax.scatter(np.asarray(list(col_xvals.values())), np.asarray(list(col_yvals.values())))
-        #import pdb; pdb.set_trace()
-    plt.show()
 
 def plot_stat_distributions(stats, group_names):
     # Show the distribution of stats, to see if there are
@@ -237,7 +236,7 @@ def plot_stat_distributions(stats, group_names):
         pvals = np.asarray([ss[:, si * 2 + 1] for ss in stats])
         for li, lbl in enumerate(lbls):
             ax1 = fh4.add_subplot(2, len(lbls), pi)
-            ax1.hist(pvals[:, li], [0.0001, 0.001, 0.01, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60])
+            plot_normalized_hist(pvals[:, li], ax=ax1, bins=[0.0001, 0.001, 0.01, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60])
             ax1.set_title(lbl)
             if li == 0:
                 ax1.set_ylabel(stat_name)

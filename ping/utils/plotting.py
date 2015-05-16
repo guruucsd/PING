@@ -1,10 +1,30 @@
 """
 Plotting utilities
 """
+import matplotlib.patches as pat
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.spatial
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+
+def plot_normalized_hist(data, ax=None, **kwargs):
+    ax = ax or plt.figure().gca()
+    
+    x, b, h = ax.hist(data, normed=True, **kwargs)
+    if len(h) == 0:
+        pass
+    elif isinstance(h[0], pat.Rectangle):
+        for item in h:
+            item.set_height(item.get_height() / sum(x))
+    else:
+        for item, dat in zip(h, x):
+            for rect in item.patches:
+                rect.set_height(rect.get_height() / sum(dat))
+
+    ax.set_ylim([0, 1])
+
+    return x, b, h
 
 
 def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None, class_labels=None, vmin=0, vmax=1):
@@ -61,17 +81,19 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None, class_labels=No
 
 
 
-def equalize_xlims(fh):
-    xlims = np.asarray([ax.get_xlim() for ax in fh.get_axes()])
-    xlim = [xlims[:, 0].min(), xlims[:, 1].max()]
+def equalize_xlims(fh, xlim=None):
+    if xlim is None:
+        xlims = np.asarray([ax.get_xlim() for ax in fh.get_axes()])
+        xlim = [xlims[:, 0].min(), xlims[:, 1].max()]
 
     for ax in fh.get_axes():
         ax.set_xlim(xlim)
 
 
-def equalize_ylims(fh):
-    ylims = np.asarray([ax.get_ylim() for ax in fh.get_axes()])
-    ylim = [ylims[:, 0].min(), ylims[:, 1].max()]
+def equalize_ylims(fh, ylim=None):
+    if ylim is None:
+        ylims = np.asarray([ax.get_ylim() for ax in fh.get_axes()])
+        ylim = [ylims[:, 0].min(), ylims[:, 1].max()]
 
     for ax in fh.get_axes():
         ax.set_ylim(ylim)
