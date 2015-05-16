@@ -146,7 +146,6 @@ smoothing.interaction = ""
                 csv_dict = pandas.read_csv(out_file_dict, low_memory=False)
             except Exception as e:
                 self.log("Failed to download %s: %s" % (out_file_dict, str(e)))
-                import pdb; pdb.set_trace()
                 return
 
             cur_keys = [k.strip().replace('-', '.').replace('+', '.')
@@ -169,7 +168,6 @@ smoothing.interaction = ""
         for key in PING_keys:
             if key not in good_keys:
                 self.log("Removing non-PING entry: %s" % key)
-                #import pdb; pdb.set_trace()
                 del PING_csv[key]
                 
         # Only write output if something was scrubbed

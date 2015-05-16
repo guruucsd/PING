@@ -210,7 +210,6 @@ def anatomical_sort(keys, regroup_results=True):
     result = np.concatenate([result, keys[missing_keys_idx]])
 
     if regroup_results:
-        import pdb; pdb.set_trace()
         # Regroup keys by prefix; useful when there are multiple prefixes.
         regrouped_results = []
         for p in PINGData.IMAGING_PREFIX:
