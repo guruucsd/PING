@@ -143,6 +143,24 @@ def get_prefix(key):
     return get_prefixes([key])[0]
 
 
+def prefix2text(prefix):
+    d = {
+        'MRI_cort_thick.ctx': 'Cortical thickness (mm)',
+        'MRI_cort_area.ctx': 'Cortical surface area (mm^2)',
+        'MRI_subcort_vol': 'Subcortical volume (mm^3)',
+        'DTI_fiber_vol': 'Fiber tract volume (via DTI) (mm^3)',
+        'DTI_fiber_FA': 'Fiber tract fractional anisotropy (FA)'}
+    return d.get(prefix, prefix)
+
+
+def get_measure_key(common_key, measure_keys):
+    hits = [k for k in measure_keys if common_key in k]
+    if len(hits) == 0:
+        return None
+    else:
+        return hits[0]
+
+
 def get_prefixes(keys):
     normd_keys = sorted([get_nonhemi_key(k) for k in keys])
 
