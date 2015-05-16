@@ -387,7 +387,7 @@ class PINGData(object):
     a dictionary of parallel arrays, with "SubjID" representing the primary key.
     """
     PING_DATA = None  # shared
-    IMAGING_PREFIX = ['MRI_cort_area.ctx', 'MRI_cort_thick.ctx',
+    IMAGING_PREFIX = ['MRI_cort_area.ctx', 'MRI_cort_thick.ctx', 'MRI_cort_vol.ctx',
                       'MRI_subcort_vol', 'DTI_fiber_vol',
                       'DTI_fiber_FA', 'DTI_fiber_LD', 'DTI_fiber_TD']
 
