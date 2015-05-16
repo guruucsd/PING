@@ -98,9 +98,7 @@ class PINGSNPSession(PINGSession):
             gene_metadata = self.get_gene_metadata(gene)
         else:
             gene_metadata = gene
-        all_chromosomes = [int(g[1][3:]) for g in gene_metadata]
-        min_chromosome = np.min(all_chromosomes)
-        max_chromosome = np.max(all_chromosomes)
+        all_chromosomes = np.unique([g[1][3:] for g in gene_metadata])
 
         # Prep a stream of the SNP info
         if not os.path.exists(self.SNP_metadata_file):
@@ -115,7 +113,7 @@ class PINGSNPSession(PINGSession):
         for row in snp_reader:
             # Format: ['SNP', 'Chromosome', 'Basepair', 'Allele1', 'Allele2']
 
-            if int(row[1]) < min_chromosome or max_chromosome < int(row[1]):
+            if row[1] not in all_chromosomes:
                 continue  # Wrong chromosome, no need to process further!
 
             cur_chromosome = 'chr%s' % row[1]
