@@ -183,6 +183,9 @@ def norm_keys(keys):
     key_prefixes = get_prefixes(normd_keys)
     anatomical_keys = np.asarray([k[len(p[-1]):]
                                   for k, p in zip(normd_keys, key_prefixes)])
+
+    assert len(keys) == len(anatomical_keys)
+    assert np.all([len(k) > 0 for k in anatomical_keys])
     return anatomical_keys
 
 
@@ -207,7 +210,6 @@ def anatomical_sort(keys, regroup_results=True):
     # Normalize the form of the key
     keys = np.asarray(keys)
     anatomical_keys = norm_keys(keys)
-    print(anatomical_keys)
 
     # Find map from the structures in anatomical_order into the 'keys' list.
     index = np.argsort(anatomical_keys)
@@ -235,7 +237,6 @@ def anatomical_sort(keys, regroup_results=True):
         regrouped_results += [k for k in result if k not in regrouped_results]
         result = regrouped_results
 
-    print(result)
     assert len(result) == len(keys)
 
     # Everything else that remains is added alphabetically.
