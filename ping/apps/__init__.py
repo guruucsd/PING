@@ -135,7 +135,7 @@ smoothing.interaction = ""
 
         for dict_num, field_name in zip([1, 2], ['Name', 'variable']):
             # Download and load the data dictionary.
-            out_file_dict = 'download/dict/PING_datadictionary0%d.csv' % dict_num
+            out_file_dict = 'data/dict/PING_datadictionary0%d.csv' % dict_num
             if not os.path.exists(out_file_dict):
                 self.login()
                 self.download_file(

@@ -22,8 +22,8 @@ class PINGSNPSession(PINGSession):
     as well as download user-data for specific snps.
     """
 
-    genes_metadata_file = 'csv/genes/PING_gene_annotate.json'
-    SNP_metadata_file = 'csv/genes/PING_SNPs.txt'
+    genes_metadata_file = 'data/genes/PING_gene_annotate.json'
+    SNP_metadata_file = 'data/genes/PING_SNPs.txt'
 
     def get_genes_dict(self):
         global GENES
@@ -64,7 +64,7 @@ class PINGSNPSession(PINGSession):
         import re
 
         matches = []
-        for csv_file in glob.glob('download/gwas/*.csv'):
+        for csv_file in glob.glob('results/gwas/*.csv'):
             with open(csv_file, 'r') as fp:
                 for line in fp:
                     if re.search(snp, line):
@@ -135,7 +135,7 @@ class PINGSNPSession(PINGSession):
                    for s in all_snps]
         snp_txt = self.download_file('applications/SNPs/download.php?_v=&project_name={project_name}&snps=%s' % (
                                          '%0A'.join(snp_ids)),
-                                     out_file='download/snps/%s.csv' % '_'.join(snp_ids))
+                                     out_file='data/snps/%s.csv' % '_'.join(snp_ids))
 
         lines = snp_txt.split(' ')[4:]
         header = lines[0]

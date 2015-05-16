@@ -108,7 +108,7 @@ if __name__ == '__main__':
             plt.close()
 
         covariates = ['Age_At_IMGExam', 'Gender', 'FDH_23_Handedness_Prtcpnt']#, 'MRI_cort_area_ctx_total_LH_PLUS_RH']
-        cache_dir = 'download/regress'
+        cache_dir = 'data/regress'
 
         # search_all_pairwise(plot=plot, cache_dir=cache_dir, covariates=covariates + ['MRI_cort_area_ctx_total_LH_PLUS_RH'])
         # search_all_vs_one(key='MRI_cort_area_ctx_total_LH_PLUS_RH', plot=plot, cache_dir=cache_dir, covariates=covariates)
