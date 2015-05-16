@@ -41,9 +41,9 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None, class_labels=No
     elif class_labels is None or len(np.unique(class_labels)) == 1:
         sz = mat.shape[0]
         ax.set_xticks(range(sz))
-        ax.set_xticklabels(class_labels, rotation='vertical')
+        ax.set_xticklabels(labels, rotation='vertical')
         ax.set_yticks(range(sz))
-        ax.set_yticklabels(class_labels)
+        ax.set_yticklabels(labels)
 
     else:
         border_idx = [0]
