@@ -3,6 +3,7 @@ File for investigating asymmetry from PING data, based on each subject's
 asymmetry index
 """
 import os
+import sys
 from functools import partial
 
 import matplotlib.pyplot as plt
@@ -15,55 +16,27 @@ from ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
                                  equalize_xlims, equalize_ylims,
                                  plot_normalized_hist)
 from research.asymmetry import get_asymmetry_index
-
-
-def make_groups(data, grouping_keys):
-    """ Group data by the unique values of `grouping_key`"""
-
-    if not isinstance(grouping_keys, list):
-        grouping_keys = [grouping_keys]
-
-    # Group
-    grouping_index = group_names = []
-    for gpn in grouping_keys:
-        grouping_data = np.asarray(data[gpn].tolist())
-        prop_groups = (set(np.unique(grouping_data)) -
-                       set(['Not yet established', 'nan']))
-        prop_groups = np.asarray(list(prop_groups))
-        n_prop_group = len(prop_groups)
-
-        if len(group_names) == 0:
-            group_names = prop_groups.tolist()
-            grouping_index = [grouping_data == pg for pg in prop_groups]
-        else:
-            group_names = ['%s_%s' % (g1, pg)
-                           for g1 in group_names
-                           for pg in prop_groups]
-            grouping_index = [np.logical_and(idx1, grouping_data == pg)
-                              for idx1 in grouping_index
-                              for pg in prop_groups]
-
-    return group_names, grouping_index
+from research.grouping import get_groupings
 
 
 def compare_group_asymmetry(data, key, grouping_keys, plots):
     """ Groups data according to grouping_keys, computes
     asymmetry index for key, and graphs."""
 
-    group_names, grouping_index = make_groups(data, grouping_keys)
+    group_names, grouping_index = get_groupings(data, grouping_keys)
 
     age_data = np.asarray(data['Age_At_IMGExam'].tolist())
     prop_ai = get_asymmetry_index(data, key)
 
     n_subplots = len(group_names)
-    n_rows = int(np.round(np.sqrt(n_subplots)))
-    n_cols = int(np.ceil(n_subplots / float(n_rows)))
+    n_rows = 1  # int(np.round(np.sqrt(n_subplots)))
+    n_cols = n_subplots  # int(np.ceil(n_subplots / float(n_rows)))
 
     if 'regressions' in plots:
-        fh1 = plt.figure(figsize=(18, 10))
-        fh1.suptitle('%s regression' % key)
+        fh1 = plt.figure(figsize=(18, 7))
+        # fh1.suptitle('%s regression' % key)
     if 'distributions' in plots:
-        fh2 = plt.figure(figsize=(18, 10))
+        fh2 = plt.figure(figsize=(18, 7))
         fh2.suptitle('%s distributions' % key)
         n_bins = 15
         bins = np.linspace(prop_ai[~np.isnan(prop_ai)].min(),
@@ -98,6 +71,8 @@ def compare_group_asymmetry(data, key, grouping_keys, plots):
                       title='Group: %s (n=%d)' % (group_name, len(group_ai)))
 
         if 'regressions' in plots:
+            if gi > 0:
+                del params['ylabel']
             ax1 = fh1.add_subplot(n_rows, n_cols, gi + 1)
             do_and_plot_regression(cur_ages, group_ai, ax=ax1, **params)
 
@@ -248,16 +223,16 @@ def plot_stat_distributions(stats, group_names):
     stds = np.asarray([ss[:, 2] for ss in stats])
     good_idx = ~np.logical_or(np.isnan(means.sum(1)), np.isnan(stds.sum(1)))
 
-    import pdb; pdb.set_trace()
     fh = plt.figure(figsize=(18, 8))
     ax1 = fh.add_subplot(1, 2, 1)
-    ax1.hist(means[good_idx], bins=25)
+    plot_normalized_hist(means[good_idx], ax=ax1, bins=25)
     ax1.set_xlabel('mean')
 
     ax2 = fh.add_subplot(1, 2, 2)
-    ax2.hist(stds[good_idx], bins=25)
+    plot_normalized_hist(stds[good_idx], ax=ax2, bins=25)
     ax2.set_xlabel('standard deviation')
     ax2.legend(group_names)
+
 
 def loop_show_asymmetry(prefix,
                         grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'],
@@ -274,15 +249,22 @@ def loop_show_asymmetry(prefix,
     # Process & plot the data.
     stats = []
     regressions = []
+    group_samples = []
     measure_keys = data.get_twohemi_keys()
     for pi, key in enumerate(sorted(measure_keys)):
-        # print("Comparing %d (%s)..." % (pi, key))
-        print(key)
-        gn, ss, rv, gs = compare_group_asymmetry(data.data_dict, key=key, plots=plots,
-                                                 grouping_keys=grouping_keys)
-        stats.append(ss)
-        regressions.append(rv)
-        group_samples.append(gs)
+        if 'ATR' not in key:
+            continue
+        print("Comparing %d (%s)..." % (pi, key))
+        try:
+            gn, ss, rv, gs = compare_group_asymmetry(data.data_dict, key=key, plots=plots,
+                                                     grouping_keys=grouping_keys)
+        except Exception as e:
+            print("Exception for %s regression: %s" % (key, e))
+            continue
+        else:
+            stats.append(ss)
+            regressions.append(rv)
+            group_samples.append(gs)
 
     if 'regression_stats' in plots:
         dump_regressions_csv(regressions,
@@ -298,10 +280,40 @@ def loop_show_asymmetry(prefix,
 
     plt.show()
 
-if __name__ == '__main__':
-    import warnings
-    warnings.warn('Code to group by handedness or gender should be extracted and generalized.')
 
-    loop_show_asymmetry(prefix=PINGData.IMAGING_PREFIX, #['MRI_cort_thick'],  # area_ctx_rh_frontalpole'],
-                        grouping_keys=['Gender'],
-                        plots=['stat_distributions'])
+def do_usage(args, error_msg=None):
+    if error_msg is not None:
+        print("*** ERROR *** : %s" % error_msg)
+    print("\nUsage: %s prefixes group_keys plots]" % args[0])
+    print("\tProduce plots for each group")
+    print("\n\tprefixes: simple selector for groups of measures to include. Popular choices include:")
+    print("\t\tMRI_cort_area.ctx: ")
+    print("\t\tMRI_cort_thick.ctx: ")
+    print("\n\tgroups: comma separated list of keys for grouping. Popular ones include:")
+    print("\t\tGender: ")
+    print("\t\tFDH_23_Handedness_Prtcpnt: ")
+    print("\tplots: list of plots; select from:")
+    print("\t\tregressions:")
+    print("\t\tdistributions:")
+    print("\t\tstats:")
+    print("\t\tregression_stats:")
+    print("\t\tstat_distributions:")
+
+
+if __name__ != '__main__':
+    pass
+
+elif len(sys.argv) >= 5:
+    do_usage(sys.argv, "Too many arguments.")
+
+elif len(sys.argv) <= 3:
+    do_usage(sys.argv, "Too few arguments.")
+
+else:
+    prefix = sys.argv[1].split(',')
+    grouping_keys = sys.argv[2].split(',')
+    plots = sys.argv[3].split(',')
+
+    loop_show_asymmetry(prefix=prefix,
+                        grouping_keys=grouping_keys,
+                        plots=plots)
