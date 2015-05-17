@@ -399,7 +399,7 @@ class PINGData(object):
             data = PINGData.PING_DATA
 
         else:
-            csv_path = csv_path or os.path.join('csv', 'PING_raw_data.csv')
+            csv_path = csv_path or os.path.join('data', 'PING_raw_data.csv')
 
             # Download data
             sess = PINGSession(username=username, passwd=passwd)
