@@ -28,6 +28,8 @@ def get_groupings(data, grouping_keys):
     grouping_index = group_names = []
     for gpn in grouping_keys:
         grouping_data = np.asarray(data[gpn].tolist())
+        if grouping_data.dtype == float:
+            grouping_data = np.round(grouping_data).astype(int)
         prop_groups = (set(np.unique(grouping_data)) -
                        set(['Not yet established', 'nan']))
         prop_groups = np.asarray(list(prop_groups))
