@@ -128,7 +128,7 @@ class PINGDataSession(PINGSession):
         else:
             raise NotImplementedError(AI)
 
-    def regress_multistep(self, X, Y, covariates=['Age_At_IMGExam', 'Gender', 'FDH_23_Handedness_Prtcpnt'], limits=[], plot=False, cache_dir='download/regress'):
+    def regress_multistep(self, X, Y, covariates=['Age_At_IMGExam', 'Gender', 'FDH_23_Handedness_Prtcpnt'], limits=[], plot=False, cache_dir='results/regress'):
         self.log('Multi-step regression for %s vs. %s' % (X, Y))
         out = []
         # Get relevant covariates

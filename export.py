@@ -4,10 +4,10 @@ Export derived measures spreadsheet
 """
 import sys
 
-from research.grouping import (do_usage, group_and_execute,
-                               parse_filter_args, UsageError)
+from research.grouping import (do_usage_grouping, group_and_execute,
+                               parse_filter_args)
 
-EXPORTED_PING_SPREADSHEET = 'csv/PING_userdefined.csv'
+EXPORTED_PING_SPREADSHEET = 'data/PING_userdefined.csv'
 
 
 def get_csv_filename(base_filename=EXPORTED_PING_SPREADSHEET, limits=None, group=None):
@@ -36,12 +36,19 @@ def export_data(data, **kwargs):
     return cur_csv
 
 
-if __name__ == '__main__':
-    try:
-        filter_args = parse_filter_args(sys.argv[1:])
-    except UsageError:
-        do_usage(sys.argv[0], ("Exports data based on filtering and grouping; "
-                               "setting filters and groups via command-line NYI."))
-    else:
-        group_and_execute(fn=export_data, verbose=1, **filter_args)
+def do_usage(args, error_msg=None):
+    do_usage_grouping(args[0], error_msg=error_msg,
+                      description=("Exports data based on filtering and grouping; "
+                                   "setting filters and groups via command-line NYI."))
+
+
+if __name__ != '__main__':
+    pass
+
+elif len(sys.argv) > 3:
+    do_usage(sys.argv, error_msg="Too many arguments.")
+
+else:
+    filter_args = parse_filter_args(sys.argv[1:])
+    group_and_execute(fn=export_data, verbose=1, **filter_args)
 

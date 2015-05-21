@@ -1,6 +1,8 @@
 """
 Multivariate analyses of PING data
 """
+import copy
+
 import numpy as np
 from scipy.stats import pearsonr
 from sklearn.decomposition import PCA
@@ -23,6 +25,7 @@ class AsymmetryPCA(object):
         """Perform PCA on asymmetry indices.
         data is a data dictionary."""
 
+        data = copy.deepcopy(data)
         data.filter(lambda k, v: 'fuzzy' not in k)
         data.filter(lambda k, v: '_TOTAL_AI' not in k)
         self.data = data

@@ -135,7 +135,7 @@ smoothing.interaction = ""
 
         for dict_num, field_name in zip([1, 2], ['Name', 'variable']):
             # Download and load the data dictionary.
-            out_file_dict = 'download/dict/PING_datadictionary0%d.csv' % dict_num
+            out_file_dict = 'data/dict/PING_datadictionary0%d.csv' % dict_num
             if not os.path.exists(out_file_dict):
                 self.login()
                 self.download_file(
@@ -146,7 +146,6 @@ smoothing.interaction = ""
                 csv_dict = pandas.read_csv(out_file_dict, low_memory=False)
             except Exception as e:
                 self.log("Failed to download %s: %s" % (out_file_dict, str(e)))
-                import pdb; pdb.set_trace()
                 return
 
             cur_keys = [k.strip().replace('-', '.').replace('+', '.')
@@ -169,7 +168,6 @@ smoothing.interaction = ""
         for key in PING_keys:
             if key not in good_keys:
                 self.log("Removing non-PING entry: %s" % key)
-                #import pdb; pdb.set_trace()
                 del PING_csv[key]
                 
         # Only write output if something was scrubbed

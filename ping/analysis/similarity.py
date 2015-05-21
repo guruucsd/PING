@@ -17,7 +17,7 @@ from ..utils.plotting import plot_symmetric_matrix_as_triangle
 
 def is_bad_key(key):
     if np.any([substr in key.lower()
-                for substr in ['.vent', 'fuzzy', 'bankssts', 'total']]):
+                for substr in ['.vent', 'fuzzy', 'bankssts', '.total']]):
         return True
     elif np.any([substr in key.lower()
                 for substr in ['.mean', '.white.matter', '.cortex']]):
@@ -135,6 +135,9 @@ def compute_similarity_matrices(data, filt_fns=None, **kwargs):
                                                      **kwargs)
         sim_dict[mat_type] = sim_mat
         sim_keys[mat_type] = good_keys
+
+    assert len(np.unique([len(vals) for vals in sim_dict.values()])) == 1 
+
     return sim_dict, sim_keys
 
 
@@ -160,11 +163,12 @@ def visualize_similarity_matrices(sim_dict, labels=None, class_labels=None, dyna
     # Visualize similarity matrices
     compare_keys = list(sim_dict.keys())
     n_keys = len(compare_keys)
-    fh = plt.figure(figsize=(16, 6))
+    fh = plt.figure(figsize=(18, 10))
 
     for ki, key in enumerate(compare_keys):
         vmin, vmax = -1, 1
         if dynamic_color:
+            sim_dict[key][np.eye(sim_dict[key].shape[0], dtype=bool)] = 0.
             vval = np.max(np.abs([sim_dict[key].min(), sim_dict[key].max()]))
             vmin, vmax = np.asarray([-1, 1]) * vval
 
@@ -173,6 +177,7 @@ def visualize_similarity_matrices(sim_dict, labels=None, class_labels=None, dyna
                                           vmin=vmin, vmax=vmax,
                                           labels=labels if ki == 0 else None,
                                           class_labels=class_labels if ki == 0 else None)
-        ax.set_title(key)
+        plt.tight_layout(h_pad=5)
+        ax.set_title(key, fontsize=18)
 
     return ax

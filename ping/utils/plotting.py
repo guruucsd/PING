@@ -1,10 +1,30 @@
 """
 Plotting utilities
 """
+import matplotlib.patches as pat
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.spatial
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+
+def plot_normalized_hist(data, ax=None, **kwargs):
+    ax = ax or plt.figure().gca()
+    
+    x, b, h = ax.hist(data, normed=True, **kwargs)
+    if len(h) == 0:
+        pass
+    elif isinstance(h[0], pat.Rectangle):
+        for item in h:
+            item.set_height(item.get_height() / sum(x))
+    else:
+        for item, dat in zip(h, x):
+            for rect in item.patches:
+                rect.set_height(rect.get_height() / sum(dat))
+
+    ax.set_ylim([0, 1])
+
+    return x, b, h
 
 
 def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None, class_labels=None, vmin=0, vmax=1):
@@ -16,14 +36,15 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None, class_labels=No
     if len(mat.shape) == 1:
         # Convert vector to matrix
         mat = scipy.spatial.distance.squareform(mat)
-    mat[np.eye(mat.shape[0], dtype=bool)] = 0
+    # mat[np.eye(mat.shape[0], dtype=bool)] = 0
 
     # Mask the matrix; will lead to transparency in imshow
-    masked_mat = np.ma.masked_where(np.triu(np.eye(mat.shape[0])), mat)
+    masked_mat = np.ma.masked_where(np.tril(np.ones(mat.shape)), mat)
+    masked_mat = masked_mat.T #[::-1, ::-1]
 
     # interpolation: none needed for transparency...
     ax.set_axis_bgcolor(ax.get_figure().get_facecolor())
-    img = ax.imshow(mat, vmin=vmin, vmax=vmax, interpolation='nearest')
+    img = ax.imshow(masked_mat, vmin=vmin, vmax=vmax, interpolation='nearest')
     ax.set_frame_on(False)
     ax.tick_params(labelsize=16)
 
@@ -40,10 +61,10 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None, class_labels=No
 
     elif class_labels is None or len(np.unique(class_labels)) == 1:
         sz = mat.shape[0]
-        ax.set_xticks(range(sz))
-        ax.set_xticklabels(class_labels, rotation='vertical')
-        ax.set_yticks(range(sz))
-        ax.set_yticklabels(class_labels)
+        ax.set_xticks(range(sz - 1))
+        ax.set_xticklabels(labels[:-1], rotation='vertical')
+        ax.set_yticks(range(1, sz))
+        ax.set_yticklabels(labels[1:])
 
     else:
         border_idx = [0]
@@ -58,20 +79,23 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None, class_labels=No
         ax.set_xticklabels(border_lbls, rotation='vertical')
         ax.set_yticks(border_idx)
         ax.set_yticklabels(border_lbls)
+    ax.xaxis.set_ticks_position('none')
+    ax.yaxis.set_ticks_position('none')
 
 
-
-def equalize_xlims(fh):
-    xlims = np.asarray([ax.get_xlim() for ax in fh.get_axes()])
-    xlim = [xlims[:, 0].min(), xlims[:, 1].max()]
+def equalize_xlims(fh, xlim=None):
+    if xlim is None:
+        xlims = np.asarray([ax.get_xlim() for ax in fh.get_axes()])
+        xlim = [xlims[:, 0].min(), xlims[:, 1].max()]
 
     for ax in fh.get_axes():
         ax.set_xlim(xlim)
 
 
-def equalize_ylims(fh):
-    ylims = np.asarray([ax.get_ylim() for ax in fh.get_axes()])
-    ylim = [ylims[:, 0].min(), ylims[:, 1].max()]
+def equalize_ylims(fh, ylim=None):
+    if ylim is None:
+        ylims = np.asarray([ax.get_ylim() for ax in fh.get_axes()])
+        ylim = [ylims[:, 0].min(), ylims[:, 1].max()]
 
     for ax in fh.get_axes():
         ax.set_ylim(ylim)

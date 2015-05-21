@@ -143,6 +143,24 @@ def get_prefix(key):
     return get_prefixes([key])[0]
 
 
+def prefix2text(prefix):
+    d = {
+        'MRI_cort_thick.ctx': 'Cortical thickness (mm)',
+        'MRI_cort_area.ctx': 'Cortical surface area (mm^2)',
+        'MRI_subcort_vol': 'Subcortical volume (mm^3)',
+        'DTI_fiber_vol': 'Fiber tract volume (via DTI) (mm^3)',
+        'DTI_fiber_FA': 'Fiber tract fractional anisotropy (FA)'}
+    return d.get(prefix, prefix)
+
+
+def get_measure_key(common_key, measure_keys):
+    hits = [k for k in measure_keys if common_key in k]
+    if len(hits) == 0:
+        return None
+    else:
+        return hits[0]
+
+
 def get_prefixes(keys):
     normd_keys = sorted([get_nonhemi_key(k) for k in keys])
 
@@ -165,6 +183,9 @@ def norm_keys(keys):
     key_prefixes = get_prefixes(normd_keys)
     anatomical_keys = np.asarray([k[len(p[-1]):]
                                   for k, p in zip(normd_keys, key_prefixes)])
+
+    assert len(keys) == len(anatomical_keys)
+    assert np.all([len(k) > 0 for k in anatomical_keys])
     return anatomical_keys
 
 
@@ -189,7 +210,6 @@ def anatomical_sort(keys, regroup_results=True):
     # Normalize the form of the key
     keys = np.asarray(keys)
     anatomical_keys = norm_keys(keys)
-    print(anatomical_keys)
 
     # Find map from the structures in anatomical_order into the 'keys' list.
     index = np.argsort(anatomical_keys)
@@ -210,7 +230,6 @@ def anatomical_sort(keys, regroup_results=True):
     result = np.concatenate([result, keys[missing_keys_idx]])
 
     if regroup_results:
-        import pdb; pdb.set_trace()
         # Regroup keys by prefix; useful when there are multiple prefixes.
         regrouped_results = []
         for p in PINGData.IMAGING_PREFIX:
@@ -218,7 +237,6 @@ def anatomical_sort(keys, regroup_results=True):
         regrouped_results += [k for k in result if k not in regrouped_results]
         result = regrouped_results
 
-    print(result)
     assert len(result) == len(keys)
 
     # Everything else that remains is added alphabetically.
@@ -236,7 +254,7 @@ def get_rh_key_from_lh_key(key):
 def get_nonhemi_key(key):
     return get_rh_key_from_lh_key(key) \
         .replace('.rh.', '.').replace('.Right.', '.').replace('.R_', '_') \
-        .replace('_AI', '').replace('_LH_PLUS_RH', '')  # hacks... for now
+        .replace('_AI', '').replace('_LH_PLUS_RH', '').replace('_TOTAL', '')  # hacks... for now
 
 
 def is_nonimaging_key(key):
@@ -369,7 +387,7 @@ class PINGData(object):
     a dictionary of parallel arrays, with "SubjID" representing the primary key.
     """
     PING_DATA = None  # shared
-    IMAGING_PREFIX = ['MRI_cort_area.ctx', 'MRI_cort_thick.ctx',
+    IMAGING_PREFIX = ['MRI_cort_area.ctx', 'MRI_cort_thick.ctx', 'MRI_cort_vol.ctx',
                       'MRI_subcort_vol', 'DTI_fiber_vol',
                       'DTI_fiber_FA', 'DTI_fiber_LD', 'DTI_fiber_TD']
 
@@ -381,7 +399,7 @@ class PINGData(object):
             data = PINGData.PING_DATA
 
         else:
-            csv_path = csv_path or os.path.join('csv', 'PING_raw_data.csv')
+            csv_path = csv_path or os.path.join('data', 'PING_raw_data.csv')
 
             # Download data
             sess = PINGSession(username=username, passwd=passwd)
@@ -477,6 +495,20 @@ class PINGData(object):
                 for key in keys:
                     row.append(self.data_dict[key][row_idx])
                 w.writerow(row)
+
+    def purge_empty_subjects(self):
+        # Find # of nan numeric measures
+        any_good = np.zeros((self.get_num_subjects(),))
+        for key in self.data_dict.keys():
+            try:
+                any_good += ~np.isnan(self.data_dict[key])
+            except TypeError:
+                continue
+        # Remove subjects with no non-nan numeric measures.
+        for key in self.data_dict.keys():
+            self.data_dict[key] = self.data_dict[key][any_good > 0]
+        assert len(next(iter(self.data_dict.values()))) > 0
+
 
     def get_num_subjects(self):
         if len(self.data_dict) == 0:

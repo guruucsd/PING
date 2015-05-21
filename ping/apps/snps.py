@@ -22,8 +22,8 @@ class PINGSNPSession(PINGSession):
     as well as download user-data for specific snps.
     """
 
-    genes_metadata_file = 'csv/genes/PING_gene_annotate.json'
-    SNP_metadata_file = 'csv/genes/PING_SNPs.txt'
+    genes_metadata_file = 'data/genes/PING_gene_annotate.json'
+    SNP_metadata_file = 'data/genes/PING_SNPs.txt'
 
     def get_genes_dict(self):
         global GENES
@@ -64,7 +64,7 @@ class PINGSNPSession(PINGSession):
         import re
 
         matches = []
-        for csv_file in glob.glob('download/gwas/*.csv'):
+        for csv_file in glob.glob('results/gwas/*.csv'):
             with open(csv_file, 'r') as fp:
                 for line in fp:
                     if re.search(snp, line):
@@ -98,9 +98,7 @@ class PINGSNPSession(PINGSession):
             gene_metadata = self.get_gene_metadata(gene)
         else:
             gene_metadata = gene
-        all_chromosomes = [int(g[1][3:]) for g in gene_metadata]
-        min_chromosome = np.min(all_chromosomes)
-        max_chromosome = np.max(all_chromosomes)
+        all_chromosomes = np.unique([g[1][3:] for g in gene_metadata])
 
         # Prep a stream of the SNP info
         if not os.path.exists(self.SNP_metadata_file):
@@ -115,7 +113,7 @@ class PINGSNPSession(PINGSession):
         for row in snp_reader:
             # Format: ['SNP', 'Chromosome', 'Basepair', 'Allele1', 'Allele2']
 
-            if int(row[1]) < min_chromosome or max_chromosome < int(row[1]):
+            if row[1] not in all_chromosomes:
                 continue  # Wrong chromosome, no need to process further!
 
             cur_chromosome = 'chr%s' % row[1]
@@ -137,7 +135,7 @@ class PINGSNPSession(PINGSession):
                    for s in all_snps]
         snp_txt = self.download_file('applications/SNPs/download.php?_v=&project_name={project_name}&snps=%s' % (
                                          '%0A'.join(snp_ids)),
-                                     out_file='download/snps/%s.csv' % '_'.join(snp_ids))
+                                     out_file='data/snps/%s.csv' % '_'.join(snp_ids))
 
         lines = snp_txt.split(' ')[4:]
         header = lines[0]
