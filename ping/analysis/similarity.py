@@ -168,6 +168,7 @@ def visualize_similarity_matrices(sim_dict, labels=None, class_labels=None, dyna
     for ki, key in enumerate(compare_keys):
         vmin, vmax = -1, 1
         if dynamic_color:
+            sim_dict[key][np.eye(sim_dict[key].shape[0], dtype=bool)] = 0.
             vval = np.max(np.abs([sim_dict[key].min(), sim_dict[key].max()]))
             vmin, vmax = np.asarray([-1, 1]) * vval
 

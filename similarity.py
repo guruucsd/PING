@@ -26,9 +26,9 @@ def do_usage(args, error_msg=None):
         print("*** ERROR *** : %s" % error_msg)
     print("\nUsage: %s prefix metric which_matrices" % args[0])
     print("\tCompare asymmetry correlation matrix with LH/RH structural covariance matrices.")
-    print("\t\tprefix: comma-separated list of prefixes to include in the analysis.")
-    print("\t\metric: correlation or partial-correlation.")
-    print("\t\twhat: Left Hemisphere, Right Hemisphere, Asymmetry Index, All")
+    print("\n\tprefix: comma-separated list of prefixes to include in the analysis.")
+    print("\tmetric: correlation or partial-correlation.")
+    print("\twhat: Left Hemisphere, Right Hemisphere, Asymmetry Index, All")
 
 
 if __name__ != '__main__':
@@ -55,6 +55,9 @@ else:
         ('Left Hemisphere', lambda key: which_hemi(key) == 'lh' or is_nonimaging_key(key)),
         ('Right Hemisphere', lambda key: which_hemi(key) == 'rh' or is_nonimaging_key(key)),
         ('all', lambda key: True)))
+    filt_fns['LHAI'] = partial(lambda key, f1, f2: f1(key) or f2(key),
+                               f1=filt_fns['Asymmetry Index'],
+                               f2=filt_fns['Left Hemisphere'])
 
     # Get the key locations
     filt_fns = OrderedDict(((k, filt_fns[k]) for k in key_locations))
@@ -89,4 +92,12 @@ else:
                                        class_labels=class_labels)
     # ax.get_figure().suptitle(', '.join([prefix2text(p) for p in prefix]), fontsize=24)
 
+    for key, mat in sim_dict.items():
+        import scipy.spatial
+        if mat.ndim == 1:
+            mat = scipy.spatial.distance.squareform(mat)
+        evals, evecs = np.linalg.eig(mat)
+        # from research.multivariate import report_loadings
+        # report_loadings(evals=evals, evecs=evecs, labels=np.asarray(labels))
+        # Now print loadings, according to multivariate...
     plt.show()
