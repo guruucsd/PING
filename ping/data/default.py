@@ -311,6 +311,7 @@ class PINGData(object):
 
     @classmethod
     def get_measure_key(klass, common_key, measure_keys):
+        """First hit in an array (none otherwise)"""
         hits = [k for k in measure_keys if common_key in k]
         if len(hits) == 0:
             return None

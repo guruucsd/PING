@@ -38,7 +38,7 @@ def do_and_plot_regression(X, Y, covariates=[], xlabel=None, ylabel=None,
     if not ax:
         fh = plt.figure()
         ax = ax
-    # import pdb; pdb.set_trace()
+
     # Add standard deviation
     w_sz = (np.max(X) - np.min(X)) / 25.  # window size
 

@@ -2,6 +2,7 @@
 File for investigating asymmetry from PING data, based on each subject's
 asymmetry index
 """
+import sys
 from argparse import ArgumentParser
 from functools import partial
 
@@ -10,6 +11,7 @@ import numpy as np
 import scipy.stats
 
 from ping.apps import PINGSession
+from ping.data import PINGData
 from ping.utils import do_and_plot_regression
 from ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
                                  equalize_xlims, equalize_ylims,
@@ -260,7 +262,7 @@ def loop_show_asymmetry(prefix,
     stats = []
     regressions = []
     group_samples = []
-    measure_keys = data.get_twohemi_keys()
+    measure_keys = list(set([PINGData.get_nonhemi_key(k) for k in data.data_dict.keys()]) - set(grouping_keys) - set([xaxis_key]))
     for pi, key in enumerate(sorted(measure_keys)):
         print("Comparing %d (%s)..." % (pi, key))
         gn, ss, rv, gs = compare_group_asymmetry(data, xaxis_key=xaxis_key,
