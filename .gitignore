@@ -6,6 +6,7 @@
 /R_package/
 /results/
 *.pyc
+*.csv
 .DS_Store
 
 # Coverage
