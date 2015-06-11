@@ -1,8 +1,8 @@
 """
 Partial Correlation in Python (clone of Matlab's partialcorr)
 
-This uses the linear regression approach to compute the partial 
-correlation (might be slow for a huge number of variables). The 
+This uses the linear regression approach to compute the partial
+correlation (might be slow for a huge number of variables). The
 algorithm is detailed here:
 
     http://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression
@@ -25,7 +25,7 @@ Testing: Valentina Borghesani, valentinaborghesani@gmail.com
 """
 
 import numpy as np
-from scipy import stats, linalg
+from scipy import stats
 
 
 def partial_corr(C, verbose=0):
@@ -46,7 +46,7 @@ def partial_corr(C, verbose=0):
         P[i, j] contains the partial correlation of C[:, i] and C[:, j] controlling
         for the remaining variables in C.
     """
-    
+
     C = np.asarray(C)
     C = C[~np.isnan(C.sum(1))]
 
@@ -63,12 +63,12 @@ def partial_corr(C, verbose=0):
             idx[i] = False
             idx[j] = False
 
-            beta_i = linalg.lstsq(C[:, idx], C[:, j])[0]
-            beta_j = linalg.lstsq(C[:, idx], C[:, i])[0]
+            beta_i = np.linalg.lstsq(C[:, idx], C[:, j])[0]
+            beta_j = np.linalg.lstsq(C[:, idx], C[:, i])[0]
 
             res_j = C[:, j] - C[:, idx].dot(beta_i)
             res_i = C[:, i] - C[:, idx].dot(beta_j)
-            
+
             corr = stats.pearsonr(res_i, res_j)[0]
             P_corr[i, j] = corr
             P_corr[j, i] = corr
