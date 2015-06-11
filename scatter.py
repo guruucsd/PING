@@ -36,7 +36,9 @@ def parse_scatter_key(key):
 
 
 def compute_scatter_label(key, part=None):
-    if isinstance(key, string_types):
+    if key is None:
+        return
+    elif isinstance(key, string_types):
         key_type = keytype2label(parse_scatter_key(key)[0])
         method = parse_scatter_key(key)[1]
         if part is None:
@@ -90,7 +92,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
     if y_label is None:
         y_label = compute_scatter_label(y_key)
     if size_label is None:
-        size_label = compute_scatter_label(s_key)
+        size_label = compute_scatter_label(size_key)
     if ax is None:
         ax = plt.figure(figsize=(11, 10.5)).gca()
 
@@ -104,19 +106,19 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
                                   for k in size_key])
 
     if color_key is not None:
-        kwargs['c'] = np.asarray([compute_key_data(data.data_dict, k) 
+        kwargs['c'] = np.asarray([compute_key_data(data.data_dict, k)
                                   for k in color_key])
     elif color_fn is not None:
         kwargs['c'] = np.asarray([{k: color_fn(k, v) for k, v in kwargs['x'].items()}])
 
     # Make sure everybody has the same keys
-    common_keys = [get_nonhemi_key(k) 
+    common_keys = [get_nonhemi_key(k)
                    for k in kwargs['x'].keys()
                    if not is_bad_key(k) and ~np.all(np.isnan(kwargs['x'][k]))]
     if len(common_keys) == 0:
         raise ValueError('Your x key has an issue.')
     for key in list(set(kwargs.keys()) - set(['x'])):
-        # Loop over 
+        # Loop over
         cur_keys = [get_nonhemi_key(k)
                     for ddata in kwargs[key]
                     for k in ddata.keys()
@@ -140,7 +142,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
                                   for ck in common_keys])
 
     if 's' in kwargs:
-        kwargs['s'] = 1000  * kwargs['s'] / np.abs(kwargs['s']).mean()
+        kwargs['s'] = 1000 * kwargs['s'] / np.abs(kwargs['s']).mean()
     if 'c' in kwargs:
         kwargs['c'] = colors[kwargs['c']].ravel()
 
@@ -153,25 +155,25 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
         ax.set_ylabel(y_label, fontsize=18)
     if size_label:
         if 'thickness' in size_label:  # hack
-            loc='upper left'
+            loc = 'upper left'
         else:
-            loc='upper right'
+            loc = 'upper right'
         ax.legend([size_label], loc=loc)
 
     if add_marker_text:
         # Interesting if it's outside of some range of values
         is_interesting = lambda v, varr, dist: np.abs(varr.mean() - v) >= dist * varr.std()
 
-        for label, x, y, s, c in zip(common_keys, kwargs['x'], kwargs['y'], kwargs['s'], kwargs['c']):
+        for label, x, y, s in zip(common_keys, kwargs['x'], kwargs['y'], kwargs['s']):
             annotations = [key for key, sval in zip(['x', 'y', 's'], [1.35, 1.5, 2])
                            if is_interesting(locals()[key], kwargs[key], sval)]
             if len(annotations) > 0:
                 plt.annotate(
                     '%s (%s)' % (get_anatomical_name(get_nonhemi_key(label)), ', '.join(annotations)),
-                    xy = (x, y), xytext = (25, 25),
-                    textcoords = 'offset points', ha = 'right', va = 'bottom',
-                    bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5),
-                    arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'),
+                    xy=(x, y), xytext=(25, 25),
+                    textcoords='offset points', ha='right', va='bottom',
+                    bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
+                    arrowprops=dict(arrowstyle='->', connectionstyle='arc3, rad=0'),
                     fontsize=16)
 
     plt.axis('equal') #ax.set_aspect('equal')
@@ -226,12 +228,17 @@ else:
     # Load the data (should group, but ... later.)
     data = get_all_data().filter(prefix_filter_fn)
 
-    size_label = ' Marker size indicates\n %s %s' % (
-        compute_scatter_label(size_key, part='key_type').lower(),
-         ', '.join([prefix2text(p).lower() for p in prefix]))
+    if size_key is not None:
+        size_label = ' Marker size indicates\n %s %s' % (
+            compute_scatter_label(size_key, part='key_type').lower(),
+             ', '.join([prefix2text(p).lower() for p in prefix]))
+    else:
+        size_label = None
     ax = plot_scatter_4D(data, x_key=x_key, y_key=y_key, size_key=size_key, color_key=color_key,
-                         size_label=size_label, add_marker_text=False) 
-#x_label='Asymmetry Index (mean)', y_label='Asymmetry Index (std)',
+                         size_label=size_label, add_marker_text=True)
+    # x_label='Asymmetry Index (mean)', y_label='Asymmetry Index (std)',
 
-    ax.get_figure().suptitle(', '.join([prefix2text(p) for p in prefix]), fontsize=24)
+    ax.get_figure().suptitle(', '.join([prefix2text(p) 
+                                        for p in prefix]),
+                             fontsize=24)
     plt.show()

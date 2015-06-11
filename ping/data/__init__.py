@@ -184,8 +184,8 @@ def norm_keys(keys):
     anatomical_keys = np.asarray([k[len(p[-1]):]
                                   for k, p in zip(normd_keys, key_prefixes)])
 
-    assert len(keys) == len(anatomical_keys)
-    assert np.all([len(k) > 0 for k in anatomical_keys])
+    assert len(keys) == len(anatomical_keys), "Return as many keys as requested."
+    assert np.all([len(k) > 0 for k in anatomical_keys]), "No keys should be blank."
     return anatomical_keys
 
 
@@ -252,9 +252,10 @@ def get_rh_key_from_lh_key(key):
 
 
 def get_nonhemi_key(key):
-    return get_rh_key_from_lh_key(key) \
+    key = get_rh_key_from_lh_key(key) \
         .replace('.rh.', '.').replace('.Right.', '.').replace('.R_', '_') \
         .replace('_AI', '').replace('_LH_PLUS_RH', '').replace('_TOTAL', '')  # hacks... for now
+    return key
 
 
 def is_nonimaging_key(key):

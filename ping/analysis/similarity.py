@@ -15,13 +15,13 @@ from ..utils.plotting import plot_symmetric_matrix_as_triangle
 
 
 def is_bad_key(key):
-    if np.any([substr in key.lower()
-                for substr in ['.vent', 'fuzzy', 'bankssts', '.total']]):
+    if np.any([substr in key.lower().replace('_', '.')
+               for substr in ['.vent', 'fuzzy', 'bankssts', '.total']]):
         return True
-    elif np.any([substr in key.lower()
+    elif np.any([substr in key.lower().replace('_', '.')
                 for substr in ['.mean', '.white.matter', '.cortex']]):
         return True
-    elif np.any([substr in key.lower()
+    elif np.any([substr in key.lower().replace('_', '.')
                 for substr in ['allfib', '_slf', '_scs', '_fxcut']]):
         return True
     return False
