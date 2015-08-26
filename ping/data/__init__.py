@@ -392,14 +392,18 @@ class PINGData(object):
                       'MRI_subcort_vol', 'DTI_fiber_vol',
                       'DTI_fiber_FA', 'DTI_fiber_LD', 'DTI_fiber_TD']
 
-    def __init__(self, data=None, scrub_keys=False, scrub_values=True, csv_path=None, username=None, passwd=None, force=False):
+    def __init__(self, data=None, scrub_keys=False, scrub_values=True, 
+                 csv_path=None, username=None, passwd=None, force=False):
         if data is not None:
+            # User specified data directly.
             pass
 
         elif PINGData.PING_DATA is not None and not force:
+            # Data has already been loaded.
             data = PINGData.PING_DATA
 
         else:
+            # Get the PING raw data (download if necessary)
             csv_path = csv_path or os.path.join('data', 'PING_raw_data.csv')
 
             # Download data
@@ -414,12 +418,12 @@ class PINGData(object):
             try:
                 data = pandas.read_csv(csv_path, low_memory=False)
             except ValueError as ve:
-                # Corrupt spreadsheet. Re-GET
+                # Corrupt spreadsheet. Delete and re-download
                 print("Error loading the PING data: %s" % ve)
                 yn = raw_input("The PING spreadsheet is corrupt. Delete and download? (y/N) > ")
                 if yn.lower() == 'y':
                     os.remove(csv_path)
-                    warnings.warn("How to do recursive calls in OOP... in __init__???")
+                    # warnings.warn("How to do recursive calls in OOP... in __init__???")
                     self.__init__(self, scrub_keys=scrub_keys, scrub_values=scrub_values,
                                   csv_path=csv_path, username=username, passwd=passwd,
                                   force=True)
@@ -429,7 +433,7 @@ class PINGData(object):
             # Convert dots to underscores
             print("Converting PING data...")
             new_data = dict()
-            for key, val in data.iteritems():
+            for key, val in data.items():
                 if scrub_keys:
                     key = key.replace('.', '_')
                 if scrub_values:
@@ -467,7 +471,7 @@ class PINGData(object):
         elif op == 'or':
             if not isinstance(filter_fns, collections.Iterable):
                 filter_fns = [filter_fns]
-            
+
             old_dict = self.data_dict
             new_dict = dict(SubjID=old_dict['SubjID'])
             for fn in filter_fns:
@@ -510,7 +514,6 @@ class PINGData(object):
             self.data_dict[key] = self.data_dict[key][any_good > 0]
         assert len(next(iter(self.data_dict.values()))) > 0
 
-
     def get_num_subjects(self):
         if len(self.data_dict) == 0:
             return np.nan
@@ -520,12 +523,12 @@ class PINGData(object):
     def get_tbx_data(self):
         return filter_data(self.data_dict,
                            filter_fns=[ lambda k, v: k.startswith('TBX_'),
-                                        lambda k, v: v.dtype.name not in ['string', 'object'] ])
+                                        lambda k, v: v.dtype.name not in ['string', 'object']])
 
     def get_fdh_data(self):
         return filter_data(self.data_dict,
                            filter_fns=[ lambda k, v: k.startswith('FDH'),
-                                        lambda k, v: v.dtype.name not in ['string', 'object'] ])
+                                        lambda k, v: v.dtype.name not in ['string', 'object']])
 
     def get_twohemi_keys(self, filter_fns=None):
         """Given a key prefix, get all keys that have left/right pairs."""
