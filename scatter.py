@@ -196,9 +196,11 @@ def do_scatter(*args):
 
     if len(args) > 5:
         do_usage(args, "Too many arguments.")
+        return
 
     elif len(args) < 3:
         do_usage(args, "Too few keys.")
+        return
 
     prefix, x_key, y_key = args[:3]  # test
     prefix = prefix.split(',')

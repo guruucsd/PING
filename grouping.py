@@ -304,9 +304,11 @@ def do_usage(args, error_msg=None):
 def do_grouping(*args):
     if len(args) >= 5:
         do_usage(args, "Too many arguments.")
+        return
 
     elif len(args) < 2:
         do_usage(args, "Too few arguments.")
+        return
 
     prefix = args[0].split(',')
     grouping_keys = args[1].split(',')

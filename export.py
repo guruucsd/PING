@@ -37,13 +37,14 @@ def export_data(data, **kwargs):
 
 
 def do_usage(args, error_msg=None):
-    do_usage_grouping(args[0], error_msg=error_msg,
+    do_usage_grouping(__file__, error_msg=error_msg,
                       description=("Exports data based on filtering and grouping; "
                                    "setting filters and groups via command-line NYI."))
 
+
 def do_export(*args):
-    if len(sys.argv) > 3:
-        do_usage(sys.argv, error_msg="Too many arguments.")
+    if len(args) > 3:
+        do_usage(args, error_msg="Too many arguments.")
         return
 
     filter_args = parse_filter_args(args)

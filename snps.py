@@ -20,9 +20,11 @@ def do_snps(*args):
 
     if len(args) <= 1:
         do_usage(args, 'Not enough arguments.')
+        return
 
     elif args[0] not in ['view', 'download']:
         do_usage(args, 'Unknown command: %s' % args[0])
+        return
 
     elif args[1].startswith('rs'):
         # SNP => gene mapping
