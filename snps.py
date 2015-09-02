@@ -16,9 +16,9 @@ def do_usage(args, error_msg=None):
     print("\tSNP/gene: case-sensitive text label; if it starts with 'rs', it is taken to be a SNP")
 
 
-def do_snps(args):
+def do_snps(*args):
 
-    elif len(args) <= 1:
+    if len(args) <= 1:
         do_usage(args, 'Not enough arguments.')
 
     elif args[0] not in ['view', 'download']:
@@ -68,4 +68,4 @@ def do_snps(args):
 
 if __name__ == '__main__':
     import sys
-    do_snps(sys.argv[1:])
+    do_snps(*sys.argv[1:])

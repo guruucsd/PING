@@ -12,3 +12,9 @@ class TestWithNonblockingPlots(object):
 class TestSimilarity(TestWithNonblockingPlots):
     def test_similarity(self):
         do_similarity('MRI_cort_area.ctx', 'partial-correlation', 'Left Hemisphere')
+
+
+class TestSnps(TestWithNonblockingPlots):
+    # Only test anonymous functions
+    def test_snp_view(self):
+        do_snps('view', 'STK31')
