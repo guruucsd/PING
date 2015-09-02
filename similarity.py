@@ -13,7 +13,6 @@ from ping.analysis.similarity import (compare_similarity_vectors,
                                       compute_similarity_vectors,
                                       visualize_similarity_matrices)
 from ping.data import PINGData
-from ping.utils import filter_dict
 from research.asymmetry import is_ai_key
 from research.data import get_all_data
 from research.grouping import parse_filter_args
