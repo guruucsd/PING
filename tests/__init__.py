@@ -8,6 +8,7 @@ from nose.tools import assert_in, assert_true
 from six import StringIO
 
 from export import do_export, EXPORTED_PING_SPREADSHEET
+from gwas import do_gwas
 from grouping import do_grouping
 from scatter import do_scatter
 from similarity import do_similarity
@@ -53,6 +54,17 @@ class TestGrouping(TestWithGoodies):
         do_grouping(*range(12))
         usage_text = sys.stdout.getvalue()  # release output
         assert_in("grouping.py", usage_text, usage_text)
+
+    def test_grouping(self):
+        do_grouping('MRI_cort_area.ctx', 'Gender')
+
+
+class TestGwas(TestWithGoodies):
+
+    def test_gwas_usage(self):
+        do_gwas(*range(12))
+        usage_text = sys.stdout.getvalue()  # release output
+        assert_in("gwas.py", usage_text, usage_text)
 
     def test_grouping(self):
         do_grouping('MRI_cort_area.ctx', 'Gender')
