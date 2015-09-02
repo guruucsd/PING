@@ -1,9 +1,9 @@
-data/
-doc/
-genes/
-pdf/
-plink_mac/
-R_package/
-results/
+/data/
+/doc/
+/genes/
+/pdf/
+/plink_mac/
+/R_package/
+/results/
 *.pyc
 .DS_Store
