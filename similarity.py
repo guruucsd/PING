@@ -9,8 +9,8 @@ from functools import partial
 import numpy as np
 from matplotlib import pyplot as plt
 
-from ping.analysis.similarity import (compare_similarity_matrices,
-                                      compute_similarity_matrices,
+from ping.analysis.similarity import (compare_similarity_vectors,
+                                      compute_similarity_vectors,
                                       visualize_similarity_matrices)
 from ping.data import (PINGData, which_hemi, get_nonhemi_key, is_nonimaging_key, 
                        get_anatomical_name, anatomical_sort,
@@ -67,10 +67,10 @@ else:
     p_data.filter(prefix_filter_fn)
 
     # Do the similarity computation; order by anatomy.
-    sim_dict, sim_keys = compute_similarity_matrices(p_data.data_dict,
-                                                     filt_fns=filt_fns,
-                                                     sort_fn=anatomical_sort,
-                                                     metric=metric)
+    sim_dict, sim_keys = compute_similarity_vectors(p_data.data_dict,
+                                                    filt_fns=filt_fns,
+                                                    sort_fn=anatomical_sort,
+                                                    metric=metric)
 
     # Split the keys into the class (the prefix)
     # an anatomical label from the rest of the key.
@@ -85,7 +85,7 @@ else:
         labels.append(get_anatomical_name(label))
 
     # Compare matrices (printed)
-    compare_similarity_matrices(sim_dict)
+    compare_similarity_vectors(sim_dict)
     
     #  Display the similarity matrices.
     ax = visualize_similarity_matrices(sim_dict, labels=labels,
