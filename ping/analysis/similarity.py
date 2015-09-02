@@ -1,7 +1,6 @@
 """
 Build similarity matrices for cortical area (left, right) and asymmetry
 """
-import copy
 from collections import OrderedDict
 
 import numpy as np
