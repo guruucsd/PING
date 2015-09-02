@@ -1,5 +1,6 @@
 from matplotlib import pyplot as plt
 
+from grouping import do_grouping
 from scatter import do_scatter
 from similarity import do_similarity
 from snps import do_snps
@@ -8,6 +9,11 @@ from snps import do_snps
 class TestWithNonblockingPlots(object):
     def setUp(self):
         plt.ion()
+
+
+class TestGrouping(TestWithNonblockingPlots):
+    def test_grouping(self):
+        do_grouping('MRI_cort_area.ctx', 'Gender')
 
 
 class TestScatter(TestWithNonblockingPlots):
