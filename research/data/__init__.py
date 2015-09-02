@@ -2,6 +2,7 @@
 """
 import collections
 import copy
+import inspect
 import os
 
 import numpy as np
@@ -33,11 +34,11 @@ def compute_all_totals(filtered_data):
     """Computes total surface area / volume."""
 
     # Process & plot the data.
-    out_data = PINGData(dict(SubjID=filtered_data.data_dict['SubjID']))
+    out_data = filtered_data.__class__(dict(SubjID=filtered_data.data_dict['SubjID']))
     for rh_key in filtered_data.get_twohemi_keys():
-        assert PINGData.which_hemi(rh_key) == 'rh'
-        lh_key = PINGData.get_lh_key_from_rh_key(rh_key)
-        dest_key = PINGData.get_nonhemi_key(rh_key)
+        assert filtered_data.which_hemi(rh_key) == 'rh'
+        lh_key = filtered_data.get_lh_key_from_rh_key(rh_key)
+        dest_key = filtered_data.get_nonhemi_key(rh_key)
         dest_key += '_LH_PLUS_RH'
         out_data.data_dict[dest_key] = filtered_data.data_dict[rh_key] + filtered_data.data_dict[lh_key]
 
@@ -73,17 +74,17 @@ def compute_all_volumes(filtered_data):
     """ Loop over all properties to show asymmetry."""
 
     # Process & plot the data.
-    out_data = PINGData(dict(SubjID=filtered_data.data_dict['SubjID']))
+    out_data = filtered_data.__class__(dict(SubjID=filtered_data.data_dict['SubjID']))
     for rh_key_area in [k for k in filtered_data.get_twohemi_keys()
                           if k.startswith('MRI_cort_area.ctx')]:
-        assert PINGData.which_hemi(rh_key_area) == 'rh'
+        assert filtered_data.which_hemi(rh_key_area) == 'rh'
         try:
             rh_key_thick = rh_key_area.replace('MRI_cort_area.ctx', 'MRI_cort_thick.ctx')
             rh_key_vol = rh_key_area.replace('MRI_cort_area.ctx', 'MRI_cort_vol.ctx')
-            lh_key_area = PINGData.get_lh_key_from_rh_key(rh_key_area)
-            lh_key_thick = PINGData.get_lh_key_from_rh_key(rh_key_thick)
-            lh_key_vol = PINGData.get_lh_key_from_rh_key(rh_key_vol)
-            dest_key = PINGData.get_nonhemi_key(rh_key_vol)
+            lh_key_area = filtered_data.get_lh_key_from_rh_key(rh_key_area)
+            lh_key_thick = filtered_data.get_lh_key_from_rh_key(rh_key_thick)
+            lh_key_vol = filtered_data.get_lh_key_from_rh_key(rh_key_vol)
+            dest_key = filtered_data.get_nonhemi_key(rh_key_vol)
             out_data.data_dict[dest_key] = filtered_data.data_dict[rh_key_vol] + filtered_data.data_dict[lh_key_vol]
         except Exception as e:
             print(e)
@@ -96,11 +97,11 @@ def compute_all_asymmetries(filtered_data):
     """ Loop over all properties to show asymmetry."""
 
     # Asymmetry index
-    out_data = PINGData(dict(SubjID=filtered_data.data_dict['SubjID']))
+    out_data = filtered_data.__class__(dict(SubjID=filtered_data.data_dict['SubjID']))
 
     for key in filtered_data.get_twohemi_keys():
-        dest_key = get_ai_key(key)
-        out_data.data_dict[dest_key] = get_asymmetry_index(filtered_data.data_dict,
+        dest_key = get_ai_key(key, filtered_data)
+        out_data.data_dict[dest_key] = get_asymmetry_index(filtered_data,
                                                            key, mask_nan=False)
 
     # Add one property for total asymmetry
@@ -121,7 +122,7 @@ def compute_all_asymmetries(filtered_data):
             good_idx = np.logical_not(np.isnan(values))
             total_asymmetry[good_idx] += values[good_idx]**2
             total_measures[good_idx] += 1
-        total_ai_key = get_ai_key(p + '%s') % '_TOTAL'
+        total_ai_key = get_ai_key(p + '%s', filtered_data) % '_TOTAL'
         out_data.data_dict[total_ai_key] = np.sqrt(total_asymmetry / total_measures)
 
     return out_data
@@ -146,7 +147,7 @@ def compute_component_loadings(filtered_data, verbose=0):
     pc_dict = dict(zip(keys, pc_projections))
     pc_dict['SubjID'] = pca.subj_ids
 
-    return PINGData(pc_dict)
+    return filtered_data.__class__(pc_dict)
 
 
 def get_derived_data(filtered_data, tag=None, verbose=0):
@@ -162,9 +163,19 @@ def get_derived_data(filtered_data, tag=None, verbose=0):
     return data
 
 
-def get_all_data(all_data=None, filter_fns=None, verbose=0):
-    if all_data is None:
-        all_data = PINGData()
+def get_all_data(all_data='ping', filter_fns=None, verbose=0):
+    if inspect.isclass(all_data):
+        data_klass = all_data
+        all_data = data_klass()
+    elif isinstance(all_data, string_types):
+        known_data = dict(ping=PINGData)
+        if all_data not in known_data:
+            raise ValueError('Unknown dataset: %s' % all_data)
+        else:
+            data_klass = known_data[all_data]
+            all_data = data_klass()
+    else:
+        raise NotImplementedError()  # assume it's data.
 
     if filter_fns is None:
         filter_fns = dict()

@@ -1,13 +1,13 @@
 """
 """
 import copy
-import sys
+import warnings
 from functools import partial
 
 import numpy as np
 
-from .data import get_derived_data, get_all_data
 from ping.data import PINGData
+from .data import get_derived_data, get_all_data
 
 
 def select_lowest_values(vals, pct=0.25):
@@ -146,7 +146,7 @@ def group_and_compare(fn,
     return group_names, results
 
 
-def group_and_execute(fn, all_data=None, prefixes=None, groupings=None, limits=None, verbose=0, remove_nan=False, **kwargs):
+def group_and_execute(fn, all_data='ping', prefixes=None, groupings=None, limits=None, verbose=0, remove_nan=False, **kwargs):
     """Filters and/or groups data, then runs the given function."""
 
     # Massage inputs because Python sucks at default args
@@ -233,6 +233,7 @@ def group_and_execute(fn, all_data=None, prefixes=None, groupings=None, limits=N
 
 
 def parse_filter_args(args, filter_defaults=None):
+    warnings.warn('Still using PINGData; must migrate!', DeprecationWarning)
 
     # Filtering / grouping defaults
     filter_args = {

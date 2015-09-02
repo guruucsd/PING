@@ -10,7 +10,6 @@ from matplotlib import pyplot as plt
 from ping.analysis.similarity import (compare_similarity_vectors,
                                       compute_similarity_vectors,
                                       visualize_similarity_matrices)
-from ping.data import PINGData
 from research.asymmetry import is_ai_key
 from research.data import get_all_data
 
@@ -38,11 +37,15 @@ def do_similarity(*args):
     prefix = args[0].split(',')
     prefix_filter_fn = lambda k, v: np.any([k.startswith(p) for p in prefix])
 
+    # Load and filter the data
+    p_data = get_all_data()
+    p_data.filter(prefix_filter_fn)
+
     # Determine filters for selecting the similarity groupings.
     filt_fns = OrderedDict((
-        ('Asymmetry Index', lambda key: (is_ai_key(key) and np.all([substr not in key for substr in ['_TOTAL', 'LH_PLUS_RH']])) or PINGData.is_nonimaging_key(key)),
-        ('Left Hemisphere', lambda key: PINGData.which_hemi(key) == 'lh' or PINGData.is_nonimaging_key(key)),
-        ('Right Hemisphere', lambda key: PINGData.which_hemi(key) == 'rh' or PINGData.is_nonimaging_key(key)),
+        ('Asymmetry Index', lambda key: (is_ai_key(key) and np.all([substr not in key for substr in ['_TOTAL', 'LH_PLUS_RH']])) or p_data.is_nonimaging_key(key)),
+        ('Left Hemisphere', lambda key: p_data.which_hemi(key) == 'lh' or p_data.is_nonimaging_key(key)),
+        ('Right Hemisphere', lambda key: p_data.which_hemi(key) == 'rh' or p_data.is_nonimaging_key(key)),
         ('all', lambda key: True)))
     filt_fns['LHAI'] = partial(lambda key, f1, f2: f1(key) or f2(key),
                                f1=filt_fns['Asymmetry Index'],
@@ -55,14 +58,10 @@ def do_similarity(*args):
     # Get the key locations
     filt_fns = OrderedDict(((k, filt_fns[k]) for k in key_locations))
 
-    # Load and filter the data
-    p_data = get_all_data()
-    p_data.filter(prefix_filter_fn)
-
     # Do the similarity computation; order by anatomy.
     sim_dict, sim_keys = compute_similarity_vectors(p_data.data_dict,
                                                     filt_fns=filt_fns,
-                                                    sort_fn=PINGData.anatomical_sort,
+                                                    sort_fn=p_data.anatomical_sort,
                                                     metric=metric)
 
     # Split the keys into the class (the prefix)
@@ -71,11 +70,11 @@ def do_similarity(*args):
     labels = []
     class_labels = []
     for ki, key in enumerate(good_keys):
-        class_label, label = [(p, PINGData.get_nonhemi_key(key)[(len(p) + 1):])
+        class_label, label = [(p, p_data.get_nonhemi_key(key)[(len(p) + 1):])
                               for p in prefix
                               if key.startswith(p)][0]
         class_labels.append(class_label)
-        labels.append(PINGData.get_anatomical_name(label))
+        labels.append(p_data.get_anatomical_name(label))
 
     # Compare matrices (printed)
     compare_similarity_vectors(sim_dict)
@@ -83,7 +82,7 @@ def do_similarity(*args):
     #  Display the similarity matrices.
     ax = visualize_similarity_matrices(sim_dict, labels=labels,
                                        class_labels=class_labels)
-    # ax.get_figure().suptitle(', '.join([PINGData.prefix2text(p) for p in prefix]), fontsize=24)
+    # ax.get_figure().suptitle(', '.join([p_data.prefix2text(p) for p in prefix]), fontsize=24)
 
     for key, mat in sim_dict.items():
         import scipy.spatial

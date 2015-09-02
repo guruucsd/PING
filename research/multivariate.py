@@ -41,7 +41,7 @@ class AsymmetryPCA(object):
             # We got raw data
             good_keys = np.asarray(list(data.data_dict.keys()))
             for key in good_keys:
-                data_mat.append(get_asymmetry_index(data.data_dict, key))
+                data_mat.append(get_asymmetry_index(data, key))
 
         good_keys = np.asarray(good_keys)
         data_mat = np.asarray(data_mat)
