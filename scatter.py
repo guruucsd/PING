@@ -152,8 +152,9 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
         is_interesting = lambda v, varr, dist: np.abs(varr.mean() - v) >= dist * varr.std()
 
         for label, x, y, s in zip(common_keys, kwargs['x'], kwargs['y'], kwargs['s']):
+            locs = locals()
             annotations = [key for key, sval in zip(['x', 'y', 's'], [1.35, 1.5, 2])
-                           if is_interesting(locals()[key], kwargs[key], sval)]
+                           if is_interesting(locs[key], kwargs[key], sval)]
             if len(annotations) > 0:
                 plt.annotate(
                     '%s (%s)' % (PINGData.get_anatomical_name(PINGData.get_nonhemi_key(label)), ', '.join(annotations)),

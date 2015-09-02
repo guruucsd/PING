@@ -64,7 +64,7 @@ class PINGSession(object):
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
 
-            with open(out_file, 'w') as fp:
+            with open(out_file, 'wb') as fp:
                 fp.write(out_text.encode('utf-8'))
 
         return out_text
