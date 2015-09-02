@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
 
-from ping.data import PINGData
 from ping.utils import do_and_plot_regression
 from ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
                                  equalize_xlims, equalize_ylims,
