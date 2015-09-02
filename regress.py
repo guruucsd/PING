@@ -79,10 +79,9 @@ def print_legend():
         print('%5s: %s' % (key, val))
 
 
-if __name__ == '__main__':
-    raise NotImplementedError("Broke this in the refactor.")
-    local = False
 
+def do_regress(*args):
+    local = False
 
     if local:
         all_data = get_derived_data(prefix=SomeData.IMAGING_PREFIX)
@@ -119,3 +118,7 @@ if __name__ == '__main__':
             plt.show()
 
         plt.show()
+
+
+if __name__ == '__main__':
+    raise NotImplementedError("Broke this in the refactor.")
