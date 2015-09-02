@@ -28,7 +28,9 @@ def plot_normalized_hist(data, ax=None, **kwargs):
 
 
 def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None, class_labels=None, vmin=0, vmax=1):
-    """Plot symmetric matrix (like a covariance matrix) as a lower triangle."""
+    """Plot symmetric matrix (like a covariance matrix) as a lower triangle.
+
+    Can accept matrix in vector or matrix form."""
 
     # Scrub inputs
     if ax is None:

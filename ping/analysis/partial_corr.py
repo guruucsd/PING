@@ -27,8 +27,6 @@ Testing: Valentina Borghesani, valentinaborghesani@gmail.com
 import numpy as np
 from scipy import stats, linalg
 
-from statsmodels.regression.linear_model import OLS
-
 
 def partial_corr(C, verbose=0):
     """
@@ -64,8 +62,6 @@ def partial_corr(C, verbose=0):
             idx = np.ones(p, dtype=np.bool)
             idx[i] = False
             idx[j] = False
-            #beta_i = OLS(C[:, idx], C[:, j]).fit().params.squeeze()
-            #beta_j = OLS(C[:, idx], C[:, i]).fit().params.squeeze()
 
             beta_i = linalg.lstsq(C[:, idx], C[:, j])[0]
             beta_j = linalg.lstsq(C[:, idx], C[:, i])[0]
