@@ -41,14 +41,14 @@ def do_usage(args, error_msg=None):
                       description=("Exports data based on filtering and grouping; "
                                    "setting filters and groups via command-line NYI."))
 
+def do_export(*args):
+    if len(sys.argv) > 3:
+        do_usage(sys.argv, error_msg="Too many arguments.")
+        return
 
-if __name__ != '__main__':
-    pass
-
-elif len(sys.argv) > 3:
-    do_usage(sys.argv, error_msg="Too many arguments.")
-
-else:
-    filter_args = parse_filter_args(sys.argv[1:])
+    filter_args = parse_filter_args(args)
     group_and_execute(fn=export_data, verbose=1, **filter_args)
 
+
+if __name__ == '__main__':
+    do_export(*sys.argv[1:])

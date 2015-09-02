@@ -1,5 +1,11 @@
-from matplotlib import pyplot as plt
+"""
+"""
+import os
 
+from matplotlib import pyplot as plt
+from nose.tools import assert_true
+
+from export import do_export, EXPORTED_PING_SPREADSHEET
 from grouping import do_grouping
 from scatter import do_scatter
 from similarity import do_similarity
@@ -9,6 +15,12 @@ from snps import do_snps
 class TestWithNonblockingPlots(object):
     def setUp(self):
         plt.ion()
+
+
+class TestExport(TestWithNonblockingPlots):
+    def test_export(self):
+        do_export()
+        assert_true(os.path.exists(EXPORTED_PING_SPREADSHEET))
 
 
 class TestGrouping(TestWithNonblockingPlots):
