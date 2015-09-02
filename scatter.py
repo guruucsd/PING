@@ -9,21 +9,13 @@ Goal is to have:
 Should take ordered parameters for data keys on the input,
 function should take keyword args.
 """
-import copy
-import sys
-from collections import OrderedDict
-from functools import partial
-
 import numpy as np
 from matplotlib import pyplot as plt
 from six import string_types
 
 from ping.analysis.similarity import is_bad_key
 from ping.data import PINGData
-from ping.utils import filter_dict
-from research.asymmetry import is_ai_key
 from research.data import get_all_data, keytype2label
-from research.grouping import parse_filter_args
 
 
 def parse_scatter_key(key):
@@ -183,7 +175,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
 def do_usage(args, error_msg=None):
     if error_msg is not None:
         print("*** ERROR *** : %s" % error_msg)
-    print("\nUsage: %s prefix x_key y_key [size_key] [color_key]" % args[0])
+    print("\nUsage: %s prefix x_key y_key [size_key] [color_key]" % __file__)
     print("\tScatter plot on any two data arrays, with additional data arrays that")
     print("\toptionally control marker size and color.")
     print("\n\tprefix: asdfadf.")
@@ -200,22 +192,19 @@ def do_usage(args, error_msg=None):
     print("\t\tNote: must be one key, or as many keys as in y_key.")
 
 
-if __name__ != '__main__':
-    pass
+def do_scatter(*args):
 
-elif len(sys.argv) > 6:
-    do_usage(sys.argv, "Too many arguments.")
+    if len(args) > 5:
+        do_usage(args, "Too many arguments.")
 
-elif len(sys.argv) < 4:
-    do_usage(sys.argv, "Too few keys.")
+    elif len(args) < 3:
+        do_usage(args, "Too few keys.")
 
-else:
-
-    prefix, x_key, y_key = sys.argv[1:4]
+    prefix, x_key, y_key = args[:3]  # test
     prefix = prefix.split(',')
     y_key = y_key.split(',')
-    size_key = None if len(sys.argv) < 5 else sys.argv[4].split(',')
-    color_key = None if len(sys.argv) < 6 else sys.argv[5].split(',')
+    size_key = None if len(args) < 4 else args[3].split(',')
+    color_key = None if len(args) < 5 else args[4].split(',')
 
     # Get prefix
     prefix_filter_fn = lambda k, v: np.any([k.startswith(p) for p in prefix])
@@ -233,7 +222,12 @@ else:
                          size_label=size_label, add_marker_text=True)
     # x_label='Asymmetry Index (mean)', y_label='Asymmetry Index (std)',
 
-    ax.get_figure().suptitle(', '.join([PINGData.prefix2text(p) 
+    ax.get_figure().suptitle(', '.join([PINGData.prefix2text(p)
                                         for p in prefix]),
                              fontsize=24)
     plt.show()
+
+
+if __name__ == '__main__':
+    import sys
+    do_scatter(*sys.argv[1:])
