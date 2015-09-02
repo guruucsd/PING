@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
 
     if local:
-        all_data = get_derived_data(prefix=PINGData.IMAGING_PREFIX)
+        all_data = get_derived_data(prefix=SomeData.IMAGING_PREFIX)
         # search_all_pairwise(all_data)
 
         # search_all_vs_one(all_data, key='MRI_cort_area_ctx_total_LH_PLUS_RH', rsq_thresh=0.0015, plot=False)

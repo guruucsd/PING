@@ -11,7 +11,7 @@ from six import string_types
 from ..asymmetry import (get_asymmetry_index, get_ai_key,
                          is_ai_key)
 from ..multivariate import AsymmetryPCA
-from ping.data import PINGData, get_lh_key_from_rh_key, get_nonhemi_key, which_hemi
+from ping.data import PINGData
 
 
 def keytype2label(key):
@@ -35,9 +35,9 @@ def compute_all_totals(filtered_data):
     # Process & plot the data.
     out_data = PINGData(dict(SubjID=filtered_data.data_dict['SubjID']))
     for rh_key in filtered_data.get_twohemi_keys():
-        assert which_hemi(rh_key) == 'rh'
-        lh_key = get_lh_key_from_rh_key(rh_key)
-        dest_key = get_nonhemi_key(rh_key)
+        assert PINGData.which_hemi(rh_key) == 'rh'
+        lh_key = PINGData.get_lh_key_from_rh_key(rh_key)
+        dest_key = PINGData.get_nonhemi_key(rh_key)
         dest_key += '_LH_PLUS_RH'
         out_data.data_dict[dest_key] = filtered_data.data_dict[rh_key] + filtered_data.data_dict[lh_key]
 
@@ -76,14 +76,14 @@ def compute_all_volumes(filtered_data):
     out_data = PINGData(dict(SubjID=filtered_data.data_dict['SubjID']))
     for rh_key_area in [k for k in filtered_data.get_twohemi_keys()
                           if k.startswith('MRI_cort_area.ctx')]:
-        assert which_hemi(rh_key_area) == 'rh'
+        assert PINGData.which_hemi(rh_key_area) == 'rh'
         try:
             rh_key_thick = rh_key_area.replace('MRI_cort_area.ctx', 'MRI_cort_thick.ctx')
             rh_key_vol = rh_key_area.replace('MRI_cort_area.ctx', 'MRI_cort_vol.ctx')
-            lh_key_area = get_lh_key_from_rh_key(rh_key_area)
-            lh_key_thick = get_lh_key_from_rh_key(rh_key_thick)
-            lh_key_vol = get_lh_key_from_rh_key(rh_key_vol)
-            dest_key = get_nonhemi_key(rh_key_vol)
+            lh_key_area = PINGData.get_lh_key_from_rh_key(rh_key_area)
+            lh_key_thick = PINGData.get_lh_key_from_rh_key(rh_key_thick)
+            lh_key_vol = PINGData.get_lh_key_from_rh_key(rh_key_vol)
+            dest_key = PINGData.get_nonhemi_key(rh_key_vol)
             out_data.data_dict[dest_key] = filtered_data.data_dict[rh_key_vol] + filtered_data.data_dict[lh_key_vol]
         except Exception as e:
             print(e)

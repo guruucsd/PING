@@ -18,13 +18,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from six import string_types
 
-from ping.analysis.similarity import (is_bad_key,
-                                      compare_similarity_matrices,
-                                      compute_similarity_matrices,
-                                      visualize_similarity_matrices)
-from ping.data import (PINGData, which_hemi, get_nonhemi_key, is_nonimaging_key, 
-                       get_anatomical_name, anatomical_sort, get_prefixes,
-                       prefix2text, get_measure_key)
+from ping.analysis.similarity import is_bad_key
+from ping.data import PINGData
 from ping.utils import filter_dict
 from research.asymmetry import is_ai_key
 from research.data import get_all_data, keytype2label
@@ -112,14 +107,14 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
         kwargs['c'] = np.asarray([{k: color_fn(k, v) for k, v in kwargs['x'].items()}])
 
     # Make sure everybody has the same keys
-    common_keys = [get_nonhemi_key(k)
+    common_keys = [PINGData.get_nonhemi_key(k)
                    for k in kwargs['x'].keys()
                    if not is_bad_key(k) and ~np.all(np.isnan(kwargs['x'][k]))]
     if len(common_keys) == 0:
         raise ValueError('Your x key has an issue.')
     for key in list(set(kwargs.keys()) - set(['x'])):
         # Loop over
-        cur_keys = [get_nonhemi_key(k)
+        cur_keys = [PINGData.get_nonhemi_key(k)
                     for ddata in kwargs[key]
                     for k in ddata.keys()
                     if ~np.all(np.isnan(ddata[k]))]
@@ -133,7 +128,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
     #  BUT the actual keys in each dict is NOT the common_key,
     #  but some measure-specific version of it.
     #
-    gmc = get_measure_key
+    gmc = PINGData.get_measure_key
     kwargs['x'] = np.asarray([kwargs['x'][gmc(ck, kwargs['x'].keys())]
                               for ck in common_keys])
     for key in list(set(kwargs.keys()) - set(['x'])):
@@ -169,7 +164,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
                            if is_interesting(locals()[key], kwargs[key], sval)]
             if len(annotations) > 0:
                 plt.annotate(
-                    '%s (%s)' % (get_anatomical_name(get_nonhemi_key(label)), ', '.join(annotations)),
+                    '%s (%s)' % (PINGData.get_anatomical_name(PINGData.get_nonhemi_key(label)), ', '.join(annotations)),
                     xy=(x, y), xytext=(25, 25),
                     textcoords='offset points', ha='right', va='bottom',
                     bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
@@ -231,14 +226,14 @@ else:
     if size_key is not None:
         size_label = ' Marker size indicates\n %s %s' % (
             compute_scatter_label(size_key, part='key_type').lower(),
-             ', '.join([prefix2text(p).lower() for p in prefix]))
+             ', '.join([PINGData.prefix2text(p).lower() for p in prefix]))
     else:
         size_label = None
     ax = plot_scatter_4D(data, x_key=x_key, y_key=y_key, size_key=size_key, color_key=color_key,
                          size_label=size_label, add_marker_text=True)
     # x_label='Asymmetry Index (mean)', y_label='Asymmetry Index (std)',
 
-    ax.get_figure().suptitle(', '.join([prefix2text(p) 
+    ax.get_figure().suptitle(', '.join([PINGData.prefix2text(p) 
                                         for p in prefix]),
                              fontsize=24)
     plt.show()

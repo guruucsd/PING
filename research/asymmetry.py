@@ -3,11 +3,11 @@ Functions related to asymmetry
 """
 import numpy as np
 
-from ping.data import get_bilateral_hemi_keys, get_nonhemi_key
+from ping.data import PINGData
 
 
 def get_ai_key(rh_key):
-    return '%s_AI' % get_nonhemi_key(rh_key)
+    return '%s_AI' % PINGData.get_nonhemi_key(rh_key)
 
 
 def is_ai_key(key):
@@ -29,7 +29,7 @@ def get_asymmetry_index(data, key, mask_nan=False):
     """ Get the correponding left and right values for the key,
     and returns the asymmetry index."""
 
-    left_key, right_key = get_bilateral_hemi_keys(key)
+    left_key, right_key = PINGData.get_bilateral_hemi_keys(key)
 
     # Select data within the group
     LH_data = np.asarray(data[left_key].tolist())
