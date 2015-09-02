@@ -284,7 +284,7 @@ def loop_show_asymmetry(prefix,
 def do_usage(args, error_msg=None):
     if error_msg is not None:
         print("*** ERROR *** : %s" % error_msg)
-    print("\nUsage: %s prefixes group_keys [xaxis] [plots]" % args[0])
+    print("\nUsage: %s prefixes group_keys [xaxis] [plots]" % __file__)
     print("\tProduce plots for each group")
     print("\n\tprefixes: simple selector for groups of measures to include. Popular choices include:")
     print("\t\tMRI_cort_area.ctx: ")
@@ -301,22 +301,28 @@ def do_usage(args, error_msg=None):
     print("\t\tstat_distributions:")
 
 
-if __name__ != '__main__':
-    pass
+def do_grouping(*args):
+    if len(args) >= 5:
+        do_usage(args, "Too many arguments.")
+        return
 
-elif len(sys.argv) >= 6:
-    do_usage(sys.argv, "Too many arguments.")
+    elif len(args) < 2:
+        do_usage(args, "Too few arguments.")
+        return
 
-elif len(sys.argv) < 3:
-    do_usage(sys.argv, "Too few arguments.")
-
-else:
-    prefix = sys.argv[1].split(',')
-    grouping_keys = sys.argv[2].split(',')
-    xaxis_key = sys.argv[3] if len(sys.argv) >= 4 else 'Age_At_IMGExam'
-    plots = sys.argv[4].split(',') if len(sys.argv) >= 5 else 'regressions'
+    prefix = args[0].split(',')
+    grouping_keys = args[1].split(',')
+    xaxis_key = args[2] if len(args) >= 3 else 'Age_At_IMGExam'
+    plots = args[3].split(',') if len(args) >= 4 else 'regressions'
 
     loop_show_asymmetry(prefix=prefix,
                         grouping_keys=grouping_keys,
                         xaxis_key=xaxis_key,
                         plots=plots)
+
+
+if __name__ == '__main__':
+    import sys
+    do_grouping(*sys.argv[1:])
+
+

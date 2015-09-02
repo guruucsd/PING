@@ -1,15 +1,13 @@
 """
 Access SNP information
 """
-import sys
-
 from ping.apps.snps import PINGSNPSession
 
 
 def do_usage(args, error_msg=None):
     if error_msg is not None:
         print("*** ERROR *** : %s" % error_msg)
-    print("\nUsage: %s {action} {SNP/gene}" % args[0])
+    print("\nUsage: %s {action} {SNP/gene}" % __file__)
     print("\tShow SNP=>gene or gene=>SNP mappings.")
     print("\n\taction: 'view' or 'download'")
     print("\t\tview: view mapping between SNP/gene, and any relevant GWAS results.")
@@ -18,52 +16,58 @@ def do_usage(args, error_msg=None):
     print("\tSNP/gene: case-sensitive text label; if it starts with 'rs', it is taken to be a SNP")
 
 
-if __name__ != '__main__':
-    pass
+def do_snps(*args):
 
-elif len(sys.argv) <= 2:
-    do_usage(sys.argv, 'Not enough arguments.')
+    if len(args) <= 1:
+        do_usage(args, 'Not enough arguments.')
+        return
 
-elif sys.argv[1] not in ['view', 'download']:
-    do_usage(sys.argv, 'Unknown command: %s' % sys.argv[1])
+    elif args[0] not in ['view', 'download']:
+        do_usage(args, 'Unknown command: %s' % args[0])
+        return
 
-elif sys.argv[2].startswith('rs'):
-    # SNP => gene mapping
-    snp = sys.argv[2]
-    sess = PINGSNPSession()
+    elif args[1].startswith('rs'):
+        # SNP => gene mapping
+        snp = args[1]
+        sess = PINGSNPSession()
 
-    print("Loading SNPS...")
-    snp_metadata = sess.get_snp_metadata(snp)
-    print("Found %d SNPs for %s" % (snp_metadata is not None, snp))
-    print(snp_metadata)
+        print("Loading SNPS...")
+        snp_metadata = sess.get_snp_metadata(snp)
+        print("Found %d SNPs for %s" % (snp_metadata is not None, snp))
+        print(snp_metadata)
 
-    print("Loading genes...")
-    all_genes = sess.get_genes_from_snp(snp)
-    print("Found %d genes for %s" % (all_genes is not None, snp))
-    print('\n'.join([str(gene) for gene in all_genes]))
+        print("Loading genes...")
+        all_genes = sess.get_genes_from_snp(snp)
+        print("Found %d genes for %s" % (all_genes is not None, snp))
+        print('\n'.join([str(gene) for gene in all_genes]))
 
-    print("GWAS results:")
-    print('\n'.join([str(gwas) for gwas in sess.snp_gwas_results(snp)]))
+        print("GWAS results:")
+        print('\n'.join([str(gwas) for gwas in sess.snp_gwas_results(snp)]))
 
-    if sys.argv[1] == 'download':
-        sess.login()
-        sess.download_subject_snps([snp])
+        if args[0] == 'download':
+            sess.login()
+            sess.download_subject_snps([snp])
 
-else:
-    # gene => SNP mapping
-    gene_name = sys.argv[2]
-    sess = PINGSNPSession()
+    else:
+        # gene => SNP mapping
+        gene_name = args[1]
+        sess = PINGSNPSession()
 
-    print("Loading genes...")
-    gene_metadata = sess.get_gene_metadata(gene_name)
-    print("Found %d genes for %s" % (len(gene_metadata), gene_name))
-    print('\n'.join([str(gene) for gene in gene_metadata]))
+        print("Loading genes...")
+        gene_metadata = sess.get_gene_metadata(gene_name)
+        print("Found %d genes for %s" % (len(gene_metadata), gene_name))
+        print('\n'.join([str(gene) for gene in gene_metadata]))
 
-    print("Loading snps...")
-    all_snps = sess.get_snps_from_gene(gene_metadata)
-    print("Found %d snps for %s" % (len(all_snps), gene_name))
-    print('\n'.join([str(snp) for snp in all_snps]))
+        print("Loading snps...")
+        all_snps = sess.get_snps_from_gene(gene_metadata)
+        print("Found %d snps for %s" % (len(all_snps), gene_name))
+        print('\n'.join([str(snp) for snp in all_snps]))
 
-    if sys.argv[1] == 'download':
-        sess.login()
-        sess.download_subject_snps(all_snps)
+        if args[0] == 'download':
+            sess.login()
+            sess.download_subject_snps(all_snps)
+
+
+if __name__ == '__main__':
+    import sys
+    do_snps(*sys.argv[1:])

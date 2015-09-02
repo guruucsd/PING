@@ -1,8 +1,6 @@
 """
 Similarity matrix comparisons PING data.
 """
-import copy
-import sys
 from collections import OrderedDict
 from functools import partial
 
@@ -13,37 +11,34 @@ from ping.analysis.similarity import (compare_similarity_vectors,
                                       compute_similarity_vectors,
                                       visualize_similarity_matrices)
 from ping.data import PINGData
-from ping.utils import filter_dict
 from research.asymmetry import is_ai_key
 from research.data import get_all_data
-from research.grouping import parse_filter_args
 
 
 def do_usage(args, error_msg=None):
     if error_msg is not None:
         print("*** ERROR *** : %s" % error_msg)
-    print("\nUsage: %s prefix metric which_matrices" % args[0])
+    print("\nUsage: %s prefix metric which_matrices" % __file__)
     print("\tCompare asymmetry correlation matrix with LH/RH structural covariance matrices.")
     print("\n\tprefix: comma-separated list of prefixes to include in the analysis.")
     print("\tmetric: correlation or partial-correlation.")
     print("\twhat: Left Hemisphere, Right Hemisphere, Asymmetry Index, All")
 
 
-if __name__ != '__main__':
-    pass
+def do_similarity(*args):
+    if len(args) > 3:
+        do_usage(args, error_msg="Too many arguments.")
+        return
 
-elif len(sys.argv) > 4:
-    do_usage(sys.argv, error_msg="Too many arguments.")
+    elif len(args) < 1:
+        do_usage(args, error_msg="Too few arguments.")
+        return
 
-elif len(sys.argv) < 2:
-    do_usage(sys.argv, error_msg="Too few arguments.")
-
-else:
     # Get prefix
-    prefix = sys.argv[1].split(',')
+    prefix = args[0].split(',')
     prefix_filter_fn = lambda k, v: np.any([k.startswith(p) for p in prefix])
 
-    # Determine filters for selecting the similarity groupings. 
+    # Determine filters for selecting the similarity groupings.
     filt_fns = OrderedDict((
         ('Asymmetry Index', lambda key: (is_ai_key(key) and np.all([substr not in key for substr in ['_TOTAL', 'LH_PLUS_RH']])) or PINGData.is_nonimaging_key(key)),
         ('Left Hemisphere', lambda key: PINGData.which_hemi(key) == 'lh' or PINGData.is_nonimaging_key(key)),
@@ -54,8 +49,8 @@ else:
                                f2=filt_fns['Left Hemisphere'])
 
     # Get metric
-    metric = 'partial-correlation' if len(sys.argv) <= 2 else sys.argv[2]
-    key_locations = list(filt_fns.keys()) if len(sys.argv) <= 3 else sys.argv[3].split(',')
+    metric = 'partial-correlation' if len(args) <= 1 else args[1]
+    key_locations = list(filt_fns.keys()) if len(args) <= 2 else args[2].split(',')
 
     # Get the key locations
     filt_fns = OrderedDict(((k, filt_fns[k]) for k in key_locations))
@@ -99,3 +94,8 @@ else:
         # report_loadings(evals=evals, evecs=evecs, labels=np.asarray(labels))
         # Now print loadings, according to multivariate...
     plt.show()
+
+
+if __name__ == '__main__':
+    import sys
+    do_similarity(*sys.argv[1:])

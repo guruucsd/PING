@@ -20,17 +20,19 @@ class PINGSession(object):
     def __init__(self, username=None, passwd=None, verbose=1):
         self.username = username or os.environ.get('PING_USERNAME')
         self.passwd = passwd or os.environ.get('PING_PASSWORD')
+        self.check_login_info()
 
+        self.sess = requests.Session()
+        self.result_ids = None  # current dictionary of result IDs
+        self.verbose = verbose  # level of output
+
+    def check_login_info(self):
         if self.username is None:
             raise ValueError("username must be specified, or read from environment variables PING_USERNAME")
         elif '@' in self.username:
             raise ValueError('You must log in with your username, not email address, for these functions to work.')
         if self.passwd is None:
             raise ValueError("password must be specified, or read from environment variables PING_PASSWORD")
-
-        self.sess = requests.Session()
-        self.result_ids = None  # current dictionary of result IDs
-        self.verbose = verbose  # level of output
 
     def log(self, message, verbose=1):
         if self.verbose >= verbose:
@@ -62,7 +64,7 @@ class PINGSession(object):
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
 
-            with open(out_file, 'w') as fp:
+            with open(out_file, 'wb') as fp:
                 fp.write(out_text.encode('utf-8'))
 
         return out_text

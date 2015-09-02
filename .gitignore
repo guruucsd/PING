@@ -7,3 +7,7 @@
 /results/
 *.pyc
 .DS_Store
+
+# Coverage
+/.coverage
+/htmlcov/
