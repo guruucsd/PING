@@ -11,7 +11,9 @@ Installation steps:
 
 1. `git clone git@github.com:guruucsd/PING.git`
 2. `cd PING`
-3. `sudo pip install -r requirements.txt` - note, if you don't already have numpy / scipy and this fails, I suggest installing [miniconda](http://conda.pydata.org/miniconda.html) and installing them via `conda install numpy scipy`
+3. `sudo pip install -r requirements.txt`  If this fails:
+    * Make sure you have pip installed: https://pip.pypa.io/en/latest/installing.html
+    * If it fails installing numpy or scipy, I suggest installing [miniconda](http://conda.pydata.org/miniconda.html) and installing them via `conda install numpy scipy pip`
 4. Visit https://ping-dataportal.ucsd.edu/applications/User/requestLogin.php and request access to the PING data portal.
 
 
