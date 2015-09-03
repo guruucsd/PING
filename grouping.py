@@ -23,9 +23,9 @@ def compare_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys, plots, me
     """ Groups data according to grouping_keys, computes
     asymmetry index for key, and graphs."""
 
-    group_names, grouping_index = get_groupings(data, grouping_keys)
+    group_names, grouping_index = get_groupings(data.data_dict, grouping_keys)
 
-    x_data = np.asarray(data[xaxis_key].tolist())
+    x_data = np.asarray(data.data_dict[xaxis_key].tolist())
     prop_ai = get_asymmetry_index(data, yaxis_key)
 
     n_subplots = len(group_names)
@@ -49,7 +49,7 @@ def compare_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys, plots, me
 
         # Index the current group
         if group_name == 'all':
-            idx = np.ones((len(data.values()[0]),), dtype=bool)
+            idx = np.ones((len(data.data_dict.values()[0]),), dtype=bool)
         else:
             idx = grouping_index[gi]
 
@@ -258,7 +258,7 @@ def loop_show_asymmetry(prefix,
     measure_keys = data.get_twohemi_keys()
     for pi, key in enumerate(sorted(measure_keys)):
         print("Comparing %d (%s)..." % (pi, key))
-        gn, ss, rv, gs = compare_group_asymmetry(data.data_dict, xaxis_key=xaxis_key,
+        gn, ss, rv, gs = compare_group_asymmetry(data, xaxis_key=xaxis_key,
                                                  yaxis_key=key, plots=plots,
                                                  grouping_keys=grouping_keys,
                                                  measure_key=key)

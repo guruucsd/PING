@@ -10,7 +10,6 @@ from matplotlib import pyplot as plt
 
 from .partial_corr import partial_corr
 from .stats import pdist_nan
-from ..data import PINGData
 from ..utils.plotting import plot_symmetric_matrix_as_triangle
 
 
