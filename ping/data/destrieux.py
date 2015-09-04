@@ -11,7 +11,12 @@ from .default import PINGData
 
 
 class DestrieuxData(PINGData):
-    """
+    """ Augmented dataset with parcels based on the Destrieux (2009) atlas.
+
+    The following files must exist in the data/Destrieux_atlas_parcels directory:
+        PING_lh_area.csv, PING_rh_area.csv,
+        PING_lh_thickness.csv, PING_rh_thickness.csv
+
     """
     IMAGING_PREFIX = PINGData.IMAGING_PREFIX + ['Destrieux_area', 'Destrieux_thickness']
     anatomical_name = dict((
