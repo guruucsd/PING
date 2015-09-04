@@ -3,16 +3,16 @@
 import collections
 import copy
 import csv
-import itertools
 import os
-import warnings
 
 import numpy as np
 import pandas
 # import statsmodels.formula.api as smf
 
+from .base import filter_data, merge_by_key
 from ..apps import PINGSession
 
+# for py2/3 compatibility
 raw_input = raw_input if 'raw_input' in dir() else input
 
 
@@ -25,7 +25,7 @@ class PINGData(object):
                       'MRI_subcort_vol', 'DTI_fiber_vol',
                       'DTI_fiber_FA', 'DTI_fiber_LD', 'DTI_fiber_TD']
 
-    def __init__(self, data=None, scrub_keys=False, scrub_values=True, 
+    def __init__(self, data=None, scrub_keys=False, scrub_values=True,
                  csv_path=None, username=None, passwd=None, force=False):
         if data is not None:
             # User specified data directly.
@@ -92,16 +92,16 @@ class PINGData(object):
     def merge(self, data_dict, merge_key='SubjID', tag=None):
         if isinstance(data_dict, PINGData):
             data_dict = data_dict.data_dict
-        self.data_dict = self.merge_by_key(self.data_dict, data_dict,
-                                           merge_key=merge_key, tag=tag)
+        self.data_dict = merge_by_key(self.data_dict, data_dict,
+                                      merge_key=merge_key, tag=tag)
         return self
         
     def filter(self, filter_fns, tag=None, op='or'):
         if filter_fns is None or not filter_fns:
             return self
         elif op == 'and':
-            self.data_dict = self.filter_data(self.data_dict, filter_fns=filter_fns,
-                                              tag=tag)
+            self.data_dict = filter_data(self.data_dict, filter_fns=filter_fns,
+                                         tag=tag)
         elif op == 'or':
             if not isinstance(filter_fns, collections.Iterable):
                 filter_fns = [filter_fns]
@@ -109,7 +109,7 @@ class PINGData(object):
             old_dict = self.data_dict
             new_dict = dict(SubjID=old_dict['SubjID'])
             for fn in filter_fns:
-                new_dict.update(self.filter_data(old_dict, filter_fns=fn, tag=tag))
+                new_dict.update(filter_data(old_dict, filter_fns=fn, tag=tag))
             self.data_dict = new_dict
 
         return self
@@ -155,31 +155,26 @@ class PINGData(object):
             return len(next(iter(self.data_dict.values())))
 
     def get_tbx_data(self):
-        return self.filter_data(self.data_dict,
-                                filter_fns=[ lambda k, v: k.startswith('TBX_'),
-                                             lambda k, v: v.dtype.name not in ['string', 'object']])
+        return filter_data(self.data_dict,
+                            filter_fns=[lambda k, v: k.startswith('TBX_'),
+                                        lambda k, v: v.dtype.name not in ['string', 'object']])
 
     def get_fdh_data(self):
-        return self.filter_data(self.data_dict,
-                                filter_fns=[ lambda k, v: k.startswith('FDH'),
-                                             lambda k, v: v.dtype.name not in ['string', 'object']])
+        return filter_data(self.data_dict,
+                           filter_fns=[lambda k, v: k.startswith('FDH'),
+                                       lambda k, v: v.dtype.name not in ['string', 'object']])
 
     def get_twohemi_keys(self, filter_fns=None):
         """Given a key prefix, get all keys that have left/right pairs."""
-
-        data_dict = self.filter_data(self.data_dict, filter_fns)
+        data_dict = filter_data(self.data_dict, filter_fns)
 
         # RH only
-        data_dict = self.filter_data(data_dict, lambda k, v: self.which_hemi(k) == 'rh')
+        data_dict = filter_data(data_dict, lambda k, v: self.which_hemi(k) == 'rh')
 
         # No ventricles
-        data_dict = self.filter_data(data_dict, lambda k, v: 'vent' not in k.lower())
+        data_dict = filter_data(data_dict, lambda k, v: 'vent' not in k.lower())
 
         return np.asarray(list(data_dict.keys()))
-
-
-
-
 
     anatomical_name = {
         'bankssts': 'superior temporal sulcus',
@@ -207,7 +202,6 @@ class PINGData(object):
         'temporalpole': 'temporal pole',
         'transversetemporal': 'transverse temporal',
 
-
         'IFSFC': 'inferior frontal superior frontal cortex',
         'SIFC': 'striatal inferior frontal cortex',
         'Unc': 'uncinate fasciculus',
@@ -225,8 +219,7 @@ class PINGData(object):
         'CST': 'cortico-spinal',
         'CC': 'corpus callosum',
         'Fx': 'fornix',
-        'Fxcut': 'fornix (no fimbria)',}
-
+        'Fxcut': 'fornix (no fimbria)'}
 
     anatomical_order = np.asarray([
         'frontalpole',
@@ -334,7 +327,7 @@ class PINGData(object):
         #   which would be tough with the empty string logic!
         # Get the substring without the prefix (or the key itself
         #   if no prefix was found)
-        key_prefixes = [[''] + [p + "." for p in klass.IMAGING_PREFIX 
+        key_prefixes = [[''] + [p + "." for p in klass.IMAGING_PREFIX
                                 if k.startswith(p)]
                         for k in normd_keys]
         return key_prefixes
@@ -456,91 +449,3 @@ class PINGData(object):
             return 'lh'
         else:
             return None
-
-    @classmethod
-    def filter_data(klass, data_dict, filter_fns, tag=None):
-        """Filter functions must take a key and ndarray of values.
-        They can return a single boolean (False) to accept/reject the values,
-        or an ndarray to select the indices.
-
-        Filters using 'and' logic.
-        """
-        if filter_fns is None or len(data_dict) == 0:
-            return data_dict
-        elif not isinstance(filter_fns, dict):
-            filter_fns = dict(zip(data_dict.keys(), itertools.cycle([filter_fns])))
-
-        # Limit based on group value and filtering function
-        col_len = len(next(iter(data_dict.values())))
-        selected_idx = np.ones((col_len,), dtype=bool)
-        selected_keys = list(data_dict.keys())
-        for filter_key, filter_fn in filter_fns.items():
-            if filter_key not in data_dict:
-                warnings.warn('%s has a filter, but not found in data; skipping.' % filter_key)
-                continue
-
-            # For each key, can have multiple filters
-            if not isinstance(filter_fn, collections.Iterable):
-                filter_fn = [filter_fn]
-
-            for fn in filter_fn:
-                # If we got here, we have a valid key and a valid fn
-                filter_vals = data_dict[filter_key]
-                filter_output = fn(filter_key, filter_vals[selected_idx])
-                if isinstance(filter_output, bool) or isinstance(filter_output, np.bool_):
-                    if not filter_output:
-                        selected_keys.remove(filter_key)
-                    break  # accepted as whole, skip below logic for efficiency.
-                new_idx = np.zeros(selected_idx.shape)
-                new_idx[selected_idx] = filter_output
-                selected_idx = np.logical_and(selected_idx, new_idx)
-                assert  np.any(selected_idx), 'All items were filtered out.'
-
-        # Pull out filtered values and 'tag' the key
-        # (this makes documenting results much easier)
-        filtered_data = dict()
-        for key in selected_keys:
-            if key in ['SubjID'] or tag is None:
-                tagged_key = key
-            else:
-                tagged_key = '%s_%s' % (key, tag)
-
-            filtered_data[tagged_key] = np.asarray(data_dict[key])[selected_idx]
-
-        return filtered_data
-
-    @classmethod
-    def merge_by_key(klass, dict1, dict2, merge_key='SubjID', tag=None):
-
-        # Make index mapping from dict1 into dict2
-        all_idx = []
-        for val in dict1[merge_key]:
-            if val in dict2[merge_key]:
-                all_idx.append(dict2[merge_key].tolist().index(val))
-            else:
-                all_idx.append(np.nan)
-        all_idx = np.asarray(all_idx)
-
-        # Now reorder dict2 values to dict1
-        out_dict = copy.deepcopy(dict1)
-        for key, vals in dict2.items():
-            # Don't reassign primary key
-            if key == merge_key:
-                continue
-
-            # Reorder dict2's values into dict1's order
-            if np.any(np.isnan(all_idx)):
-                reordered_vals = np.asarray([vals[idx] if not np.isnan(idx) else np.nan
-                                             for idx in all_idx])
-            else:
-                reordered_vals = vals[all_idx]
-
-            # Assign, possibly after tagging keys
-            if tag is not None:
-                key = tag % key
-            if key in out_dict:
-                pass  # warnings.warn('Overwriting "%s" values from original dict in merge.' % key)
-            out_dict[key] = reordered_vals
-
-        return out_dict
-

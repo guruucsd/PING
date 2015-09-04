@@ -12,7 +12,7 @@ from six import string_types
 from ..asymmetry import (get_asymmetry_index, get_ai_key,
                          is_ai_key)
 from ..multivariate import AsymmetryPCA
-from ping.data import PINGData
+from ping.data import PINGData, DestrieuxData
 
 
 def keytype2label(key):
@@ -50,7 +50,7 @@ def compute_all_totals(filtered_data):
     # Add one property for total asymmetry
     n_subj = out_data.get_num_subjects()
     for p in filtered_data.IMAGING_PREFIX:
-        good_keys = filter(lambda k: (k.startswith(p) and 
+        good_keys = filter(lambda k: (k.startswith(p) and
                                       is_sum_key(k)),
                            out_data.data_dict.keys())
         good_keys = list(good_keys)
@@ -168,7 +168,7 @@ def get_all_data(all_data='ping', filter_fns=None, verbose=0):
         data_klass = all_data
         all_data = data_klass()
     elif isinstance(all_data, string_types):
-        known_data = dict(ping=PINGData)
+        known_data = dict(ping=PINGData, destrieux=DestrieuxData)
         if all_data not in known_data:
             raise ValueError('Unknown dataset: %s' % all_data)
         else:

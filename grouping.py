@@ -2,8 +2,7 @@
 File for investigating asymmetry from PING data, based on each subject's
 asymmetry index
 """
-import os
-import sys
+from argparse import ArgumentParser
 from functools import partial
 
 import matplotlib.pyplot as plt
@@ -19,7 +18,8 @@ from research.data import get_all_data
 from research.grouping import get_groupings
 
 
-def compare_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys, plots, measure_key):
+def compare_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys, plots,
+                            measure_key):
     """ Groups data according to grouping_keys, computes
     asymmetry index for key, and graphs."""
 
@@ -95,7 +95,6 @@ def compare_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys, plots, me
                         for gi, gsamps1 in enumerate(group_samples)
                         for gsamps2 in group_samples[gi + 1:]])
 
-
     # Test whether variances differ
     if 'stats' in plots:
         dist_mat = scipy.spatial.distance.squareform(stats[:, 2])
@@ -113,7 +112,6 @@ def compare_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys, plots, me
     if 'distributions' in plots:
         equalize_xlims(fh2)
         equalize_ylims(fh2)
-    
 
     return group_names, stats, regressions, group_samples
 
@@ -241,9 +239,10 @@ def plot_stat_distributions(stats, group_names):
 def loop_show_asymmetry(prefix,
                         grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'],
                         xaxis_key='Age_At_IMGExam',
-                        plots='regressions'):
+                        plots='regressions',
+                        dataset='ping'):
     """ Loop over all properties to show asymmetry."""
-    data = get_all_data()
+    data = get_all_data(dataset)
     data.filter(lambda k, v: 'fuzzy' not in k)  # Remove 'fuzzy'
     data.filter([partial(lambda k, v, p: (k.startswith(p) or
                                           k in grouping_keys or
@@ -281,48 +280,51 @@ def loop_show_asymmetry(prefix,
     plt.show()
 
 
-def do_usage(args, error_msg=None):
-    if error_msg is not None:
-        print("*** ERROR *** : %s" % error_msg)
-    print("\nUsage: %s prefixes group_keys [xaxis] [plots]" % __file__)
-    print("\tProduce plots for each group")
-    print("\n\tprefixes: simple selector for groups of measures to include. Popular choices include:")
-    print("\t\tMRI_cort_area.ctx: ")
-    print("\t\tMRI_cort_thick.ctx: ")
-    print("\n\tgroups: comma separated list of keys for grouping. Popular ones include:")
-    print("\t\tGender: ")
-    print("\t\tFDH_23_Handedness_Prtcpnt: ")
-    print("\txaxis: (optional) value to regress against (default=Age_At_IMGExam)")
-    print("\tplots: (optional) list of plots (default=regressions); select from:")
-    print("\t\tregressions:")
-    print("\t\tdistributions:")
-    print("\t\tstats:")
-    print("\t\tregression_stats:")
-    print("\t\tstat_distributions:")
-
-
-def do_grouping(*args):
-    if len(args) >= 5:
-        do_usage(args, "Too many arguments.")
-        return
-
-    elif len(args) < 2:
-        do_usage(args, "Too few arguments.")
-        return
-
-    prefix = args[0].split(',')
-    grouping_keys = args[1].split(',')
-    xaxis_key = args[2] if len(args) >= 3 else 'Age_At_IMGExam'
-    plots = args[3].split(',') if len(args) >= 4 else 'regressions'
+def do_grouping(prefix, grouping_keys, xaxis_key='Age_At_IMGExam',
+                plots='regressions', dataset='ping'):
+    prefix = prefix.split(',')
+    grouping_keys = grouping_keys.split(',')
+    plots = plots.split(',')
 
     loop_show_asymmetry(prefix=prefix,
                         grouping_keys=grouping_keys,
                         xaxis_key=xaxis_key,
-                        plots=plots)
+                        plots=plots,
+                        dataset=dataset)
 
 
 if __name__ == '__main__':
-    import sys
-    do_grouping(*sys.argv[1:])
 
+    def do_usage(args, error_msg=None):
+        if error_msg is not None:
+            print("*** ERROR *** : %s" % error_msg)
+        print("\nUsage: %s prefixes group_keys [xaxis] [plots]" % __file__)
+        print("\tProduce plots for each group")
+        print("\n\tprefixes: simple selector for groups of measures to include. Popular choices include:")
+        print("\t\tMRI_cort_area.ctx: ")
+        print("\t\tMRI_cort_thick.ctx: ")
+        print("\n\tgroups: comma separated list of keys for grouping. Popular ones include:")
+        print("\t\tGender: ")
+        print("\t\tFDH_23_Handedness_Prtcpnt: ")
+        print("\txaxis: (optional) value to regress against (default=Age_At_IMGExam)")
+        print("\tplots: (optional) list of plots (default=regressions); select from:")
+        print("\t\tregressions:")
+        print("\t\tdistributions:")
+        print("\t\tstats:")
+        print("\t\tregression_stats:")
+        print("\t\tstat_distributions:")
 
+    parser = ArgumentParser(description="Produce plots for each group.")
+    parser.add_argument('prefix', help="simple selector for groups of measures to include.")
+    parser.add_argument('grouping_keys', choices=['Gender', 'FDH_23_Handedness_Prtcpnt'])
+    parser.add_argument('xaxis_key', help="spreadsheet value to regress against.",
+                        nargs='?', default='Age_At_IMGExam')
+    parser.add_argument('plots', choices=['regressions', 'distributions',
+                                          'stats', 'regression_stats',
+                                          'stat_distributions'],
+                        nargs='?', default='regressions',
+                        help="comma-separated list of plots")
+    parser.add_argument('--dataset', choices=['ping', 'destrieux'],
+                        nargs='?', default='ping')
+    args = parser.parse_args()
+    do_grouping(**vars(args))

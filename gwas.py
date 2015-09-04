@@ -1,32 +1,13 @@
 """
 Script for running GWAS app on PING data.
 """
+from argparse import ArgumentParser
+
 from ping.apps.gwas import GWASSession
 
 
-def do_usage(args):
-    print("\nUsage for %s:" % __file__)
-    print("\t%s {action} {measure}" % __file__)
-    print("\n\taction: 'display' or 'launch'")
-    print("\t\tdisplay: show results from a previous run")
-    print("\t\tlaunch: launch a new GWAS run")
-    print("\tmeasure: any measure from the PING database, or measure uploaded via upload.py")
-    print("\t\tThe measure will be regressed against variation in genes at each SNP.")
-    print("\t\tAge_At_ImgExam will be used as the covariate.")
-    print("\nExamples:")
-    print("\t%s launch MRI_cort_area_ctx_total_LH_PLUS_RH" % __file__)
-    print("\t\tThis launches a GWAS to search for genetic variation as a function of total cortical area.")
-    print("\t%s display MRI_cort_area_ctx_total_LH_PLUS_RH" % __file__)
-    print("\t\tThis downloads and displays the top 200 SNPs related to total cortical area.")
+def do_gwas(action, measure):
 
-
-def do_gwas(*args):
-
-    if len(args) != 2:
-        do_usage(args)
-
-    action = args[0]
-    measure = args[1]
     covariates = ['Age_At_IMGExam']  # ', 'DTI_fiber_vol_AllFibnoCC_AI', 'Gender', 'FDH_23_Handedness_Prtcpnt']  # MRI_cort_area_ctx_total_LH_PLUS_RH']
     print(action, measure, covariates)
 
@@ -40,5 +21,25 @@ def do_gwas(*args):
 
 
 if __name__ == '__main__':
-    import sys
-    do_gwas(*sys.argv[1:])
+    def do_usage(args):
+        print("\nUsage for %s:" % __file__)
+        print("\t%s {action} {measure}" % __file__)
+        print("\n\taction: ")
+        print("\t\tdisplay: show results from a previous run")
+        print("\t\tlaunch: launch a new GWAS run")
+        print("\tmeasure: any measure from the PING database, or measure uploaded via upload.py")
+        print("\t\tThe measure will be regressed against variation in genes at each SNP.")
+        print("\t\tAge_At_ImgExam will be used as the covariate.")
+        print("\nExamples:")
+        print("\t%s launch MRI_cort_area_ctx_total_LH_PLUS_RH" % __file__)
+        print("\t\tThis launches a GWAS to search for genetic variation as a function of total cortical area.")
+        print("\t%s display MRI_cort_area_ctx_total_LH_PLUS_RH" % __file__)
+        print("\t\tThis downloads and displays the top 200 SNPs related to total cortical area.")
+
+    parser = ArgumentParser(description="Launch or view results of"
+                            " a GWAS on the PING dataset.\n")
+    parser.add_argument('action', choices=['display', 'launch'])
+    parser.add_argument('measure', help="any measure from the PING database,"
+                        "including custom measures uploaded via upload.py")
+    args = parser.parse_args()
+    do_gwas(**vars(args))
