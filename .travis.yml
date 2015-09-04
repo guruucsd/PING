@@ -8,9 +8,6 @@ python:
 notifications:
   email: false
 
-# env:  # these are specified in travis directly.
-#   - PING_USERNAME=dummy PING_PASSWORD=dummy
-
 before_install: # Setup anaconda
   - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -26,9 +23,7 @@ install: # Install packages
   - "pip install -r requirements.txt"
 
 script: # Run test
-  - python -c "import os; print(os.environ['PING_USERNAME'])"
-  - nosetests tests --with-coverage --cover-package ping,research
-#  - nosetests tests --with-cov --cov ping --cov-config .coveragerc --logging-level=INFO
+  - nosetests tests --with-coverage
 
 after_success: # Calculate coverage
   - coveralls --config_file .coveragerc
