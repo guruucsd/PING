@@ -13,7 +13,7 @@ from .default import PINGData
 class DestrieuxData(PINGData):
     """
     """
-    IMAGING_PREFIX = PINGData.IMAGING_PREFIX + ['PING_area', 'PING_thickness']
+    IMAGING_PREFIX = PINGData.IMAGING_PREFIX + ['Destrieux_area', 'Destrieux_thickness']
     anatomical_name = dict((
         ('S_orbital-H_Shaped', 'H-shaped orbital sulcus'),
         ('G_occipital_sup', 'Superior occipital gyrus'),
@@ -199,7 +199,7 @@ class DestrieuxData(PINGData):
                 # Convert dots to underscores,
                 # also add a prefix to each.
                 measure_type = csv_file[8:-4]
-                prefix = csv_file[:5] + measure_type + '_'
+                prefix = 'Destrieux_' + measure_type + '_'
                 print("Converting %s data..." % csv_file)
                 new_data = dict()
                 for key in data:
