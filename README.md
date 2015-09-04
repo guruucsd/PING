@@ -17,12 +17,7 @@ Installation steps:
 4. Visit https://ping-dataportal.ucsd.edu/applications/User/requestLogin.php and request access to the PING data portal.
 
 
-# Usage
-
-Scripts can be modified to accept your username and password, or can be run as-is if you set the following environment variables:
-
-* `PING_USERNAME` - your PING data portal username (*not* your email address).
-* `PING_PASSWORD` - your PING data portal password
+# Scripts
 
 The following functions of the data portal are available through this scripting interface:
 
@@ -34,7 +29,22 @@ The following functions of the data portal are available through this scripting 
 * `snps.py` - Script interface for the SNP browser; find genes associated with SNPs, SNPs associated with genes, and download user data for specific genes. **NOTE: PING limits SNP downloads to 5000, so use them wisely!**
 * `upload.py` - Upload your local CSV with derived measures to the PING data portal, so you can access in the Data browser.
 
-## Examples
+### Authenticating in scripts
+
+Scripts must be run with a valid username and password to the PING portal--if you don't have one, you'll need to [request one](https://ping-dataportal.ucsd.edu/applications/User/requestLogin.php).
+
+There are two ways to pass your username and password to the scripts:
+
+* Via the command-line: use parameters `--username=[USERNAME] --password=[PASSWORD]`
+* Via the shell: set the following environment variables:
+    * `PING_USERNAME` - your PING data portal username (*not* your email address).
+    * `PING_PASSWORD` - your PING data portal password
+
+
+### Example script usage
+
+These examples assume that you've set your username and password via shell environment variables. If you haven't, you'll need to add the `--username=[USERNAME]` and `--password=[PASSWORD]` options to the commands below.
+
 * `python export.py` - exports data sheet, including computed measures, to a local CSV file. 
 * `python grouping.py MRI_cort_area.ctx Gender` - show linear regression for each cortical area measure, with regression by gender overlaid on the same plot.
 * `python scatter.py MRI_cort_area AI:mean AI:std LH_PLUS_RH:mean` - show a scatter plot over cortical area measures, of asymmetry index mean vs. standard deviation, with dot size given by the total area (LH+RH) 
