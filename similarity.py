@@ -5,25 +5,27 @@ from argparse import ArgumentParser
 from collections import OrderedDict
 from functools import partial
 
+import os
 import numpy as np
 from matplotlib import pyplot as plt
 
 from ping.analysis.similarity import (compare_similarity_vectors,
                                       compute_similarity_vectors,
                                       visualize_similarity_matrices)
+from ping.apps import PINGSession
 from research.asymmetry import is_ai_key
 from research.data import get_all_data
 
 
 def do_similarity(prefix, metric='partial-correlation', measures=None,
-                  dataset='ping'):
+                  dataset='ping', username=None, passwd=None):
 
     # Get prefix
     prefix = prefix.split(',')
     prefix_filter_fn = lambda k, v: np.any([k.startswith(p) for p in prefix])
 
     # Load and filter the data
-    p_data = get_all_data(dataset)
+    p_data = get_all_data(dataset, username=username, passwd=passwd)
     p_data.filter(prefix_filter_fn)
 
     # Determine filters for selecting the similarity groupings.
@@ -97,5 +99,10 @@ if __name__ == '__main__':
                         nargs='?', default='all')
     parser.add_argument('--dataset', choices=['ping', 'destrieux'],
                         nargs='?', default='ping')
+    parser.add_argument('--username', nargs='?',
+                        default=PINGSession.env_username())
+    parser.add_argument('--password', nargs='?',
+                        default=PINGSession.env_passwd(),
+                        dest='passwd')
     args = parser.parse_args()
     do_similarity(**vars(args))

@@ -163,17 +163,18 @@ def get_derived_data(filtered_data, tag=None, verbose=0):
     return data
 
 
-def get_all_data(all_data='ping', filter_fns=None, verbose=0):
+def get_all_data(all_data='ping', filter_fns=None, verbose=0,
+                 username=None, passwd=None):
     if inspect.isclass(all_data):
         data_klass = all_data
-        all_data = data_klass()
+        all_data = data_klass(username=username, passwd=passwd)
     elif isinstance(all_data, string_types):
         known_data = dict(ping=PINGData, destrieux=DestrieuxData)
         if all_data not in known_data:
             raise ValueError('Unknown dataset: %s' % all_data)
         else:
             data_klass = known_data[all_data]
-            all_data = data_klass()
+            all_data = data_klass(username=username, passwd=passwd)
     else:
         raise NotImplementedError()  # assume it's data.
 

@@ -6,11 +6,11 @@ from argparse import ArgumentParser
 from ping.apps.snps import PINGSNPSession
 
 
-def do_snps(action, snp_gene):
+def do_snps(action, snp_gene, username=None, passwd=None):
     if snp_gene.startswith('rs'):
         # SNP => gene mapping
         snp = snp_gene
-        sess = PINGSNPSession()
+        sess = PINGSNPSession(username=None, passwd=None)
 
         print("Loading SNPS...")
         snp_metadata = sess.get_snp_metadata(snp)
@@ -57,5 +57,10 @@ if __name__ == '__main__':
     parser.add_argument('snp_gene', metavar="snp/gene",
                         help="case-sensitive text label; if it starts with"
                              " 'rs', it is taken to be a SNP")
+    parser.add_argument('--username', nargs='?',
+                        default=PINGSNPSession.env_username())
+    parser.add_argument('--password', nargs='?',
+                        default=PINGSNPSession.env_passwd(),
+                        dest='passwd')
     args = parser.parse_args()
     do_snps(**vars(args))

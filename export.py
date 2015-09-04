@@ -4,6 +4,7 @@ Export derived measures spreadsheet
 """
 import sys
 
+from ping.apps import PINGSession
 from research.grouping import (do_usage_grouping, group_and_execute,
                                parse_filter_args)
 

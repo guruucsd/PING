@@ -16,6 +16,7 @@ from matplotlib import pyplot as plt
 from six import string_types
 
 from ping.analysis.similarity import is_bad_key
+from ping.apps import PINGSession
 from research.data import get_all_data, keytype2label
 
 
@@ -174,18 +175,18 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
     return ax
 
 
-def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None, dataset='ping'):
+def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
+               dataset='ping', username=None, passwd=None):
 
     prefix = prefix.split(',')
     y_key = y_key.split(',')
     size_key = size_key.split(',') if size_key else size_key
     color_key = color_key.split(',') if color_key else color_key
 
-    # Get prefix
-    prefix_filter_fn = lambda k, v: np.any([k.startswith(p) for p in prefix])
-
-    # Load the data (should group, but ... later.)
-    data = get_all_data(dataset).filter(prefix_filter_fn)
+    # Load the data (should group, but ... later.),
+    # then filter by prefix
+    data = get_all_data(dataset, username=username, passwd=passwd)
+    data = data.filter(lambda k, v: np.any([k.startswith(p) for p in prefix]))
 
     if size_key is not None:
         size_label = ' Marker size indicates\n %s %s' % (
@@ -205,8 +206,7 @@ def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None, dataset='pin
 
 if __name__ == '__main__':
     axis_choices = ['AI:mean', 'AI:std',
-                    'LH_PLUS_RH:mean', 'LH_PLUS_RH:std',
-                    'TOTAL:mean', 'TOTAL:std']
+                    'LH_PLUS_RH:mean', 'LH_PLUS_RH:std']
     parser = ArgumentParser(description="Scatter plot on any two data"
                             " arrays, with additional data arrays that"
                             " optionally control marker size and color.")
@@ -220,5 +220,10 @@ if __name__ == '__main__':
                         nargs='?', default=None)
     parser.add_argument('--dataset', choices=['ping', 'destrieux'],
                         nargs='?', default='ping')
+    parser.add_argument('--username', nargs='?',
+                        default=PINGSession.env_username())
+    parser.add_argument('--password', nargs='?',
+                        default=PINGSession.env_passwd(),
+                        dest='passwd')
     args = parser.parse_args()
     do_scatter(**vars(args))

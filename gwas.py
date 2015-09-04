@@ -1,17 +1,18 @@
 """
 Script for running GWAS app on PING data.
 """
+import os
 from argparse import ArgumentParser
 
 from ping.apps.gwas import GWASSession
 
 
-def do_gwas(action, measure):
+def do_gwas(action, measure, username=None, passwd=None):
 
     covariates = ['Age_At_IMGExam']  # ', 'DTI_fiber_vol_AllFibnoCC_AI', 'Gender', 'FDH_23_Handedness_Prtcpnt']  # MRI_cort_area_ctx_total_LH_PLUS_RH']
     print(action, measure, covariates)
 
-    sess = GWASSession()  # username/password stored in an env variable for me.
+    sess = GWASSession(username=username, passwd=passwd)
     sess.login()
 
     if action == 'display':
@@ -41,5 +42,10 @@ if __name__ == '__main__':
     parser.add_argument('action', choices=['display', 'launch'])
     parser.add_argument('measure', help="any measure from the PING database,"
                         "including custom measures uploaded via upload.py")
+    parser.add_argument('--username', nargs='?',
+                        default=GWASSession.env_username())
+    parser.add_argument('--password', nargs='?',
+                        default=GWASSession.env_passwd(),
+                        dest='passwd')
     args = parser.parse_args()
     do_gwas(**vars(args))
