@@ -15,18 +15,24 @@ class PINGSession(object):
     """
     """
     project_name = 'PING'
-    ENV_USERNAME = 'PING_USERNAME'
-    ENV_PASSWORD = 'PING_PASSWORD'
     base_url = 'https://ping-dataportal.ucsd.edu/'
 
     def __init__(self, username=None, passwd=None, verbose=1):
-        self.username = username or os.environ.get(self.ENV_USERNAME)
-        self.passwd = passwd or os.environ.get(self.ENV_PASSWORD)
+        self.username = username or self.env_username()
+        self.passwd = passwd or self.env_passwd()
         self.check_login_info()
 
         self.sess = requests.Session()
         self.result_ids = None  # current dictionary of result IDs
         self.verbose = verbose  # level of output
+
+    @classmethod
+    def env_username(klass):
+        return os.environ.get('PING_USERNAME')
+
+    @classmethod
+    def env_passwd(klass):
+        return os.environ.get('PING_PASSWORD')
 
     def check_login_info(self):
         if self.username is None:

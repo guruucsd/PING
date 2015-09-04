@@ -100,9 +100,9 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', choices=['ping', 'destrieux'],
                         nargs='?', default='ping')
     parser.add_argument('--username', nargs='?',
-                        default=os.environ.get(PINGSession.ENV_USERNAME))
+                        default=PINGSession.env_username())
     parser.add_argument('--password', nargs='?',
-                        default=os.environ.get(PINGSession.ENV_PASSWORD),
+                        default=PINGSession.env_passwd(),
                         dest='passwd')
     args = parser.parse_args()
     do_similarity(**vars(args))

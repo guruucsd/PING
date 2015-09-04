@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
 
+from ping.apps import PINGSession
 from ping.utils import do_and_plot_regression
 from ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
                                  equalize_xlims, equalize_ylims,
@@ -240,9 +241,11 @@ def loop_show_asymmetry(prefix,
                         grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'],
                         xaxis_key='Age_At_IMGExam',
                         plots='regressions',
-                        dataset='ping'):
+                        dataset='ping',
+                        username=None,
+                        passwd=None):
     """ Loop over all properties to show asymmetry."""
-    data = get_all_data(dataset)
+    data = get_all_data(dataset, username=username, passwd=passwd)
     data.filter(lambda k, v: 'fuzzy' not in k)  # Remove 'fuzzy'
     data.filter([partial(lambda k, v, p: (k.startswith(p) or
                                           k in grouping_keys or
@@ -281,7 +284,8 @@ def loop_show_asymmetry(prefix,
 
 
 def do_grouping(prefix, grouping_keys, xaxis_key='Age_At_IMGExam',
-                plots='regressions', dataset='ping'):
+                plots='regressions',
+                dataset='ping', username=None, passwd=None):
     prefix = prefix.split(',')
     grouping_keys = grouping_keys.split(',')
     plots = plots.split(',')
@@ -290,7 +294,9 @@ def do_grouping(prefix, grouping_keys, xaxis_key='Age_At_IMGExam',
                         grouping_keys=grouping_keys,
                         xaxis_key=xaxis_key,
                         plots=plots,
-                        dataset=dataset)
+                        dataset=dataset,
+                        username=username,
+                        passwd=passwd)
 
 
 if __name__ == '__main__':
@@ -326,5 +332,10 @@ if __name__ == '__main__':
                         help="comma-separated list of plots")
     parser.add_argument('--dataset', choices=['ping', 'destrieux'],
                         nargs='?', default='ping')
+    parser.add_argument('--username', nargs='?',
+                        default=PINGSession.env_username())
+    parser.add_argument('--password', nargs='?',
+                        default=PINGSession.env_passwd(),
+                        dest='passwd')
     args = parser.parse_args()
     do_grouping(**vars(args))

@@ -2,6 +2,7 @@
 Export all measures to a spreadsheet, then
 upload to the PING server.
 """
+import os
 from functools import partial
 
 from export import EXPORTED_PING_SPREADSHEET
