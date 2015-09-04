@@ -9,6 +9,8 @@ Goal is to have:
 Should take ordered parameters for data keys on the input,
 function should take keyword args.
 """
+from argparse import ArgumentParser
+
 import numpy as np
 from matplotlib import pyplot as plt
 from six import string_types
@@ -172,47 +174,18 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
     return ax
 
 
-def do_usage(args, error_msg=None):
-    if error_msg is not None:
-        print("*** ERROR *** : %s" % error_msg)
-    print("\nUsage: %s prefix x_key y_key [size_key] [color_key]" % __file__)
-    print("\tScatter plot on any two data arrays, with additional data arrays that")
-    print("\toptionally control marker size and color.")
-    print("\n\tprefix: asdfadf.")
-    print("\tx_key: data key to control x values. These values include:")
-    print("\t\tAI:mean - mean of the asymmetry index.")
-    print("\t\tAI:std - std of the asymmetry index.")
-    print("\t\tLH_PLUS_RH:mean - mean of the measure's LH and RH values.")
-    print("\t\tTOTAL:mean - mean of the measure's LH and RH values.")
+def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None, dataset='ping'):
 
-    print("\ty_key: comma-separated list of keys for y series.")
-    print("\tsize_key: (optional) comma-separated list of keys for controlling size.")
-    print("\t\tNote: must be one key, or as many keys as in y_key.")
-    print("\tcolor_key: (optional) comma-separated list of keys for controlling color.")
-    print("\t\tNote: must be one key, or as many keys as in y_key.")
-
-
-def do_scatter(*args):
-
-    if len(args) > 5:
-        do_usage(args, "Too many arguments.")
-        return
-
-    elif len(args) < 3:
-        do_usage(args, "Too few keys.")
-        return
-
-    prefix, x_key, y_key = args[:3]  # test
     prefix = prefix.split(',')
     y_key = y_key.split(',')
-    size_key = None if len(args) < 4 else args[3].split(',')
-    color_key = None if len(args) < 5 else args[4].split(',')
+    size_key = size_key.split(',') if size_key else size_key
+    color_key = color_key.split(',') if color_key else color_key
 
     # Get prefix
     prefix_filter_fn = lambda k, v: np.any([k.startswith(p) for p in prefix])
 
     # Load the data (should group, but ... later.)
-    data = get_all_data().filter(prefix_filter_fn)
+    data = get_all_data(dataset).filter(prefix_filter_fn)
 
     if size_key is not None:
         size_label = ' Marker size indicates\n %s %s' % (
@@ -231,5 +204,21 @@ def do_scatter(*args):
 
 
 if __name__ == '__main__':
-    import sys
-    do_scatter(*sys.argv[1:])
+    axis_choices = ['AI:mean', 'AI:std',
+                    'LH_PLUS_RH:mean', 'LH_PLUS_RH:std',
+                    'TOTAL:mean', 'TOTAL:std']
+    parser = ArgumentParser(description="Scatter plot on any two data"
+                            " arrays, with additional data arrays that"
+                            " optionally control marker size and color.")
+    parser.add_argument('prefix', help="comma-separated list of prefixes to"
+                                       " include in the analysis")
+    parser.add_argument('x_key', choices=axis_choices)
+    parser.add_argument('y_key', choices=axis_choices)
+    parser.add_argument('size_key', choices=axis_choices,
+                        nargs='?', default=None)
+    parser.add_argument('color_key', choices=axis_choices,
+                        nargs='?', default=None)
+    parser.add_argument('--dataset', choices=['ping', 'destrieux'],
+                        nargs='?', default='ping')
+    args = parser.parse_args()
+    do_scatter(**vars(args))

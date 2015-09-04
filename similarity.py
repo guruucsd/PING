@@ -1,6 +1,7 @@
 """
 Similarity matrix comparisons PING data.
 """
+from argparse import ArgumentParser
 from collections import OrderedDict
 from functools import partial
 
@@ -14,31 +15,15 @@ from research.asymmetry import is_ai_key
 from research.data import get_all_data
 
 
-def do_usage(args, error_msg=None):
-    if error_msg is not None:
-        print("*** ERROR *** : %s" % error_msg)
-    print("\nUsage: %s prefix metric which_matrices" % __file__)
-    print("\tCompare asymmetry correlation matrix with LH/RH structural covariance matrices.")
-    print("\n\tprefix: comma-separated list of prefixes to include in the analysis.")
-    print("\tmetric: correlation or partial-correlation.")
-    print("\twhat: Left Hemisphere, Right Hemisphere, Asymmetry Index, All")
-
-
-def do_similarity(*args):
-    if len(args) > 3:
-        do_usage(args, error_msg="Too many arguments.")
-        return
-
-    elif len(args) < 1:
-        do_usage(args, error_msg="Too few arguments.")
-        return
+def do_similarity(prefix, metric='partial-correlation', measures=None,
+                  dataset='ping'):
 
     # Get prefix
-    prefix = args[0].split(',')
+    prefix = prefix.split(',')
     prefix_filter_fn = lambda k, v: np.any([k.startswith(p) for p in prefix])
 
     # Load and filter the data
-    p_data = get_all_data()
+    p_data = get_all_data(dataset)
     p_data.filter(prefix_filter_fn)
 
     # Determine filters for selecting the similarity groupings.
@@ -51,9 +36,11 @@ def do_similarity(*args):
                                f1=filt_fns['Asymmetry Index'],
                                f2=filt_fns['Left Hemisphere'])
 
-    # Get metric
-    metric = 'partial-correlation' if len(args) <= 1 else args[1]
-    key_locations = list(filt_fns.keys()) if len(args) <= 2 else args[2].split(',')
+    # Get measures
+    if measures is None:
+        key_locations = list(filt_fns.keys())
+    else:
+        key_locations = measures.split(',')
 
     # Get the key locations
     filt_fns = OrderedDict(((k, filt_fns[k]) for k in key_locations))
@@ -73,8 +60,8 @@ def do_similarity(*args):
         class_label, label = [(p, p_data.get_nonhemi_key(key)[(len(p) + 1):])
                               for p in prefix
                               if key.startswith(p)][0]
-        class_labels.append(class_label)
-        labels.append(p_data.get_anatomical_name(label))
+        class_labels.append(class_label[:25])
+        labels.append(p_data.get_anatomical_name(label)[:25])
 
     # Compare matrices (printed)
     compare_similarity_vectors(sim_dict)
@@ -96,5 +83,19 @@ def do_similarity(*args):
 
 
 if __name__ == '__main__':
-    import sys
-    do_similarity(*sys.argv[1:])
+    parser = ArgumentParser(description="Compare asymmetry correlation"
+                                        " matrix with LH/RH structural"
+                                        " covariance matrices.\n")
+    parser.add_argument('prefix', help="comma-separated list of prefixes to"
+                                       " include in the analysis")
+    parser.add_argument('metric', choices=['correlation', 'partial-correlation'],
+                        nargs='?', default='partial-correlation')
+    parser.add_argument('measures', choices=['Left Hemisphere',
+                                            'Right Hemisphere',
+                                            'Asymmetry Index',
+                                            'all'],
+                        nargs='?', default='all')
+    parser.add_argument('--dataset', choices=['ping', 'destrieux'],
+                        nargs='?', default='ping')
+    args = parser.parse_args()
+    do_similarity(**vars(args))

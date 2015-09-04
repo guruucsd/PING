@@ -1,34 +1,15 @@
 """
 Access SNP information
 """
+from argparse import ArgumentParser
+
 from ping.apps.snps import PINGSNPSession
 
 
-def do_usage(args, error_msg=None):
-    if error_msg is not None:
-        print("*** ERROR *** : %s" % error_msg)
-    print("\nUsage: %s {action} {SNP/gene}" % __file__)
-    print("\tShow SNP=>gene or gene=>SNP mappings.")
-    print("\n\taction: 'view' or 'download'")
-    print("\t\tview: view mapping between SNP/gene, and any relevant GWAS results.")
-    print("\t\tdownload: download all subject SNP data for the SNP/gene specified.")
-    print("\t\t\tNOTE: Only 5000 total SNPs can be downloaded over the lifetime access to PING.")
-    print("\tSNP/gene: case-sensitive text label; if it starts with 'rs', it is taken to be a SNP")
-
-
-def do_snps(*args):
-
-    if len(args) <= 1:
-        do_usage(args, 'Not enough arguments.')
-        return
-
-    elif args[0] not in ['view', 'download']:
-        do_usage(args, 'Unknown command: %s' % args[0])
-        return
-
-    elif args[1].startswith('rs'):
+def do_snps(action, snp_gene):
+    if snp_gene.startswith('rs'):
         # SNP => gene mapping
-        snp = args[1]
+        snp = snp_gene
         sess = PINGSNPSession()
 
         print("Loading SNPS...")
@@ -44,13 +25,13 @@ def do_snps(*args):
         print("GWAS results:")
         print('\n'.join([str(gwas) for gwas in sess.snp_gwas_results(snp)]))
 
-        if args[0] == 'download':
+        if action == 'download':
             sess.login()
             sess.download_subject_snps([snp])
 
     else:
         # gene => SNP mapping
-        gene_name = args[1]
+        gene_name = snp_gene
         sess = PINGSNPSession()
 
         print("Loading genes...")
@@ -63,11 +44,18 @@ def do_snps(*args):
         print("Found %d snps for %s" % (len(all_snps), gene_name))
         print('\n'.join([str(snp) for snp in all_snps]))
 
-        if args[0] == 'download':
+        if action == 'download':
             sess.login()
             sess.download_subject_snps(all_snps)
 
 
 if __name__ == '__main__':
-    import sys
-    do_snps(*sys.argv[1:])
+
+    parser = ArgumentParser(description="Show SNP=>gene or gene=>SNP"
+                                        " mappings.")
+    parser.add_argument('action', choices=['view', 'download'])
+    parser.add_argument('snp_gene', metavar="snp/gene",
+                        help="case-sensitive text label; if it starts with"
+                             " 'rs', it is taken to be a SNP")
+    args = parser.parse_args()
+    do_snps(**vars(args))
