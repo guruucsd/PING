@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/guruucsd/PING.svg?branch=master)](https://travis-ci.org/guruucsd/PING)
+[![Coverage Status](https://coveralls.io/repos/guruucsd/PING/badge.svg?branch=master&service=github)](https://coveralls.io/github/guruucsd/PING?branch=master)
+
 PING automation scripts
 =======================
 
