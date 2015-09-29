@@ -18,7 +18,8 @@ from research.data import get_all_data
 
 
 def do_similarity(prefix, metric='partial-correlation', measures=None,
-                  dataset='ping', username=None, passwd=None):
+                  dataset='ping', username=None, passwd=None,
+                  plotengine='matplotlib'):
 
     # Get prefix
     prefix = prefix.split(',')
@@ -70,18 +71,26 @@ def do_similarity(prefix, metric='partial-correlation', measures=None,
 
     #  Display the similarity matrices.
     ax = visualize_similarity_matrices(sim_dict, labels=labels,
-                                       class_labels=class_labels)
+                                       class_labels=class_labels,
+                                       plotengine=plotengine)
     # ax.get_figure().suptitle(', '.join([p_data.prefix2text(p) for p in prefix]), fontsize=24)
 
-    for key, mat in sim_dict.items():
-        import scipy.spatial
-        if mat.ndim == 1:
-            mat = scipy.spatial.distance.squareform(mat)
-        evals, evecs = np.linalg.eig(mat)
-        # from research.multivariate import report_loadings
-        # report_loadings(evals=evals, evecs=evecs, labels=np.asarray(labels))
-        # Now print loadings, according to multivariate...
-    plt.show()
+    # for key, mat in sim_dict.items():
+    #     import scipy.spatial
+    #     if mat.ndim == 1:
+    #         mat = scipy.spatial.distance.squareform(mat)
+    #     evals, evecs = np.linalg.eig(mat)
+    #     # from research.multivariate import report_loadings
+    #     # report_loadings(evals=evals, evecs=evecs, labels=np.asarray(labels))
+    #     # Now print loadings, according to multivariate...
+    if plotengine == 'mpld3':
+        import mpld3
+        mpld3.show()
+    elif plotengine == 'matplotlib':
+        plt.show()
+    elif plotengine == 'bokeh':
+        import bokeh.plotting
+        bokeh.plotting.show(ax)
 
 
 if __name__ == '__main__':
@@ -99,6 +108,8 @@ if __name__ == '__main__':
                         nargs='?', default='all')
     parser.add_argument('--dataset', choices=['ping', 'destrieux'],
                         nargs='?', default='ping')
+    parser.add_argument('--plotengine', choices=['matplotlib', 'mpld3', 'bokeh'],
+                        nargs='?', default='matplotlib')
     parser.add_argument('--username', nargs='?',
                         default=PINGSession.env_username())
     parser.add_argument('--password', nargs='?',

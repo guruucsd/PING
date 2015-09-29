@@ -159,11 +159,14 @@ def compare_similarity_vectors(sim_dict):
             mat_idx += 1
 
 
-def visualize_similarity_matrices(sim_dict, labels=None, class_labels=None, dynamic_color=True):
+def visualize_similarity_matrices(sim_dict, labels=None, class_labels=None,
+                                  dynamic_color=True, plotengine='matplotlib'):
     # Visualize similarity matrices
     compare_keys = list(sim_dict.keys())
     n_keys = len(compare_keys)
-    fh = plt.figure(figsize=(18, 10))
+
+    if plotengine in ['matplotlib', 'mpld3']:
+        fh = plt.figure(figsize=(18, 10))
 
     for ki, key in enumerate(compare_keys):
         vmin, vmax = -1, 1
@@ -175,12 +178,24 @@ def visualize_similarity_matrices(sim_dict, labels=None, class_labels=None, dyna
             vval = np.max(np.abs([mat.min(), mat.max()]))
             vmin, vmax = np.asarray([-1, 1]) * vval
 
-        ax = fh.add_subplot(1, n_keys, ki + 1)
-        plot_symmetric_matrix_as_triangle(mat, ax=ax,
-                                          vmin=vmin, vmax=vmax,
-                                          labels=labels if ki == 0 else None,
-                                          class_labels=class_labels if ki == 0 else None)
-        plt.tight_layout(h_pad=5)
-        ax.set_title(key, fontsize=18)
+        if plotengine in ['matplotlib', 'mpld3']:
+            ax = fh.add_subplot(1, n_keys, ki + 1)
+        else:
+            ax = None
+        ax = plot_symmetric_matrix_as_triangle(mat, ax=ax,
+                                               vmin=vmin, vmax=vmax,
+                                               labels=labels if ki == 0 else None,
+                                               class_labels=class_labels if ki == 0 else None,
+                                               plotengine=plotengine)
+        if plotengine in ['matplotlib', 'mpld3']:
+            plt.tight_layout(h_pad=5)
+            ax.set_title(key, fontsize=18)
+        elif plotengine in ['bokeh']:
+            from bokeh.models import HoverTool
+            ax.title = key
+            ax.title_text_font_size = '18pt'
+            hover = ax.select(dict(type=HoverTool))
+            hover[0].tooltips.append(('correlation', '@count'))
 
     return ax
+
