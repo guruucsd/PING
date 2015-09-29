@@ -195,7 +195,11 @@ class DestrieuxData(PINGData):
                                             csv_path=csv_path, username=username,
                                             passwd=passwd, force=force)
         atlas_dir = os.path.join('data', 'Destrieux_atlas_parcels')
-        if data is None and os.path.exists(atlas_dir):
+        if data is not None:
+            pass
+        elif not os.path.exists(atlas_dir):
+            raise ValueError('Destrieux data not found in %s' % atlas_dir)
+        else:
             for csv_file in ['PING_lh_area.csv', 'PING_rh_area.csv',
                              'PING_lh_thickness.csv', 'PING_rh_thickness.csv']:
                 csv_filepath = os.path.join(atlas_dir, csv_file)
