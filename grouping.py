@@ -79,7 +79,7 @@ def compare_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys, plots,
             # ax1 = fh1.add_subplot(n_rows, n_cols, gi + 1)
             ax1 = fh1.gca()
             do_and_plot_regression(cur_x, group_ai, ax=ax1, colori=gi,
-                                   show_std=False, **params)
+                                   show_std=(len(cur_x) > 200), **params)
             ax1.set_title(measure_key)  # ax1.get_title().split('\n')[0])
 
         # Plot the distribution result
@@ -262,7 +262,7 @@ def loop_show_asymmetry(prefix,
     stats = []
     regressions = []
     group_samples = []
-    measure_keys = list(set([PINGData.get_nonhemi_key(k) for k in data.data_dict.keys()]) - set(grouping_keys) - set([xaxis_key]))
+    measure_keys = list(set([data.get_nonhemi_key(k) for k in data.data_dict.keys()]) - set(grouping_keys) - set([xaxis_key]))
     for pi, key in enumerate(sorted(measure_keys)):
         print("Comparing %d (%s)..." % (pi, key))
         gn, ss, rv, gs = compare_group_asymmetry(data, xaxis_key=xaxis_key,
