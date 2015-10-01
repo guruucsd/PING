@@ -15,6 +15,7 @@ from ping.analysis.similarity import (compare_similarity_vectors,
 from ping.apps import PINGSession
 from research.asymmetry import is_ai_key
 from research.data import get_all_data
+from research.plotting import show_plots
 
 
 def do_similarity(prefix, metric='partial-correlation', measures=None,
@@ -83,14 +84,8 @@ def do_similarity(prefix, metric='partial-correlation', measures=None,
     #     # from research.multivariate import report_loadings
     #     # report_loadings(evals=evals, evecs=evecs, labels=np.asarray(labels))
     #     # Now print loadings, according to multivariate...
-    if plotengine == 'mpld3':
-        import mpld3
-        mpld3.show()
-    elif plotengine == 'matplotlib':
-        plt.show()
-    elif plotengine == 'bokeh':
-        import bokeh.plotting
-        bokeh.plotting.show(ax)
+
+    show_plots(plotengine, ax=ax)
 
 
 if __name__ == '__main__':

@@ -98,7 +98,7 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None,
 
     elif plotengine in ['bokeh']:
         from collections import OrderedDict
-        from bokeh.plotting import figure, show, output_file
+        from bokeh.plotting import figure
         from bokeh.models import HoverTool, ColumnDataSource
         from bokeh.sampledata.les_mis import data
 
@@ -145,8 +145,6 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None,
                 colors=color,
                 alphas=alpha,
                 count=mat.flatten()))
-
-        output_file("les_mis.html")
 
         p = figure(x_axis_location="above", tools="resize,hover,save",
                    x_range=list(reversed(labels)), y_range=labels)
