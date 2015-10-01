@@ -65,7 +65,7 @@ def compute_key_data(data, key):
 
 def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None, 
                     x_label=None, y_label=None, size_label=None, color_fn=None,
-                    add_marker_text=False, ax=None):
+                    add_marker_text=False, ax=None, title=None):
     """y_key can be a list..."""
     colors = np.asarray(['b','r','g','y'])
 
@@ -194,13 +194,14 @@ def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
              ', '.join([data.prefix2text(p).lower() for p in prefix]))
     else:
         size_label = None
-    ax = plot_scatter_4D(data, x_key=x_key, y_key=y_key, size_key=size_key, color_key=color_key,
-                         size_label=size_label, add_marker_text=True)
+
+    ax = plot_scatter_4D(data, x_key=x_key, y_key=y_key, size_key=size_key,
+                         color_key=color_key, size_label=size_label,
+                         add_marker_text=True,
+                         title=', '.join([data.prefix2text(p)
+                                          for p in prefix]))
     # x_label='Asymmetry Index (mean)', y_label='Asymmetry Index (std)',
 
-    ax.get_figure().suptitle(', '.join([data.prefix2text(p)
-                                        for p in prefix]),
-                             fontsize=24)
     plt.show()
 
 
