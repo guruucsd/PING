@@ -18,6 +18,7 @@ from six import string_types
 from ping.analysis.similarity import is_bad_key
 from ping.apps import PINGSession
 from research.data import get_all_data, keytype2label
+from research.plotting import show_plots
 
 
 def parse_scatter_key(key):
@@ -172,11 +173,15 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
     if np.any(kwargs['y'] <= 0) and np.any(kwargs['y'] >= 0):
        ax.plot(ax.get_xlim(), [0, 0], 'k--')  # x-axis
     plt.axis('tight')
+
+
+    ax.get_figure().suptitle(title, fontsize=24)
     return ax
 
 
 def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
-               dataset='ping', username=None, passwd=None):
+               dataset='ping', username=None, passwd=None,
+               plotengine='matplotlib'):
 
     prefix = prefix.split(',')
     y_key = y_key.split(',')
@@ -202,7 +207,7 @@ def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
                                           for p in prefix]))
     # x_label='Asymmetry Index (mean)', y_label='Asymmetry Index (std)',
 
-    plt.show()
+    show_plots(plotengine, ax=ax)
 
 
 if __name__ == '__main__':
@@ -221,6 +226,8 @@ if __name__ == '__main__':
                         nargs='?', default=None)
     parser.add_argument('--dataset', choices=['ping', 'destrieux'],
                         nargs='?', default='ping')
+    parser.add_argument('--plotengine', choices=['matplotlib', 'mpld3', 'bokeh'],
+                        nargs='?', default='matplotlib')
     parser.add_argument('--username', nargs='?',
                         default=PINGSession.env_username())
     parser.add_argument('--password', nargs='?',
