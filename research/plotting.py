@@ -12,5 +12,5 @@ def show_plots(plotengine, ax=None):
         import bokeh.plotting
         import tempfile
         bokeh.plotting.output_file(tempfile.mkstemp()[1] + ".html",
-                                   title=ax.title)
+                                   title=ax.title, mode='absolute-dev')
         bokeh.plotting.show(ax)
