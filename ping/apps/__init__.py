@@ -173,7 +173,13 @@ smoothing.interaction = ""
             # Removing non-PING entry: phenx_pin
 
         # Remove keys as needed.
-        PING_csv = pandas.read_csv(out_file, low_memory=False)
+        try:
+            PING_csv = pandas.read_csv(out_file, low_memory=False)
+        except ValueError as ve:
+            if "No columns to parse from file" in str(ve):
+                os.remove(out_file)
+                raise ve
+
         PING_keys = list(PING_csv.keys())
         for key in PING_keys:
             if key not in good_keys:
