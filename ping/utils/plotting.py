@@ -99,7 +99,7 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None,
     elif plotengine in ['bokeh']:
         from collections import OrderedDict
         from bokeh.plotting import figure
-        from bokeh.models import HoverTool, ColumnDataSource
+        from bokeh.models import HoverTool, ColumnDataSource, CustomJS, TapTool
         from bokeh.sampledata.les_mis import data
 
         #nodes = data['nodes']
@@ -151,8 +151,8 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None,
         p.plot_width = 800
         p.plot_height = 800
 
-        p.rect('xname', 'yname', 0.9, 0.9, source=source,
-               color='colors', alpha='alphas', line_color=None)
+        rect_renderer = p.rect('xname', 'yname', 0.9, 0.9, source=source,
+                               color='colors', alpha='alphas', line_color=None)
 
         p.grid.grid_line_color = None
         p.axis.axis_line_color = None
@@ -163,7 +163,80 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None,
 
         hover = p.select(dict(type=HoverTool))
         hover.tooltips = OrderedDict([('names', '@yname, @xname')])
+        customjs = CustomJS(args=dict(var1=p), lang="javascript", code="""
+            function get_clicked_data(source) {
+                var clicked_idx = cb_obj.get("selected")['1d'].indices;
+                if (clicked_idx.length == 0)
+                    return null;
 
+                clicked_idx = clicked_idx[0]
+                return {
+                    idx: clicked_idx,
+                    xname: source.get("data").xname[clicked_idx],
+                    yname: source.get("data").yname[clicked_idx],
+                    value: source.get("data").alphas[clicked_idx],
+                };
+            }
+
+            var n_rows = 32;
+            var n_values = 1024;
+
+            function range(N) {
+                return Array.apply(null, {length: N}).map(Number.call, Number);
+            }
+
+            function arrays_equal(a, b) {
+                return JSON.stringify(a) == JSON.stringify(b);
+            }
+
+            function select_all_elements(source) {
+                var selected = source.get("selected");
+                selected['1d'].indices = range(n_values);
+                source.set("selected", selected);
+                // source.trigger('change');
+            }
+
+            function select_row_by_idx(source, idx) {
+                var sel_idx = [];
+                for (var ii=idx % n_rows; ii<n_values; ii += n_rows) {
+                    sel_idx.push(ii);
+                }
+
+                var selected = source.get("selected");
+                if (arrays_equal(selected['1d'].indices, sel_idx))
+                    select_all_elements(source);
+                else {
+                    selected['1d'].indices = sel_idx;
+                    source.set("selected", selected);
+                    source.trigger('change');
+                }
+            }
+
+            function select_col_by_idx(source, idx) {
+                var sel_idx = [];
+                var begin_idx = Math.floor(idx / n_rows) * n_rows;
+                for (var ii=begin_idx; ii<(begin_idx+n_rows); ++ii) {
+                    sel_idx.push(ii);
+                }
+
+                var selected = source.get("selected");
+                if (arrays_equal(selected['1d'].indices, sel_idx))
+                    select_all_elements(source);
+                else {
+                    selected['1d'].indices = sel_idx;
+                    source.set("selected", selected);
+                    // source.trigger('change');
+                }
+            }
+
+            var data = get_clicked_data(cb_obj);
+            if (!data) return;
+
+            select_col_by_idx(cb_obj, data.idx);
+            // select_all_elements(cb_obj);
+        """)
+        tap = TapTool(renderers=[rect_renderer], callback=customjs)
+        p.add_tools(tap)
         ax = p
     return ax
 
