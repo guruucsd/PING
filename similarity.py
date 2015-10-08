@@ -20,7 +20,7 @@ from research.plotting import show_plots
 
 def do_similarity(prefix, metric='partial-correlation', measures=None,
                   dataset='ping', username=None, passwd=None,
-                  plotengine='matplotlib'):
+                  output_format='matplotlib'):
 
     # Get prefix
     prefix = prefix.split(',')
@@ -70,22 +70,23 @@ def do_similarity(prefix, metric='partial-correlation', measures=None,
     # Compare matrices (printed)
     compare_similarity_vectors(sim_dict)
 
-    #  Display the similarity matrices.
-    ax = visualize_similarity_matrices(sim_dict, labels=labels,
-                                       class_labels=class_labels,
-                                       plotengine=plotengine)
-    # ax.get_figure().suptitle(', '.join([p_data.prefix2text(p) for p in prefix]), fontsize=24)
+    if output_format in ['json']:
+        # Dump as json
+        import json
+        for ki, val in enumerate(sim_dict.values()):
+            json_file = '%s_%02d.json' % (','.join(prefix), ki)
+            out_dict = dict()
+            for li, lbl in enumerate(labels):
+                out_dict[lbl] = dict(zip(labels, val[li]))
+        with open(json_file, 'wb') as fp:
+            json.dump(out_dict, fp)
 
-    # for key, mat in sim_dict.items():
-    #     import scipy.spatial
-    #     if mat.ndim == 1:
-    #         mat = scipy.spatial.distance.squareform(mat)
-    #     evals, evecs = np.linalg.eig(mat)
-    #     # from research.multivariate import report_loadings
-    #     # report_loadings(evals=evals, evecs=evecs, labels=np.asarray(labels))
-    #     # Now print loadings, according to multivariate...
-
-    show_plots(plotengine, ax=ax)
+    else:
+        #  Display the similarity matrices.
+        ax = visualize_similarity_matrices(sim_dict, labels=labels,
+                                           class_labels=class_labels,
+                                           output_format=output_format)
+        show_plots(output_format, ax=ax)
 
 
 if __name__ == '__main__':
@@ -103,7 +104,7 @@ if __name__ == '__main__':
                         nargs='?', default='all')
     parser.add_argument('--dataset', choices=['ping', 'destrieux'],
                         nargs='?', default='ping')
-    parser.add_argument('--plotengine', choices=['matplotlib', 'mpld3', 'bokeh'],
+    parser.add_argument('--output-format', choices=['matplotlib', 'mpld3', 'bokeh', 'json'],
                         nargs='?', default='matplotlib')
     parser.add_argument('--username', nargs='?',
                         default=PINGSession.env_username())
