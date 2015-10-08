@@ -64,12 +64,7 @@ def compute_key_data(data, key):
         return {k: getattr(f_data[k], op)() for k in keys}
 
 
-def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
-                    x_label=None, y_label=None, size_label=None, color_fn=None,
-                    add_marker_text=False, ax=None, title=None,
-                    plotengine='matplotlib'):
-    """y_key can be a list..."""
-    colors = np.asarray(['b','r','g','y'])
+def decimate_data(data, x_key, y_key, size_key=None, color_key=None, color_fn=None):
 
     # Massage inputs
     if isinstance(y_key, string_types):
@@ -78,38 +73,32 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
         size_key = [size_key]
     if isinstance(color_key, string_types):
         color_key = [color_key]
-    if x_label is None:
-        x_label = compute_scatter_label(x_key)
-    if y_label is None:
-        y_label = compute_scatter_label(y_key)
-    if size_label is None:
-        size_label = compute_scatter_label(size_key)
 
     # Now get all the data, and manipulate as needed
-    kwargs = {
+    out_data = {
         'x': compute_key_data(data.data_dict, x_key),
         'y': [compute_key_data(data.data_dict, k) for k in y_key]}
 
     if size_key is not None:
-        kwargs['s'] = np.asarray([compute_key_data(data.data_dict, k)
+        out_data['s'] = np.asarray([compute_key_data(data.data_dict, k)
                                   for k in size_key])
 
     if color_key is not None:
-        kwargs['c'] = np.asarray([compute_key_data(data.data_dict, k)
+        out_data['c'] = np.asarray([compute_key_data(data.data_dict, k)
                                   for k in color_key])
     elif color_fn is not None:
-        kwargs['c'] = np.asarray([{k: color_fn(k, v) for k, v in kwargs['x'].items()}])
+        out_data['c'] = np.asarray([{k: color_fn(k, v) for k, v in out_data['x'].items()}])
 
     # Make sure everybody has the same keys
     common_keys = [data.get_nonhemi_key(k)
-                   for k in kwargs['x'].keys()
-                   if not is_bad_key(k) and ~np.all(np.isnan(kwargs['x'][k]))]
+                   for k in out_data['x'].keys()
+                   if not is_bad_key(k) and ~np.all(np.isnan(out_data['x'][k]))]
     if len(common_keys) == 0:
         raise ValueError('Your x key has an issue.')
-    for key in list(set(kwargs.keys()) - set(['x'])):
+    for key in list(set(out_data.keys()) - set(['x'])):
         # Loop over
         cur_keys = [data.get_nonhemi_key(k)
-                    for ddata in kwargs[key]
+                    for ddata in out_data[key]
                     for k in ddata.keys()
                     if ~np.all(np.isnan(ddata[k]))]
         common_keys = [k for k in common_keys if k in cur_keys]
@@ -123,17 +112,42 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
     #  but some measure-specific version of it.
     #
     gmc = data.get_measure_key
-    kwargs['x'] = np.asarray([kwargs['x'][gmc(ck, kwargs['x'].keys())]
+    out_data['x'] = np.asarray([out_data['x'][gmc(ck, out_data['x'].keys())]
                               for ck in common_keys])
-    for key in list(set(kwargs.keys()) - set(['x'])):
-        kwargs[key] = np.asarray([sdata[gmc(ck, sdata.keys())]
-                                  for sdata in kwargs[key]
+    for key in list(set(out_data.keys()) - set(['x'])):
+        out_data[key] = np.asarray([sdata[gmc(ck, sdata.keys())]
+                                  for sdata in out_data[key]
                                   for ck in common_keys])
 
-    if 's' in kwargs:
-        kwargs['s'] = 1000 * kwargs['s'] / np.abs(kwargs['s']).mean()
-    if 'c' in kwargs:
-        kwargs['c'] = colors[kwargs['c']].ravel()
+    if 's' in out_data:
+        out_data['s'] = 1000 * out_data['s'] / np.abs(out_data['s']).mean()
+    if 'c' in out_data:
+        out_data['c'] = colors[out_data['c']].ravel()
+
+    out_data.update(dict(keys=common_keys))
+    return out_data
+
+
+def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
+                    x_label=None, y_label=None, size_label=None, color_fn=None,
+                    add_marker_text=False, ax=None, title=None,
+                    plotengine='matplotlib'):
+    """y_key can be a list..."""
+    colors = np.asarray(['b','r','g','y'])
+
+    if x_label is None:
+        x_label = compute_scatter_label(x_key)
+    if y_label is None:
+        y_label = compute_scatter_label(y_key)
+    if size_label is None:
+        size_label = compute_scatter_label(size_key)
+
+    # Data is in format needed to scatter, so we call it 
+    #   kwargs.
+    kwargs = decimate_data(data, x_key=x_key, y_key=y_key,
+                           size_key=size_key, color_key=color_key,
+                           color_fn=color_fn)
+    common_keys = kwargs.pop('keys')
 
     # Now plot it, and annotate it!
     if plotengine in ['matplotlib', 'mpld3']:
@@ -213,7 +227,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
 
 def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
                dataset='ping', username=None, passwd=None,
-               plotengine='matplotlib'):
+               output_format='matplotlib'):
 
     prefix = prefix.split(',')
     y_key = y_key.split(',')
@@ -232,15 +246,29 @@ def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
     else:
         size_label = None
 
-    ax = plot_scatter_4D(data, x_key=x_key, y_key=y_key, size_key=size_key,
-                         color_key=color_key, size_label=size_label,
-                         add_marker_text=True,
-                         title=', '.join([data.prefix2text(p)
-                                          for p in prefix]),
-                         plotengine=plotengine)
-    # x_label='Asymmetry Index (mean)', y_label='Asymmetry Index (std)',
+    if output_format in ['json']:
+        scatter_data = decimate_data(data, x_key=x_key, y_key=y_key, size_key=size_key,
+                                     color_key=color_key)
+        keys = [data.get_anatomical_name(data.get_nonhemi_key(key))
+                for key in scatter_data.pop('keys')]
+        out_dict = dict()
+        for k, v in scatter_data.items():
+            out_dict[k] = dict(zip(keys, v))
+        import simplejson
+        out_file = '%s_scatter.json' % ','.join(prefix)
+        with open(out_file, 'wb') as fp:
+            simplejson.dump(out_dict, fp)
 
-    show_plots(plotengine, ax=ax)
+    else:
+        ax = plot_scatter_4D(data, x_key=x_key, y_key=y_key, size_key=size_key,
+                             color_key=color_key, size_label=size_label,
+                             add_marker_text=True,
+                             title=', '.join([data.prefix2text(p)
+                                              for p in prefix]),
+                             plotengine=output_format)
+        # x_label='Asymmetry Index (mean)', y_label='Asymmetry Index (std)',
+
+        show_plots(output_format, ax=ax)
 
 
 if __name__ == '__main__':
@@ -259,7 +287,7 @@ if __name__ == '__main__':
                         nargs='?', default=None)
     parser.add_argument('--dataset', choices=['ping', 'destrieux'],
                         nargs='?', default='ping')
-    parser.add_argument('--plotengine', choices=['matplotlib', 'mpld3', 'bokeh'],
+    parser.add_argument('--output-format', choices=['matplotlib', 'mpld3', 'bokeh', 'json'],
                         nargs='?', default='matplotlib')
     parser.add_argument('--username', nargs='?',
                         default=PINGSession.env_username())
