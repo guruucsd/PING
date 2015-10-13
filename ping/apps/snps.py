@@ -3,8 +3,8 @@ Allow access to generic SNP information, as well as
 downloading subject SNP info from the SNP browser.
 """
 import csv
-import json
 import os
+import simplejson
 import subprocess
 import sys
 
@@ -32,7 +32,7 @@ class PINGSNPSession(PINGSession):
                 self.log("Downloading PING genes metadata...")
                 self.download_file('data/PING/data_uncorrected/SNPs/PING_gene_annotate.json',
                                    out_file=self.genes_metadata_file)
-            GENES = json.load(open(self.genes_metadata_file, 'r'))
+            GENES = simplejson.load(open(self.genes_metadata_file, 'r'))
             GENES = np.asarray(GENES['data'])
         return GENES
 

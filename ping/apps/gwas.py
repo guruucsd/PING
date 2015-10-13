@@ -1,6 +1,6 @@
 import datetime
-import json
 import os
+import simplejson
 import time
 
 from . import PINGSession
@@ -18,7 +18,7 @@ class GWASSession(PINGSession):
 
         if self.result_ids is None or force:
             resp_text = self.download_file('applications/GWAS/getListOfRuns.php?project_name={project_name}')
-            self.result_ids = json.loads(resp_text)['runs']
+            self.result_ids = simplejson.loads(resp_text)['runs']
             self.log("Fetched %d result ID(s)" % len(self.result_ids))
         return self.result_ids
 
