@@ -9,6 +9,7 @@ Goal is to have:
 Should take ordered parameters for data keys on the input,
 function should take keyword args.
 """
+
 import os
 import simplejson
 
@@ -22,7 +23,8 @@ from six import string_types
 import roygbiv
 import roygbiv.server
 from ping.analysis.similarity import is_bad_key
-from ping.apps import PINGSession, PINGArgParser
+from ping.apps import PINGSession
+from research.apps import ResearchArgParser
 from research.data import get_all_data, keytype2label
 from research.plotting import show_plots
 from scatter import compute_key_data
@@ -117,29 +119,18 @@ def do_roygbiv(prefix, key,
         raise NotImplementedError()
 
 
-
 if __name__ == '__main__':
-    axis_choices = ['AI:mean', 'AI:std',
-                    'LH_PLUS_RH:mean', 'LH_PLUS_RH:std']
-    parser = PINGArgParser(description="Scatter plot on any two data"
-                           " arrays, with additional data arrays that"
-                           " optionally control marker size and color.",
-                           common_args=['atlas', 'output-format', 'hemi'])
-    parser.add_argument('prefix', help="comma-separated list of prefixes to"
-                                       " include in the analysis")
-    parser.add_argument('key', choices=axis_choices)
+    parser = ResearchArgParser(description="Scatter plot on any two data"
+                               " arrays, with additional data arrays that"
+                               " optionally control marker size and color.",
+                               common_args=['prefix', 'key',
+                                            'atlas', 'output-format', 'hemi',
+                                            'force'])
     parser.add_argument('--output-format', choices=['flask', 'json'],
                         nargs='?', default='json')
     parser.add_argument('--sample-rate', nargs='?', default=1.)
     parser.add_argument('--subject', nargs='?', default='fsaverage')
     parser.add_argument('--surface-type', choices=['pial', 'inflated'],
                         nargs='?', default='pial')
-    parser.add_argument('--username', nargs='?',
-                        default=PINGSession.env_username())
-    parser.add_argument('--password', nargs='?',
-                        default=PINGSession.env_passwd(),
-                        dest='passwd')
-    parser.add_argument('--force', nargs='?',
-                        default=False, choices=[False, True])
     args = parser.parse_args()
     do_roygbiv(**vars(args))

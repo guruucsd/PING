@@ -22,7 +22,7 @@ class PINGArgParser(ArgumentParser):
 
     def add_common_parser_args(self, arglist):
         for arg in arglist:
-            if arg == 'username':
+            if arg in ['username']:
                 self.add_argument('--username', nargs='?',
                                   default=PINGSession.env_username())
 
@@ -38,6 +38,10 @@ class PINGArgParser(ArgumentParser):
             elif arg in ['hemi', 'hemisphere']:
                 self.add_argument('--%s' % arg, choices=['lh', 'rh'],
                                   nargs='?', default='lh')
+
+            elif arg in ['force']:
+                self.add_argument('--force', nargs='?',
+                                  default=False, choices=[False, True])
 
             else:
                 raise ValueError('Unrecognized argument: %s' % arg)

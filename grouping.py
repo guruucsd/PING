@@ -9,12 +9,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
 
-from ping.apps import PINGSession, PINGArgParser
+from ping.apps import PINGSession
 from ping.data import PINGData
 from ping.utils import do_and_plot_regression
 from ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
                                  equalize_xlims, equalize_ylims,
                                  plot_normalized_hist)
+from research.apps import ResearchArgParser
 from research.asymmetry import get_asymmetry_index
 from research.data import get_all_data
 from research.grouping import get_groupings
@@ -305,9 +306,9 @@ def do_grouping(prefix, grouping_keys, xaxis_key='Age_At_IMGExam',
 
 if __name__ == '__main__':
 
-    parser = PINGArgParser(description="Produce plots for each group.",
-                           common_args=['atlas', 'username', 'passwd'])
-    parser.add_argument('prefix', help="simple selector for groups of measures to include.")
+    parser = ResearchArgParser(description="Produce plots for each group.",
+                               common_args=['prefix',
+                                            'atlas', 'username', 'passwd'])
     parser.add_argument('grouping_keys', choices=['Gender', 'FDH_23_Handedness_Prtcpnt'])
     parser.add_argument('xaxis_key', help="spreadsheet value to regress against.",
                         nargs='?', default='Age_At_IMGExam')

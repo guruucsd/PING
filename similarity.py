@@ -12,19 +12,19 @@ from matplotlib import pyplot as plt
 from ping.analysis.similarity import (compare_similarity_vectors,
                                       compute_similarity_vectors,
                                       visualize_similarity_matrices)
-from ping.apps import PINGSession, PINGArgParser
+from ping.apps import PINGSession
+from research.apps import ResearchArgParser
 from research.asymmetry import is_ai_key
 from research.data import get_all_data
 from research.plotting import show_plots
 
 
-def do_similarity(prefix, metric='partial-correlation', measures=None,
+def do_similarity(prefixes, metric='partial-correlation', measures=None,
                   atlas='desikan', username=None, passwd=None,
                   output_format='matplotlib'):
 
     # Get prefix
-    prefix = prefix.split(',')
-    prefix_filter_fn = lambda k, v: np.any([k.startswith(p) for p in prefix])
+    prefix_filter_fn = lambda k, v: np.any([k.startswith(p) for p in prefixes])
 
     # Load and filter the data
     p_data = get_all_data(atlas, username=username, passwd=passwd)
@@ -62,7 +62,7 @@ def do_similarity(prefix, metric='partial-correlation', measures=None,
     class_labels = []
     for ki, key in enumerate(good_keys):
         class_label, label = [(p, p_data.get_nonhemi_key(key)[(len(p) + 1):])
-                              for p in prefix
+                              for p in prefixes
                               if key.startswith(p)][0]
         class_labels.append(class_label[:25])
         labels.append(p_data.get_anatomical_name(label)[:25])
@@ -73,7 +73,7 @@ def do_similarity(prefix, metric='partial-correlation', measures=None,
     if output_format in ['json']:
         # Dump as json
         for ki, val in enumerate(sim_dict.values()):
-            json_file = '%s_%02d.json' % (','.join(prefix), ki)
+            json_file = '%s_%02d.json' % (','.join(prefixes), ki)
             out_dict = dict()
             for li, lbl in enumerate(labels):
                 out_dict[lbl] = dict(zip(labels, val[li]))
@@ -89,11 +89,10 @@ def do_similarity(prefix, metric='partial-correlation', measures=None,
 
 
 if __name__ == '__main__':
-    parser = PINGArgParser(description="Compare asymmetry correlation "
-                           "matrix with LH/RH structural covariance matrices.",
-                           common_args=['atlas', 'username', 'passwd'])
-    parser.add_argument('prefix', help="comma-separated list of prefixes to"
-                                       " include in the analysis")
+    parser = ResearchArgParser(description="Compare asymmetry correlation "
+                               "matrix with LH/RH structural covariance matrices.",
+                               common_args=['prefixes',
+                                            'atlas', 'username', 'passwd'])
     parser.add_argument('metric', choices=['correlation', 'partial-correlation'],
                         nargs='?', default='partial-correlation')
     parser.add_argument('measures', choices=['Left Hemisphere',

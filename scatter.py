@@ -16,7 +16,8 @@ from matplotlib import pyplot as plt
 from six import string_types
 
 from ping.analysis.similarity import is_bad_key
-from ping.apps import PINGSession, PINGArgParser
+from ping.apps import PINGSession
+from research.apps import ResearchArgParser
 from research.data import get_all_data, keytype2label
 from research.plotting import show_plots
 
@@ -225,11 +226,10 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
     return ax
 
 
-def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
+def do_scatter(prefixes, x_key, y_key, size_key=None, color_key=None,
                atlas='desikan', username=None, passwd=None,
                output_format='matplotlib'):
 
-    prefix = prefix.split(',')
     y_key = y_key.split(',')
     size_key = size_key.split(',') if size_key else size_key
     color_key = color_key.split(',') if color_key else color_key
@@ -237,12 +237,12 @@ def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
     # Load the data (should group, but ... later.),
     # then filter by prefix
     data = get_all_data(atlas, username=username, passwd=passwd)
-    data = data.filter(lambda k, v: np.any([k.startswith(p) for p in prefix]))
+    data = data.filter(lambda k, v: np.any([k.startswith(p) for p in prefixes]))
 
     if size_key is not None:
         size_label = ' Marker size indicates\n %s %s' % (
             compute_scatter_label(size_key, part='key_type').lower(),
-             ', '.join([data.prefix2text(p).lower() for p in prefix]))
+             ', '.join([data.prefix2text(p).lower() for p in prefixes]))
     else:
         size_label = None
 
@@ -254,7 +254,7 @@ def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
         out_dict = dict()
         for k, v in scatter_data.items():
             out_dict[k] = dict(zip(keys, v))
-        out_file = '%s_scatter.json' % ','.join(prefix)
+        out_file = '%s_scatter.json' % ','.join(prefixes)
         with open(out_file, 'wb') as fp:
             simplejson.dump(out_dict, fp)
 
@@ -263,7 +263,7 @@ def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
                              color_key=color_key, size_label=size_label,
                              add_marker_text=True,
                              title=', '.join([data.prefix2text(p)
-                                              for p in prefix]),
+                                              for p in prefixes]),
                              plotengine=output_format)
         # x_label='Asymmetry Index (mean)', y_label='Asymmetry Index (std)',
 
@@ -273,17 +273,16 @@ def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
 if __name__ == '__main__':
     axis_choices = ['AI:mean', 'AI:std',
                     'LH_PLUS_RH:mean', 'LH_PLUS_RH:std']
-    parser = PINGArgParser(description="Scatter plot on any two data"
-                           " arrays, with additional data arrays that"
-                           " optionally control marker size and color.",
-                           common_args=['atlas', 'username', 'passw'])
-    parser.add_argument('prefix', help="comma-separated list of prefixes to"
-                                       " include in the analysis")
-    parser.add_argument('x_key', choices=axis_choices)
-    parser.add_argument('y_key', choices=axis_choices)
-    parser.add_argument('size_key', choices=axis_choices,
+    parser = ResearchArgParser(description="Scatter plot on any two data"
+                               " arrays, with additional data arrays that"
+                               " optionally control marker size and color.",
+                               common_args=['prefixes',
+                                            'atlas', 'username', 'passwd'])
+    parser.add_argument('x_key', choices=ResearchArgParser.axis_choices)
+    parser.add_argument('y_key', choices=ResearchArgParser.axis_choices)
+    parser.add_argument('size_key', choices=ResearchArgParser.axis_choices,
                         nargs='?', default=None)
-    parser.add_argument('color_key', choices=axis_choices,
+    parser.add_argument('color_key', choices=ResearchArgParser.axis_choices,
                         nargs='?', default=None)
     parser.add_argument('--output-format', choices=['matplotlib', 'mpld3', 'bokeh', 'json'],
                         nargs='?', default='matplotlib')

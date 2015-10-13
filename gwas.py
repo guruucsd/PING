@@ -3,8 +3,8 @@ Script for running GWAS app on PING data.
 """
 import os
 
-from ping.apps import PINGArgParser
 from ping.apps.gwas import GWASSession
+from research.apps import ResearchArgParser
 
 
 def do_gwas(action, measure, username=None, passwd=None):
@@ -22,9 +22,9 @@ def do_gwas(action, measure, username=None, passwd=None):
 
 
 if __name__ == '__main__':
-    parser = PINGArgParser(description="Launch or view results of"
-                           " a GWAS on the PING dataset.\n",
-                           common_args=['username', 'passwd'])
+    parser = ResearchArgParser(description="Launch or view results of"
+                               " a GWAS on the PING dataset.\n",
+                               common_args=['username', 'passwd'])
     parser.add_argument('action', choices=['display', 'launch'])
     parser.add_argument('measure', help="any measure from the PING database,"
                         "including custom measures uploaded via upload.py")
