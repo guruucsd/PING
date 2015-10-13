@@ -10,14 +10,13 @@ Should take ordered parameters for data keys on the input,
 function should take keyword args.
 """
 import simplejson
-from argparse import ArgumentParser
 
 import numpy as np
 from matplotlib import pyplot as plt
 from six import string_types
 
 from ping.analysis.similarity import is_bad_key
-from ping.apps import PINGSession
+from ping.apps import PINGSession, PINGArgParser
 from research.data import get_all_data, keytype2label
 from research.plotting import show_plots
 
@@ -39,7 +38,7 @@ def compute_scatter_label(key, part=None):
         elif part == 'method':
             return method
         else:
-            raise NotImplementedError("Unrecognized part: %s" % part)  
+            raise NotImplementedError("Unrecognized part: %s" % part)
     elif len(key) == 1:
         return compute_scatter_label(key[0], part=part)
     else:
@@ -143,7 +142,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
     if size_label is None:
         size_label = compute_scatter_label(size_key)
 
-    # Data is in format needed to scatter, so we call it 
+    # Data is in format needed to scatter, so we call it
     #   kwargs.
     kwargs = decimate_data(data, x_key=x_key, y_key=y_key,
                            size_key=size_key, color_key=color_key,
@@ -227,7 +226,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
 
 
 def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
-               dataset='desikan', username=None, passwd=None,
+               atlas='desikan', username=None, passwd=None,
                output_format='matplotlib'):
 
     prefix = prefix.split(',')
@@ -237,7 +236,7 @@ def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
 
     # Load the data (should group, but ... later.),
     # then filter by prefix
-    data = get_all_data(dataset, username=username, passwd=passwd)
+    data = get_all_data(atlas, username=username, passwd=passwd)
     data = data.filter(lambda k, v: np.any([k.startswith(p) for p in prefix]))
 
     if size_key is not None:
@@ -274,9 +273,10 @@ def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
 if __name__ == '__main__':
     axis_choices = ['AI:mean', 'AI:std',
                     'LH_PLUS_RH:mean', 'LH_PLUS_RH:std']
-    parser = ArgumentParser(description="Scatter plot on any two data"
-                            " arrays, with additional data arrays that"
-                            " optionally control marker size and color.")
+    parser = PINGArgParser(description="Scatter plot on any two data"
+                           " arrays, with additional data arrays that"
+                           " optionally control marker size and color.",
+                           common_args=['atlas', 'username', 'passw'])
     parser.add_argument('prefix', help="comma-separated list of prefixes to"
                                        " include in the analysis")
     parser.add_argument('x_key', choices=axis_choices)
@@ -285,14 +285,7 @@ if __name__ == '__main__':
                         nargs='?', default=None)
     parser.add_argument('color_key', choices=axis_choices,
                         nargs='?', default=None)
-    parser.add_argument('--dataset', choices=['desikan', 'destrieux'],
-                        nargs='?', default='desikan')
     parser.add_argument('--output-format', choices=['matplotlib', 'mpld3', 'bokeh', 'json'],
                         nargs='?', default='matplotlib')
-    parser.add_argument('--username', nargs='?',
-                        default=PINGSession.env_username())
-    parser.add_argument('--password', nargs='?',
-                        default=PINGSession.env_passwd(),
-                        dest='passwd')
     args = parser.parse_args()
     do_scatter(**vars(args))

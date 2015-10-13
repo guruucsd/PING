@@ -1,8 +1,7 @@
 """
 Access SNP information
 """
-from argparse import ArgumentParser
-
+from ping.apps import PINGArgParser
 from ping.apps.snps import PINGSNPSession
 
 
@@ -51,16 +50,11 @@ def do_snps(action, snp_gene, username=None, passwd=None):
 
 if __name__ == '__main__':
 
-    parser = ArgumentParser(description="Show SNP=>gene or gene=>SNP"
-                                        " mappings.")
+    parser = PINGArgParser(description="Show SNP=>gene or gene=>SNP mappings.",
+                           common_args['username', 'passwd'])
     parser.add_argument('action', choices=['view', 'download'])
     parser.add_argument('snp_gene', metavar="snp/gene",
                         help="case-sensitive text label; if it starts with"
                              " 'rs', it is taken to be a SNP")
-    parser.add_argument('--username', nargs='?',
-                        default=PINGSNPSession.env_username())
-    parser.add_argument('--password', nargs='?',
-                        default=PINGSNPSession.env_passwd(),
-                        dest='passwd')
     args = parser.parse_args()
     do_snps(**vars(args))

@@ -3,14 +3,13 @@ File for investigating asymmetry from PING data, based on each subject's
 asymmetry index
 """
 import sys
-from argparse import ArgumentParser
 from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
 
-from ping.apps import PINGSession
+from ping.apps import PINGSession, PINGArgParser
 from ping.data import PINGData
 from ping.utils import do_and_plot_regression
 from ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
@@ -115,10 +114,10 @@ def compare_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys, plots,
     if 'distributions' in plots:
         equalize_xlims(fh2)
         equalize_ylims(fh2)
-    
+
     if 'regressions' in plots:
         ax1.legend(group_names)
-        
+
     return group_names, stats, regressions, group_samples
 
 
@@ -246,11 +245,11 @@ def loop_show_asymmetry(prefix,
                         grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'],
                         xaxis_key='Age_At_IMGExam',
                         plots='regressions',
-                        dataset='desikan',
+                        atlas='desikan',
                         username=None,
                         passwd=None):
     """ Loop over all properties to show asymmetry."""
-    data = get_all_data(dataset, username=username, passwd=passwd)
+    data = get_all_data(atlas, username=username, passwd=passwd)
     data.filter(lambda k, v: 'fuzzy' not in k)  # Remove 'fuzzy'
     data.filter([partial(lambda k, v, p: (k.startswith(p) or
                                           k in grouping_keys or
@@ -279,7 +278,7 @@ def loop_show_asymmetry(prefix,
                              measure_names=measure_keys)
 
         plot_regressions_scatter(regressions,
-                                 group_names=gn, 
+                                 group_names=gn,
                                  measure_names=measure_keys)
 
     if 'stat_distributions' in plots:
@@ -290,7 +289,7 @@ def loop_show_asymmetry(prefix,
 
 def do_grouping(prefix, grouping_keys, xaxis_key='Age_At_IMGExam',
                 plots='regressions',
-                dataset='desikan', username=None, passwd=None):
+                atlas='desikan', username=None, passwd=None):
     prefix = prefix.split(',')
     grouping_keys = grouping_keys.split(',')
     plots = plots.split(',')
@@ -299,33 +298,15 @@ def do_grouping(prefix, grouping_keys, xaxis_key='Age_At_IMGExam',
                         grouping_keys=grouping_keys,
                         xaxis_key=xaxis_key,
                         plots=plots,
-                        dataset=dataset,
+                        atlas=atlas,
                         username=username,
                         passwd=passwd)
 
 
 if __name__ == '__main__':
 
-    def do_usage(args, error_msg=None):
-        if error_msg is not None:
-            print("*** ERROR *** : %s" % error_msg)
-        print("\nUsage: %s prefixes group_keys [xaxis] [plots]" % __file__)
-        print("\tProduce plots for each group")
-        print("\n\tprefixes: simple selector for groups of measures to include. Popular choices include:")
-        print("\t\tMRI_cort_area.ctx: ")
-        print("\t\tMRI_cort_thick.ctx: ")
-        print("\n\tgroups: comma separated list of keys for grouping. Popular ones include:")
-        print("\t\tGender: ")
-        print("\t\tFDH_23_Handedness_Prtcpnt: ")
-        print("\txaxis: (optional) value to regress against (default=Age_At_IMGExam)")
-        print("\tplots: (optional) list of plots (default=regressions); select from:")
-        print("\t\tregressions:")
-        print("\t\tdistributions:")
-        print("\t\tstats:")
-        print("\t\tregression_stats:")
-        print("\t\tstat_distributions:")
-
-    parser = ArgumentParser(description="Produce plots for each group.")
+    parser = PINGArgParser(description="Produce plots for each group.",
+                           common_args=['atlas', 'username', 'passwd'])
     parser.add_argument('prefix', help="simple selector for groups of measures to include.")
     parser.add_argument('grouping_keys', choices=['Gender', 'FDH_23_Handedness_Prtcpnt'])
     parser.add_argument('xaxis_key', help="spreadsheet value to regress against.",
@@ -335,12 +316,5 @@ if __name__ == '__main__':
                                           'stat_distributions'],
                         nargs='?', default='regressions',
                         help="comma-separated list of plots")
-    parser.add_argument('--dataset', choices=['desikan', 'destrieux'],
-                        nargs='?', default='desikan')
-    parser.add_argument('--username', nargs='?',
-                        default=PINGSession.env_username())
-    parser.add_argument('--password', nargs='?',
-                        default=PINGSession.env_passwd(),
-                        dest='passwd')
     args = parser.parse_args()
     do_grouping(**vars(args))

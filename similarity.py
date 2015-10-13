@@ -3,7 +3,6 @@ Similarity matrix comparisons PING data.
 """
 import os
 import simplejson
-from argparse import ArgumentParser
 from collections import OrderedDict
 from functools import partial
 
@@ -13,14 +12,14 @@ from matplotlib import pyplot as plt
 from ping.analysis.similarity import (compare_similarity_vectors,
                                       compute_similarity_vectors,
                                       visualize_similarity_matrices)
-from ping.apps import PINGSession
+from ping.apps import PINGSession, PINGArgParser
 from research.asymmetry import is_ai_key
 from research.data import get_all_data
 from research.plotting import show_plots
 
 
 def do_similarity(prefix, metric='partial-correlation', measures=None,
-                  dataset='desikan', username=None, passwd=None,
+                  atlas='desikan', username=None, passwd=None,
                   output_format='matplotlib'):
 
     # Get prefix
@@ -28,7 +27,7 @@ def do_similarity(prefix, metric='partial-correlation', measures=None,
     prefix_filter_fn = lambda k, v: np.any([k.startswith(p) for p in prefix])
 
     # Load and filter the data
-    p_data = get_all_data(dataset, username=username, passwd=passwd)
+    p_data = get_all_data(atlas, username=username, passwd=passwd)
     p_data.filter(prefix_filter_fn)
 
     # Determine filters for selecting the similarity groupings.
@@ -90,9 +89,9 @@ def do_similarity(prefix, metric='partial-correlation', measures=None,
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser(description="Compare asymmetry correlation"
-                                        " matrix with LH/RH structural"
-                                        " covariance matrices.\n")
+    parser = PINGArgParser(description="Compare asymmetry correlation "
+                           "matrix with LH/RH structural covariance matrices.",
+                           common_args=['atlas', 'username', 'passwd'])
     parser.add_argument('prefix', help="comma-separated list of prefixes to"
                                        " include in the analysis")
     parser.add_argument('metric', choices=['correlation', 'partial-correlation'],
@@ -102,14 +101,7 @@ if __name__ == '__main__':
                                             'Asymmetry Index',
                                             'all'],
                         nargs='?', default='all')
-    parser.add_argument('--dataset', choices=['desikan', 'destrieux'],
-                        nargs='?', default='desikan')
     parser.add_argument('--output-format', choices=['matplotlib', 'mpld3', 'bokeh', 'json'],
                         nargs='?', default='matplotlib')
-    parser.add_argument('--username', nargs='?',
-                        default=PINGSession.env_username())
-    parser.add_argument('--password', nargs='?',
-                        default=PINGSession.env_passwd(),
-                        dest='passwd')
     args = parser.parse_args()
     do_similarity(**vars(args))

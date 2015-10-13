@@ -4,11 +4,43 @@ Accessing remote PING data & methods
 import hashlib
 import os
 import tempfile
+from argparse import ArgumentParser
 from six import StringIO
 
 import numpy as np
 import pandas
 import requests
+
+
+class PINGArgParser(ArgumentParser):
+    """
+    """
+    def __init__(self, *args, **kwargs):
+        common_args = kwargs.pop('common_args', None)
+        super(PINGArgParser, self).__init__(**kwargs)
+        self.add_common_parser_args(arglist=common_args)
+
+    def add_common_parser_args(self, arglist):
+        for arg in arglist:
+            if arg == 'username':
+                self.add_argument('--username', nargs='?',
+                                  default=PINGSession.env_username())
+
+            elif arg in ['passwd', 'password']:
+                self.add_argument('--password', nargs='?',
+                                  default=PINGSession.env_passwd(),
+                                  dest=arg)
+
+            elif arg in ['atlas', 'dataset']:
+                self.add_argument('--%s' % arg, choices=['desikan', 'destrieux'],
+                                  nargs='?', default='desikan')
+
+            elif arg in ['hemi', 'hemisphere']:
+                self.add_argument('--%s' % arg, choices=['lh', 'rh'],
+                                  nargs='?', default='lh')
+
+            else:
+                raise ValueError('Unrecognized argument: %s' % arg)
 
 
 class PINGSession(object):

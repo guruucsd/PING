@@ -11,7 +11,6 @@ function should take keyword args.
 """
 import os
 import simplejson
-from argparse import ArgumentParser
 
 import matplotlib as mpl
 import matplotlib.cm as cm
@@ -23,26 +22,26 @@ from six import string_types
 import roygbiv
 import roygbiv.server
 from ping.analysis.similarity import is_bad_key
-from ping.apps import PINGSession
+from ping.apps import PINGSession, PINGArgParser
 from research.data import get_all_data, keytype2label
 from research.plotting import show_plots
 from scatter import compute_key_data
 
+
 def do_roygbiv(prefix, key,
-               dataset='desikan', username=None, passwd=None,
+               atlas='desikan', username=None, passwd=None,
                output_format='json', subjects_dir=os.environ.get('SUBJECTS_DIR'),
                surface_type='pial', hemi='lh', subject='fsaverage',
                sample_rate=1., force=False):
 
     # Load the data (should group, but ... later.),
     # then filter by prefix
-    data = get_all_data(dataset, username=username, passwd=passwd)
+    data = get_all_data(atlas, username=username, passwd=passwd)
     data = data.filter(lambda k, v: np.any([k.startswith(p)
                                             for p in prefix.split(',')]))
     data = data.filter(lambda k, v: 'fuzzy' not in k)
 
     # Create the parcels
-    atlas = dataset
     fsavg_path = os.path.join(subjects_dir, subject)
     surface_file = os.path.join(fsavg_path, 'surf', '%s.%s' % (hemi, surface_type))
     label_file = roygbiv.atlas2aparc(atlas, hemi=hemi)
@@ -122,18 +121,15 @@ def do_roygbiv(prefix, key,
 if __name__ == '__main__':
     axis_choices = ['AI:mean', 'AI:std',
                     'LH_PLUS_RH:mean', 'LH_PLUS_RH:std']
-    parser = ArgumentParser(description="Scatter plot on any two data"
-                            " arrays, with additional data arrays that"
-                            " optionally control marker size and color.")
+    parser = PINGArgParser(description="Scatter plot on any two data"
+                           " arrays, with additional data arrays that"
+                           " optionally control marker size and color.",
+                           common_args=['atlas', 'output-format', 'hemi'])
     parser.add_argument('prefix', help="comma-separated list of prefixes to"
                                        " include in the analysis")
     parser.add_argument('key', choices=axis_choices)
-    parser.add_argument('--dataset', choices=['desikan', 'destrieux'],
-                        nargs='?', default='desikan')
     parser.add_argument('--output-format', choices=['flask', 'json'],
                         nargs='?', default='json')
-    parser.add_argument('--hemi', choices=['lh', 'rh'],
-                        nargs='?', default='lh')
     parser.add_argument('--sample-rate', nargs='?', default=1.)
     parser.add_argument('--subject', nargs='?', default='fsaverage')
     parser.add_argument('--surface-type', choices=['pial', 'inflated'],
