@@ -10,7 +10,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def plot_normalized_hist(data, ax=None, **kwargs):
     ax = ax or plt.figure().gca()
-    
+
     x, b, h = ax.hist(data, normed=True, **kwargs)
     if len(h) == 0:
         pass
@@ -115,7 +115,7 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None,
             "#444444", "#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99",
             "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a"
         ]
-        # import pdb; pdb.set_trace()
+
         xname = []
         yname = []
         color = []

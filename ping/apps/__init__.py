@@ -150,7 +150,7 @@ smoothing.interaction = ""
                 self.login()
                 self.download_file(
                     rel_path='applications/Documents/downloadDoc.php?project_name={project_name}&version=&file=../PING_datadictionary0%d.csv' % (
-                        dict_num), 
+                        dict_num),
                     out_file=out_file_dict)
             try:
                 csv_dict = pandas.read_csv(out_file_dict, low_memory=False)
@@ -162,7 +162,7 @@ smoothing.interaction = ""
                           for k in csv_dict[field_name]]
             cur_keys = [k.replace('PHXSSE', 'PHX_SSE') for k in cur_keys]
             good_keys += cur_keys
-            
+
             # Still fails to recognize:
             # Removing non-PING entry: FDH_Pacific_Islander_Prcnt_Deri
             # Removing non-PING entry: FDH_African_American_Prcnt_Deri
@@ -185,7 +185,7 @@ smoothing.interaction = ""
             if key not in good_keys:
                 self.log("Removing non-PING entry: %s" % key)
                 del PING_csv[key]
-                
+
         # Only write output if something was scrubbed
         if len(PING_keys) != len(PING_csv.keys()):
             self.log("Saving cleaned PING spreadsheet to %s." % out_file)

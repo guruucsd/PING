@@ -107,7 +107,7 @@ def compute_all_asymmetries(filtered_data):
     # Add one property for total asymmetry
     n_subj = out_data.get_num_subjects()
     for p in filtered_data.IMAGING_PREFIX:
-        good_keys = filter(lambda k: (k.startswith(p) and 
+        good_keys = filter(lambda k: (k.startswith(p) and
                                       is_ai_key(k)),
                            out_data.data_dict.keys())
         good_keys = list(good_keys)

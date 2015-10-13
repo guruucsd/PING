@@ -1,11 +1,12 @@
 """
 Similarity matrix comparisons PING data.
 """
+import os
+import simplejson
 from argparse import ArgumentParser
 from collections import OrderedDict
 from functools import partial
 
-import os
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -72,14 +73,13 @@ def do_similarity(prefix, metric='partial-correlation', measures=None,
 
     if output_format in ['json']:
         # Dump as json
-        import json
         for ki, val in enumerate(sim_dict.values()):
             json_file = '%s_%02d.json' % (','.join(prefix), ki)
             out_dict = dict()
             for li, lbl in enumerate(labels):
                 out_dict[lbl] = dict(zip(labels, val[li]))
         with open(json_file, 'wb') as fp:
-            json.dump(out_dict, fp)
+            simplejson.dump(out_dict, fp)
 
     else:
         #  Display the similarity matrices.

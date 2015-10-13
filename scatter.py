@@ -9,6 +9,7 @@ Goal is to have:
 Should take ordered parameters for data keys on the input,
 function should take keyword args.
 """
+import simplejson
 from argparse import ArgumentParser
 
 import numpy as np
@@ -254,7 +255,6 @@ def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
         out_dict = dict()
         for k, v in scatter_data.items():
             out_dict[k] = dict(zip(keys, v))
-        import simplejson
         out_file = '%s_scatter.json' % ','.join(prefix)
         with open(out_file, 'wb') as fp:
             simplejson.dump(out_dict, fp)
