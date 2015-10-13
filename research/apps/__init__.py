@@ -28,6 +28,6 @@ class ResearchArgParser(PINGArgParser):
 
     def parse_args(self, *args, **kwargs):
         outvals = super(ResearchArgParser, self).parse_args(*args, **kwargs)
-        if getattr(outvals, 'prefixes'):
+        if getattr(outvals, 'prefixes', None):
             outvals.prefixes = ','.split(outvals.prefixes)
         return outvals
