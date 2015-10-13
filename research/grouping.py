@@ -146,7 +146,7 @@ def group_and_compare(fn,
     return group_names, results
 
 
-def group_and_execute(fn, all_data='ping', prefixes=None, groupings=None, limits=None, verbose=0, remove_nan=False, **kwargs):
+def group_and_execute(fn, all_data='desikan', prefixes=None, groupings=None, limits=None, verbose=0, remove_nan=False, **kwargs):
     """Filters and/or groups data, then runs the given function."""
 
     # Massage inputs because Python sucks at default args

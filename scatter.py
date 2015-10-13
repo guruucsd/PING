@@ -226,7 +226,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
 
 
 def do_scatter(prefix, x_key, y_key, size_key=None, color_key=None,
-               dataset='ping', username=None, passwd=None,
+               dataset='desikan', username=None, passwd=None,
                output_format='matplotlib'):
 
     prefix = prefix.split(',')
@@ -285,8 +285,8 @@ if __name__ == '__main__':
                         nargs='?', default=None)
     parser.add_argument('color_key', choices=axis_choices,
                         nargs='?', default=None)
-    parser.add_argument('--dataset', choices=['ping', 'destrieux'],
-                        nargs='?', default='ping')
+    parser.add_argument('--dataset', choices=['desikan', 'destrieux'],
+                        nargs='?', default='desikan')
     parser.add_argument('--output-format', choices=['matplotlib', 'mpld3', 'bokeh', 'json'],
                         nargs='?', default='matplotlib')
     parser.add_argument('--username', nargs='?',

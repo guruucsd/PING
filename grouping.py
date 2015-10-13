@@ -246,7 +246,7 @@ def loop_show_asymmetry(prefix,
                         grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'],
                         xaxis_key='Age_At_IMGExam',
                         plots='regressions',
-                        dataset='ping',
+                        dataset='desikan',
                         username=None,
                         passwd=None):
     """ Loop over all properties to show asymmetry."""
@@ -290,7 +290,7 @@ def loop_show_asymmetry(prefix,
 
 def do_grouping(prefix, grouping_keys, xaxis_key='Age_At_IMGExam',
                 plots='regressions',
-                dataset='ping', username=None, passwd=None):
+                dataset='desikan', username=None, passwd=None):
     prefix = prefix.split(',')
     grouping_keys = grouping_keys.split(',')
     plots = plots.split(',')
@@ -335,8 +335,8 @@ if __name__ == '__main__':
                                           'stat_distributions'],
                         nargs='?', default='regressions',
                         help="comma-separated list of plots")
-    parser.add_argument('--dataset', choices=['ping', 'destrieux'],
-                        nargs='?', default='ping')
+    parser.add_argument('--dataset', choices=['desikan', 'destrieux'],
+                        nargs='?', default='desikan')
     parser.add_argument('--username', nargs='?',
                         default=PINGSession.env_username())
     parser.add_argument('--password', nargs='?',

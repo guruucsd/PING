@@ -19,7 +19,7 @@ from research.plotting import show_plots
 
 
 def do_similarity(prefix, metric='partial-correlation', measures=None,
-                  dataset='ping', username=None, passwd=None,
+                  dataset='desikan', username=None, passwd=None,
                   output_format='matplotlib'):
 
     # Get prefix
@@ -102,8 +102,8 @@ if __name__ == '__main__':
                                             'Asymmetry Index',
                                             'all'],
                         nargs='?', default='all')
-    parser.add_argument('--dataset', choices=['ping', 'destrieux'],
-                        nargs='?', default='ping')
+    parser.add_argument('--dataset', choices=['desikan', 'destrieux'],
+                        nargs='?', default='desikan')
     parser.add_argument('--output-format', choices=['matplotlib', 'mpld3', 'bokeh', 'json'],
                         nargs='?', default='matplotlib')
     parser.add_argument('--username', nargs='?',
