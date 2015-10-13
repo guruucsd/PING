@@ -40,8 +40,8 @@ class PINGArgParser(ArgumentParser):
                                   nargs='?', default='lh')
 
             elif arg in ['force']:
-                self.add_argument('--force', nargs='?',
-                                  default=False, choices=[False, True])
+                self.add_argument('--force', default=False,
+                                  nargs='?', choices=[False, True])
 
             else:
                 raise ValueError('Unrecognized argument: %s' % arg)
@@ -56,9 +56,8 @@ class PINGSession(object):
     def __init__(self, username=None, passwd=None, verbose=1):
         self.username = username or self.env_username()
         self.passwd = passwd or self.env_passwd()
-        self.check_login_info()
 
-        self.sess = requests.Session()
+        self.sess = None
         self.result_ids = None  # current dictionary of result IDs
         self.verbose = verbose  # level of output
 
@@ -90,8 +89,11 @@ class PINGSession(object):
     def make_request(self, rel_path, verb='get', msg=None, **kwargs):
         url = self.make_url(rel_path)
         msg = msg or "Sending '%s' request to %s ..." % (verb, url)
-
         self.log(msg)
+
+        if not self.sess:
+            self.check_login_info()
+            self.sess = requests.Session()
         request_fn = getattr(self.sess, verb)
         resp = request_fn(url, **kwargs)
         self.log("Response received.", verbose=-1)
