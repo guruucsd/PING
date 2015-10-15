@@ -22,7 +22,7 @@ class GWASSession(PINGSession):
             self.log("Fetched %d result ID(s)" % len(self.result_ids))
         return self.result_ids
 
-    def get_results(self, ids=None, measures=None, force=False, raw=False, out_dir='results/gwas'):
+    def get_results(self, ids=None, measures=None, force=False, raw=False, output_dir='results/gwas'):
         """Can search by id or measure.
         Search by id returns a list of tuples,
             each tuple a triplet (SNP, effect size, pval)
@@ -34,7 +34,7 @@ class GWASSession(PINGSession):
 
         def fetch_and_cache_result(id):
             # Fetch remote file
-            out_file = os.path.join(out_dir, '%s_GWAS.csv' % id)
+            out_file = os.path.join(output_dir, '%s_GWAS.csv' % id)
             if os.path.exists(out_file) and not force:
                 with open(out_file, 'r') as fp:
                     out_text = '\n'.join(fp.readlines())
@@ -92,7 +92,7 @@ class GWASSession(PINGSession):
         else:
             self.log(resp.text)
 
-    def launch_and_retrieve_run(self, measure, covariates=['Age_At_IMGExam'], out_dir='results/gwas'):
+    def launch_and_retrieve_run(self, measure, covariates=['Age_At_IMGExam'], output_dir='results/gwas'):
         result_id = self.launch_run(measure=measure, covariates=covariates)
-        results = self.get_results(measure=measure, force=True, raw=True, out_dir=out_dir)
+        results = self.get_results(measure=measure, force=True, raw=True, output_dir=output_dir)
         return results[-1]

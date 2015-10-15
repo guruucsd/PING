@@ -160,12 +160,12 @@ def compare_similarity_vectors(sim_dict):
 
 
 def visualize_similarity_matrices(sim_dict, labels=None, class_labels=None,
-                                  dynamic_color=True, plotengine='matplotlib'):
+                                  dynamic_color=True, output_format='matplotlib'):
     # Visualize similarity matrices
     compare_keys = list(sim_dict.keys())
     n_keys = len(compare_keys)
 
-    if plotengine in ['matplotlib', 'mpld3']:
+    if output_format in ['matplotlib', 'mpld3']:
         fh = plt.figure(figsize=(18, 10))
 
     for ki, key in enumerate(compare_keys):
@@ -178,7 +178,7 @@ def visualize_similarity_matrices(sim_dict, labels=None, class_labels=None,
             vval = np.max(np.abs([mat.min(), mat.max()]))
             vmin, vmax = np.asarray([-1, 1]) * vval
 
-        if plotengine in ['matplotlib', 'mpld3']:
+        if output_format in ['matplotlib', 'mpld3']:
             ax = fh.add_subplot(1, n_keys, ki + 1)
         else:
             ax = None
@@ -186,11 +186,11 @@ def visualize_similarity_matrices(sim_dict, labels=None, class_labels=None,
                                                vmin=vmin, vmax=vmax,
                                                labels=labels if ki == 0 else None,
                                                class_labels=class_labels if ki == 0 else None,
-                                               plotengine=plotengine)
-        if plotengine in ['matplotlib', 'mpld3']:
+                                               output_format=output_format)
+        if output_format in ['matplotlib', 'mpld3']:
             plt.tight_layout(h_pad=5)
             ax.set_title(key, fontsize=18)
-        elif plotengine in ['bokeh']:
+        elif output_format in ['bokeh']:
             from bokeh.models import HoverTool
             ax.title = key
             ax.title_text_font_size = '18pt'

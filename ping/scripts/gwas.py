@@ -26,13 +26,13 @@ def get_chromosome_locations(snp_metadata):
 
 
 def do_gwas(action, measures, covariates=None, output_format=None,
-            out_dir='.', force=False, username=None, passwd=None):
+            output_dir='data', force=False, username=None, passwd=None):
 
     sess = GWASSession(username=username, passwd=passwd)
     sess.login()
 
     # Get the data
-    json_file = os.path.join(out_dir, 'GWAS_%s__%s.json' % (
+    json_file = os.path.join(output_dir, 'GWAS_%s__%s.json' % (
         '_'.join(measures), '_'.join(covariates)))
     if action == 'launch':
         raw_data = [sess.launch_and_retrieve_run(measures=measures,
@@ -44,7 +44,7 @@ def do_gwas(action, measures, covariates=None, output_format=None,
         raw_data = None
 
     # Get
-    _, snp_metadata = snps_script.do_genes(action='view', gene='all', output_format='json', out_dir=out_dir)
+    _, snp_metadata = snps_script.do_genes(action='view', gene='all', output_format='json', output_dir=output_dir)
 
     # Dump to json
     if raw_data is not None:
@@ -63,13 +63,13 @@ def do_gwas(action, measures, covariates=None, output_format=None,
 
     elif output_format == 'flask':
         chrom_locations = get_chromosome_locations(snp_metadata.values())
-        with open(os.path.join(out_dir, 'chrom_locs.json'), 'w') as fp:
+        with open(os.path.join(output_dir, 'chrom_locs.json'), 'w') as fp:
             simplejson.dump(chrom_locations, fp)
 
         import flask
         app = flask.Flask(__name__)
         cur_dir = os.path.abspath(os.path.dirname(__file__))
-        viz_dir = os.path.abspath(os.path.join(cur_dir, 'viz', 'manhattan'))
+        viz_dir = os.path.abspath(os.path.join(cur_dir, '..', 'viz', 'manhattan'))
 
         @app.route('/')
         def serve_default():
@@ -77,7 +77,7 @@ def do_gwas(action, measures, covariates=None, output_format=None,
 
         @app.route('/data/<path:path>')
         def serve_data(path):
-            return flask.send_from_directory(out_dir, path)
+            return flask.send_from_directory(output_dir, path)
 
         @app.route('/<path:path>')
         def serve_everything(path):
@@ -92,7 +92,7 @@ def do_gwas(action, measures, covariates=None, output_format=None,
 if __name__ == '__main__':
     parser = ResearchArgParser(description="Launch or view results of"
                                " a GWAS on the PING dataset.\n",
-                               common_args=['username', 'passwd', 'force', 'out-dir'])
+                               common_args=['username', 'passwd', 'force', 'output-dir'])
     parser.add_argument('action', choices=['display', 'launch'])
     parser.add_argument('measures', help="comma-separated list of "
                         "measures from the PING database,"

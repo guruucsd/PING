@@ -12,7 +12,7 @@ from ..research.apps import ResearchArgParser
 
 
 def do_snps(action, snp, output_format='print',
-            out_dir='.', username=None, passwd=None):
+            output_dir='.', username=None, passwd=None):
     sess = PINGSNPSession(username=username, passwd=passwd)
 
     print("Loading SNPS...")
@@ -45,7 +45,7 @@ def do_snps(action, snp, output_format='print',
 
 
 def do_genes(action, gene, output_format='print',
-             out_dir='.', username=None, passwd=None):
+             output_dir='.', username=None, passwd=None):
 
     # gene => SNP mapping
     sess = PINGSNPSession(username=username, passwd=passwd)
@@ -56,7 +56,7 @@ def do_genes(action, gene, output_format='print',
     print("Found %d genes for %s" % (len(gene_metadata), gene))
 
     # Output matching genes
-    gene_json = os.path.join(out_dir, 'genes_%s.json' % gene)
+    gene_json = os.path.join(output_dir, 'genes_%s.json' % gene)
     if output_format == 'print':
         print('\n'.join([str(gene) for gene in gene_metadata]))
     elif output_format == 'json':
@@ -71,7 +71,7 @@ def do_genes(action, gene, output_format='print',
         snp_metadata = sess.get_snps_from_gene(gene_metadata)
 
     # Output matching SNPs
-    snps_json = os.path.join(out_dir, 'SNPs_%s.json' % gene)
+    snps_json = os.path.join(output_dir, 'SNPs_%s.json' % gene)
     print("Found %d snps for %s" % (len(snp_metadata), gene))
     if output_format == 'print':
         print('\n'.join([str(snp) for snp in snp_metadata]))
@@ -88,21 +88,21 @@ def do_genes(action, gene, output_format='print',
 
 
 def do_snps_datadump(action, snp_gene, output_format='print',
-                     out_dir='.', username=None, passwd=None):
+                     output_dir='.', username=None, passwd=None):
 
     if snp_gene.startswith('rs'):
         do_snps(action=action, snp=snp_gene, output_format=output_format,
-                out_dir=out_dir, username=username, passwd=passwd)
+                output_dir=output_dir, username=username, passwd=passwd)
 
     else:
         do_genes(action=action, gene=snp_gene, output_format=output_format,
-                 out_dir=out_dir, username=username, passwd=passwd)
+                 output_dir=output_dir, username=username, passwd=passwd)
 
 
 if __name__ == '__main__':
 
     parser = ResearchArgParser(description="Show SNP=>gene or gene=>SNP mappings.",
-                               common_args=['username', 'passwd', 'out-dir'])
+                               common_args=['username', 'passwd', 'output-dir'])
     parser.add_argument('action', choices=['view', 'download'])
     parser.add_argument('snp_gene', metavar="snp/gene",
                         help="case-sensitive text label; if it starts with"

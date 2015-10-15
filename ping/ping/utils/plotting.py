@@ -29,7 +29,7 @@ def plot_normalized_hist(data, ax=None, **kwargs):
 
 def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None,
                                       class_labels=None, vmin=0, vmax=1,
-                                      plotengine='matplotlib'):
+                                      output_format='matplotlib'):
     """Plot symmetric matrix (like a covariance matrix) as a lower triangle.
 
     Can accept matrix in vector or matrix form."""
@@ -72,7 +72,7 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None,
 
 
     ## Plotting
-    if plotengine in ['matplotlib', 'mpld3']:
+    if output_format in ['matplotlib', 'mpld3']:
         # Scrub inputs
         if ax is None:
             ax = plt.figure().gca()
@@ -96,7 +96,7 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None,
         ax.xaxis.set_ticks_position('none')
         ax.yaxis.set_ticks_position('none')
 
-    elif plotengine in ['bokeh']:
+    elif output_format in ['bokeh']:
         from collections import OrderedDict
         from bokeh.plotting import figure
         from bokeh.models import HoverTool, ColumnDataSource, CustomJS, TapTool

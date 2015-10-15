@@ -34,7 +34,7 @@ def do_roygbiv(prefix, key,
                atlas='desikan', username=None, passwd=None,
                output_format='json', subjects_dir=os.environ.get('SUBJECTS_DIR'),
                surface_type='pial', hemi='lh', subject='fsaverage',
-               sample_rate=1., force=False):
+               sample_rate=1., force=False, output_dir='data'):
 
     # Load the data (should group, but ... later.),
     # then filter by prefix
@@ -48,7 +48,7 @@ def do_roygbiv(prefix, key,
     surface_file = os.path.join(fsavg_path, 'surf', '%s.%s' % (hemi, surface_type))
     label_file = roygbiv.atlas2aparc(atlas, hemi=hemi)
     label_file = os.path.join(fsavg_path, 'label', label_file)
-    output_dir = os.path.join('data', subject, atlas, surface_type)
+    output_dir = os.path.join(output_dir, subject, atlas, surface_type)
     json_file = prefix + '%s_files_to_load.json' % hemi
 
     if force or not os.path.exists(os.path.join(output_dir, json_file)):
@@ -138,7 +138,7 @@ if __name__ == '__main__':
                                " optionally control marker size and color.",
                                common_args=['prefix', 'key',
                                             'atlas', 'hemi',
-                                            'force'])
+                                            'force', 'output-dir'])
     parser.add_argument('--sample-rate', nargs='?', default=1.)
     parser.add_argument('--subject', nargs='?', default='fsaverage')
     parser.add_argument('--surface-type', choices=['pial', 'inflated'],
