@@ -95,7 +95,7 @@ class PINGData(object):
         self.data_dict = merge_by_key(self.data_dict, data_dict,
                                       merge_key=merge_key, tag=tag)
         return self
-        
+
     def filter(self, filter_fns, tag=None, op='or'):
         if filter_fns is None or not filter_fns:
             return self
@@ -289,7 +289,11 @@ class PINGData(object):
     def get_anatomical_name(klass, key):
         """Returns a proper anatomical name, or the key if not found."""
         normd_key = klass.norm_key(key)
-        return klass.anatomical_name.get(normd_key, normd_key)
+        anat_key = klass.anatomical_name.get(normd_key, normd_key)
+        if '_' in str(anat_key):
+            # no change
+            import pdb; pdb.set_trace()
+        return anat_key
 
     @classmethod
     def norm_key(klass, key):
@@ -352,17 +356,17 @@ class PINGData(object):
         # import numpy as np
         # x = np.array([3,5,7,1,9,8,6,6])
         # y = np.array([2,1,5,10,100,6])
-        # 
+        #
         # index = np.argsort(x)
         # sorted_x = x[index]
         # sorted_index = np.searchsorted(sorted_x, y)
-        # 
+        #
         # yindex = np.take(index, sorted_index, mode="clip")
         # mask = x[yindex] != y
-        # 
+        #
         # result = np.ma.array(yindex, mask=mask)
         # print result
-        
+
         # Normalize the form of the key
         keys = np.asarray(keys)
         anatomical_keys = klass.norm_keys(keys)
@@ -379,7 +383,7 @@ class PINGData(object):
         # Grab the reordered keys, append any keys not found.
         result = keys[keys_index[good_mask]]
 
-        # Find which keys remain, then append.    
+        # Find which keys remain, then append.
         all_keys_index = set(np.arange(len(keys)))
         found_keys_index = set(np.unique(keys_index[good_mask]))
         missing_keys_idx = np.asarray(list(all_keys_index - found_keys_index), dtype=int)
@@ -397,7 +401,7 @@ class PINGData(object):
 
         # Everything else that remains is added alphabetically.
         return result
-        
+
     @classmethod
     def get_lh_key_from_rh_key(klass, key):
         return key.replace('.rh.', '.lh.').replace('.Right.', '.Left.').replace('.R_', '.L_')
@@ -408,10 +412,10 @@ class PINGData(object):
 
     @classmethod
     def get_nonhemi_key(klass, key):
-        key = klass.get_rh_key_from_lh_key(key) \
-            .replace('.rh.', '.').replace('.Right.', '.').replace('.R_', '_') \
-            .replace('_AI', '').replace('_LH_PLUS_RH', '').replace('_TOTAL', '')  # hacks... for now
-        return key
+        new_key = klass.get_rh_key_from_lh_key(key) \
+                      .replace('.rh.', '.').replace('.Right.', '.').replace('.R_', '_') \
+                      .replace('_AI', '').replace('_LH_PLUS_RH', '').replace('_TOTAL', '')  # hacks... for now
+        return new_key
 
     @classmethod
     def is_nonimaging_key(klass, key):

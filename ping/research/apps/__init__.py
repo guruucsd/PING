@@ -22,7 +22,7 @@ class ResearchArgParser(PINGArgParser):
                                   " include in the analysis")
 
             elif arg in ['key']:
-                parser.add_argument('key', choices=axis_choices)
+                self.add_argument('key', choices=self.axis_choices)
 
             else:
                 super(ResearchArgParser, self).add_common_parser_args([arg])
@@ -30,5 +30,5 @@ class ResearchArgParser(PINGArgParser):
     def parse_args(self, *args, **kwargs):
         outvals = super(ResearchArgParser, self).parse_args(*args, **kwargs)
         if getattr(outvals, 'prefixes', None):
-            outvals.prefixes = ','.split(outvals.prefixes)
+            outvals.prefixes = outvals.prefixes.split(',')
         return outvals

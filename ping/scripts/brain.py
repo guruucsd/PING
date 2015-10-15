@@ -137,13 +137,13 @@ if __name__ == '__main__':
                                " arrays, with additional data arrays that"
                                " optionally control marker size and color.",
                                common_args=['prefix', 'key',
-                                            'atlas', 'output-format', 'hemi',
+                                            'atlas', 'hemi',
                                             'force'])
-    parser.add_argument('--output-format', choices=['flask', 'json'],
-                        nargs='?', default='json')
     parser.add_argument('--sample-rate', nargs='?', default=1.)
     parser.add_argument('--subject', nargs='?', default='fsaverage')
     parser.add_argument('--surface-type', choices=['pial', 'inflated'],
                         nargs='?', default='pial')
+    parser.add_argument('--output-format', choices=['json', 'flask'],
+                        nargs='?', default='json')
     args = parser.parse_args()
     do_roygbiv(**vars(args))

@@ -103,4 +103,5 @@ if __name__ == '__main__':
     parser.add_argument('--output-format', choices=['matplotlib', 'mpld3', 'bokeh', 'json'],
                         nargs='?', default='matplotlib')
     args = parser.parse_args()
+    print args.prefixes
     do_similarity(**vars(args))
