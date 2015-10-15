@@ -1,7 +1,7 @@
 """
 """
 
-from ping.apps import PINGArgParser
+from ...ping.apps import PINGArgParser
 
 
 class ResearchArgParser(PINGArgParser):

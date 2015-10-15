@@ -15,11 +15,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 from six import string_types
 
-from ping.analysis.similarity import is_bad_key
-from ping.apps import PINGSession
-from research.apps import ResearchArgParser
-from research.data import get_all_data, keytype2label
-from research.plotting import show_plots
+from ..ping.analysis.similarity import is_bad_key
+from ..ping.apps import PINGSession
+from ..research.apps import ResearchArgParser
+from ..research.data import get_all_data, keytype2label
+from ..research.plotting import show_plots
 
 
 def parse_scatter_key(key):

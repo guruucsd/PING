@@ -1,13 +1,14 @@
 """
 """
+
 import copy
 import warnings
 from functools import partial
 
 import numpy as np
 
-from ping.data import PINGData
 from .data import get_derived_data, get_all_data
+from ..ping.data import PINGData
 
 
 def select_lowest_values(vals, pct=0.25):
@@ -108,7 +109,7 @@ def group_and_compare(fn,
             idx = grouping_index[gi]
 
         # Select data within the group
-        group_data[group_name] = select_group_data(data, idx, 
+        group_data[group_name] = select_group_data(data, idx,
                                                    keys=kwargs.get('keys'),
                                                    remove_nan=kwargs.get('remove_nan', False))
 
@@ -130,16 +131,16 @@ def group_and_compare(fn,
         for gi1, gn1 in enumerate(group_names):
             for gi2, gn2 in enumerate(group_names[(gi1 + 1):]):
                 print(gi1, gi2)
-                results.append(fn(group_data[gn1], group_data[gn2], 
-                                  group_info(gi1=gi1, gi2=gi1+1+gi2, curi=len(results), 
+                results.append(fn(group_data[gn1], group_data[gn2],
+                                  group_info(gi1=gi1, gi2=gi1+1+gi2, curi=len(results),
                                              group_names=group_names),
                                   **kwargs))
 
     else:
         for gi1, gn1 in enumerate(group_names):
             for gi2, gn2 in enumerate(group_names):
-                results.append(fn(group_data[gn1], group_data[gn2], 
-                                  group_info(gi1=gi1, gi2=gi2, curi=len(results), 
+                results.append(fn(group_data[gn1], group_data[gn2],
+                                  group_info(gi1=gi1, gi2=gi2, curi=len(results),
                                              group_names=group_names),
                                   **kwargs))
 
@@ -257,7 +258,7 @@ def parse_filter_args(args, filter_defaults=None):
 
 
 def chunk_string(str, max_len=80):
-    """breaks a string into substrings below 
+    """breaks a string into substrings below
     """
     chunks = ['']
     for w in str.split(' '):

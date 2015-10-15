@@ -12,7 +12,7 @@ from six import string_types
 from ..asymmetry import (get_asymmetry_index, get_ai_key,
                          is_ai_key)
 from ..multivariate import AsymmetryPCA
-from ping.data import PINGData, DestrieuxData
+from ...ping.data import PINGData, DestrieuxData
 
 
 def keytype2label(key):

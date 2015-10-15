@@ -1,7 +1,8 @@
 """
 """
+
 from .data import compute_all_asymmetries
-from ping.apps.regress import PINGDataSession
+from ..ping.apps.regress import PINGDataSession
 
 
 def search_one_asymmetry(**kwargs):

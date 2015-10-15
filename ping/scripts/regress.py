@@ -8,12 +8,12 @@ import csv
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ping.apps import PINGSession
-from ping.apps.regress import find_one_relationship, skip_key, skip_pairing
-from ping.utils import do_and_plot_regression
-from research.asymmetry import is_ai_key
-from research.data import get_derived_data
-from research.regress import search_all_vs_itself, search_all_pairwise
+from ..ping.apps import PINGSession
+from ..ping.apps.regress import find_one_relationship, skip_key, skip_pairing
+from ..ping.utils import do_and_plot_regression
+from ..research.asymmetry import is_ai_key
+from ..research.data import get_derived_data
+from ..research.regress import search_all_vs_itself, search_all_pairwise
 
 
 def search_all_pairwise(all_data):
@@ -29,7 +29,7 @@ def search_all_pairwise(all_data):
             key2 = keys[ii]
             if skip_key(key2) or skip_pairing(key1, key2):
                 continue
-            
+
             result = find_one_relationship(all_data, key1, key2, rsq_thresh=0.10)
             if result is not None:
                 results.append(result)

@@ -22,12 +22,12 @@ from six import string_types
 
 import roygbiv
 import roygbiv.server
-from ping.analysis.similarity import is_bad_key
-from ping.apps import PINGSession
-from research.apps import ResearchArgParser
-from research.data import get_all_data, keytype2label
-from research.plotting import show_plots
-from scatter import compute_key_data
+from .scatter import compute_key_data
+from ..ping.analysis.similarity import is_bad_key
+from ..ping.apps import PINGSession
+from ..research.apps import ResearchArgParser
+from ..research.data import get_all_data, keytype2label
+from ..research.plotting import show_plots
 
 
 def do_roygbiv(prefix, key,

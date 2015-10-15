@@ -9,16 +9,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
 
-from ping.apps import PINGSession
-from ping.data import PINGData
-from ping.utils import do_and_plot_regression
-from ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
-                                 equalize_xlims, equalize_ylims,
-                                 plot_normalized_hist)
-from research.apps import ResearchArgParser
-from research.asymmetry import get_asymmetry_index
-from research.data import get_all_data
-from research.grouping import get_groupings
+from ..ping.apps import PINGSession
+from ..ping.data import PINGData
+from ..ping.utils import do_and_plot_regression
+from ..ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
+                                   equalize_xlims, equalize_ylims,
+                                   plot_normalized_hist)
+from ..research.apps import ResearchArgParser
+from ..research.asymmetry import get_asymmetry_index
+from ..research.data import get_all_data
+from ..research.grouping import get_groupings
 
 
 def compare_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys, plots,

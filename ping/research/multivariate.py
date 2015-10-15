@@ -1,6 +1,7 @@
 """
 Multivariate analyses of PING data
 """
+
 import copy
 
 import numpy as np
@@ -8,7 +9,7 @@ from scipy.stats import pearsonr
 from sklearn.decomposition import PCA
 
 from .asymmetry import get_asymmetry_index, is_ai_key
-from ping.utils import do_and_plot_regression
+from ..ping.utils import do_and_plot_regression
 
 
 class AsymmetryPCA(object):

@@ -7,9 +7,9 @@ from collections import OrderedDict
 
 import simplejson
 
-import snps as snps_script
-from ping.apps.gwas import GWASSession
-from research.apps import ResearchArgParser
+from . import snps as snps_script
+from ..ping.apps.gwas import GWASSession
+from ..research.apps import ResearchArgParser
 
 
 def get_chromosome_locations(snp_metadata):

@@ -7,8 +7,8 @@ import os.path
 
 import simplejson
 
-from ping.apps.snps import PINGSNPSession
-from research.apps import ResearchArgParser
+from ..ping.apps.snps import PINGSNPSession
+from ..research.apps import ResearchArgParser
 
 
 def do_snps(action, snp, output_format='print',

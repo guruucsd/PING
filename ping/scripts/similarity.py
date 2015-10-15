@@ -9,14 +9,14 @@ from functools import partial
 import numpy as np
 from matplotlib import pyplot as plt
 
-from ping.analysis.similarity import (compare_similarity_vectors,
-                                      compute_similarity_vectors,
-                                      visualize_similarity_matrices)
-from ping.apps import PINGSession
-from research.apps import ResearchArgParser
-from research.asymmetry import is_ai_key
-from research.data import get_all_data
-from research.plotting import show_plots
+from ..ping.analysis.similarity import (compare_similarity_vectors,
+                                        compute_similarity_vectors,
+                                        visualize_similarity_matrices)
+from ..ping.apps import PINGSession
+from ..research.apps import ResearchArgParser
+from ..research.asymmetry import is_ai_key
+from ..research.data import get_all_data
+from ..research.plotting import show_plots
 
 
 def do_similarity(prefixes, metric='partial-correlation', measures=None,

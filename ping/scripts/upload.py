@@ -5,9 +5,9 @@ upload to the PING server.
 import os
 from functools import partial
 
-from export import EXPORTED_PING_SPREADSHEET
-from ping.apps import PINGSession
-from research.data import get_all_data
+from .export import EXPORTED_PING_SPREADSHEET
+from ..ping.apps import PINGSession
+from ..research.data import get_all_data
 
 
 def do_upload(*args):
