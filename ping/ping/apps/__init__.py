@@ -24,11 +24,11 @@ class PINGArgParser(ArgumentParser):
     def add_common_parser_args(self, arglist):
         for arg in arglist:
             if arg in ['username']:
-                self.add_argument('--username', nargs='?',
+                self.add_argument('--%s' % arg, nargs='?',
                                   default=PINGSession.env_username())
 
             elif arg in ['passwd', 'password']:
-                self.add_argument('--password', nargs='?',
+                self.add_argument('--%s' % arg, nargs='?',
                                   default=PINGSession.env_passwd(),
                                   dest=arg)
 
@@ -41,12 +41,12 @@ class PINGArgParser(ArgumentParser):
                                   nargs='?', default='lh')
 
             elif arg in ['force']:
-                self.add_argument('--force', type=bool, default=False,
+                self.add_argument('--%s' % arg, type=bool, default=False,
                                   nargs='?', choices=[False, True])
 
-            elif arg in ['out-dir']:
-                self.add_argument('--out-dir',
-                                  nargs='?', default=os.getcwd())
+            elif arg in ['out-dir', 'output-dir']:
+                self.add_argument('--%s' % arg,
+                                  nargs='?', default=os.path.join(os.getcwd(), 'data'))
 
             else:
                 raise ValueError('Unrecognized argument: %s' % arg)
