@@ -22,51 +22,54 @@ class GWASSession(PINGSession):
             self.log("Fetched %d result ID(s)" % len(self.result_ids))
         return self.result_ids
 
-    def get_results(self, id=None, measure=None, force=False, raw=False, out_dir='results/gwas'):
+    def get_results(self, ids=None, measures=None, force=False, raw=False, out_dir='results/gwas'):
         """Can search by id or measure.
         Search by id returns a list of tuples,
             each tuple a triplet (SNP, effect size, pval)
         Search by measure returns a list of list of tuples,
             an outer list for each id corresponding to that measure.
         """
-        assert int(id is None) + int(measure is None) == 1, 'id or measure (and not both) must be passed.'
+        assert int(ids is None) + int(measures is None) == 1, 'id or measure (and not both) must be passed.'
         assert self.sess is not None, "Session must be started before calling get_results."
 
-        # Map measure to (possibly multiple) ids, then recursively call.
-        if measure is not None:
-            ids = [r['id'] for r in self.get_results_ids()
-                           if r['yvalue'] == measure]
-            self.log("Retrieving results for measure %s (%d ids found) ..." % (measure, len(ids)))
-            results = []
-            for cur_id in ids:
-                try:
-                    results.append(self.get_results(id=cur_id, force=force,
-                                                    raw=raw, out_dir=out_dir))
-                except Exception as e:
-                    print("Failed to get id=%s: %s" % (cur_id, str(e)))
-                    results.append(None)
-            return results
-
-        # Fetch
-        out_file = os.path.join(out_dir, '%s_GWAS.csv' % id)
-        if os.path.exists(out_file) and not force:
-            with open(out_file, 'r') as fp:
-                out_text = '\n'.join(fp.readlines())
-        else:
-            self.log("Retrieving results for id=%s ..." % id)
-            out_text = self.download_file('applications/GWAS/downloadRunResult.php?project_name={project_name}&id=%s' % id,
-                                          out_file=out_file)
-            if out_text == '':
-                os.remove(out_file)
-                raise Exception('Results for GWAS ID=%s not found.' % id)
+        def fetch_and_cache_result(id):
+            # Fetch remote file
+            out_file = os.path.join(out_dir, '%s_GWAS.csv' % id)
+            if os.path.exists(out_file) and not force:
+                with open(out_file, 'r') as fp:
+                    out_text = '\n'.join(fp.readlines())
             else:
-                self.log("Wrote results to disk at %s." % out_file)
+                self.log("Retrieving results for id=%s ..." % id)
+                out_text = self.download_file('applications/GWAS/downloadRunResult.php?project_name={project_name}&id=%s' % id,
+                                              out_file=out_file)
+                if out_text == '':
+                    os.remove(out_file)
+                    raise Exception('Results for GWAS ID=%s not found.' % id)
+                else:
+                    self.log("Wrote results to disk at %s." % out_file)
 
-        # Parse the result
-        results = [lin.split('\t') for lin in out_text.split('\n')]
-        self.log("Fetched %d result(s) for id=%s." % (len(results), id))
+            # Parse the result
+            results = [lin.split('\t') for lin in out_text.split('\n')]
+            self.log("Fetched %d result(s) for id=%s." % (len(results), id))
 
-        return out_text if raw else results
+            return out_text if raw else results
+
+
+        # Map measure to (possibly multiple) ids, then recursively call.
+        if measures is not None:
+            ids = [r['id'] for r in self.get_results_ids()
+                           if r['yvalue'] in measures]
+        self.log("Retrieving results for measures %s (%d ids found) ..." % (
+            measures, len(ids)))
+
+        results = []
+        for cur_id in ids:
+            try:
+                results.append(fetch_and_cache_result(id=cur_id))
+            except Exception as e:
+                print("Failed to get id=%s: %s" % (cur_id, str(e)))
+                results.append(None)
+        return results
 
     def launch_run(self, measure, covariates=['Age_At_IMGExam']):
         assert self.sess is not None, "Session must be started before calling launch_run."

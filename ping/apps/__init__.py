@@ -43,6 +43,10 @@ class PINGArgParser(ArgumentParser):
                 self.add_argument('--force', default=False,
                                   nargs='?', choices=[False, True])
 
+            elif arg in ['out-dir']:
+                self.add_argument('--out-dir',
+                                  nargs='?', default=os.getcwd())
+
             else:
                 raise ValueError('Unrecognized argument: %s' % arg)
 
