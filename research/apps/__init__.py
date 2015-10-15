@@ -1,5 +1,6 @@
 """
 """
+
 from ping.apps import PINGArgParser
 
 
@@ -24,7 +25,7 @@ class ResearchArgParser(PINGArgParser):
                 parser.add_argument('key', choices=axis_choices)
 
             else:
-                return super(ResearchArgParser, self).add_common_parser_args([arg])
+                super(ResearchArgParser, self).add_common_parser_args([arg])
 
     def parse_args(self, *args, **kwargs):
         outvals = super(ResearchArgParser, self).parse_args(*args, **kwargs)

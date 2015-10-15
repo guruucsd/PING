@@ -1,6 +1,7 @@
 """
 Accessing remote PING data & methods
 """
+
 import hashlib
 import os
 import tempfile
@@ -40,7 +41,7 @@ class PINGArgParser(ArgumentParser):
                                   nargs='?', default='lh')
 
             elif arg in ['force']:
-                self.add_argument('--force', default=False,
+                self.add_argument('--force', type=bool, default=False,
                                   nargs='?', choices=[False, True])
 
             elif arg in ['out-dir']:
