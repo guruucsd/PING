@@ -77,14 +77,27 @@ def do_roygbiv(prefix, key,
         return colors
 
     if output_format in ['json', 'flask']:
-        scatter_data1 = compute_key_data(data.data_dict, key=key)
+        assert key == 'AI:mean'
+        scatter_data1 = compute_key_data(data.data_dict, key='AI:mean')
         scatter_data2 = compute_key_data(data.data_dict, key='AI:std')
         scatter_data3 = compute_key_data(data.data_dict, key='LH_PLUS_RH:mean')
+
+        if hemi == 'rh':
+            for key in scatter_data1:
+                scatter_data1[key] = -scatter_data1[key]
+                scatter_data2[key] = -scatter_data2[key]
+
+
+        # Compute keys / labels
         non_prefixed_keys = [strip_prefix(key, prefix) for key in scatter_data1]
         anat_keys = [data.get_nonhemi_key(key) for key in non_prefixed_keys]
         labels = [data.get_anatomical_name(key) for key in anat_keys]
+
+        # Compute values
         values = zip(scatter_data1.values(), scatter_data2.values(), scatter_data3.values())
         colors = map_colors(np.asarray(scatter_data1.values()))
+
+        # Aggregate
         out_dict = dict(names=dict(zip(anat_keys, labels)),
                         values=dict(zip(anat_keys, values)),
                         colors=dict(zip(anat_keys, colors)))
