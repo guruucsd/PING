@@ -122,7 +122,7 @@ def decimate_data(data, x_key, y_key, size_key=None, color_key=None, color_fn=No
                     if ~np.all(np.isnan(ddata[k]))]
         common_keys = [k for k in common_keys if k in cur_keys]
     if len(common_keys) == 0:
-        raise ValueError('Your x and y keys have no overlap.')
+        raise ValueError('Your keys (%s) have no overlap.' % out_data.keys())
 
     # Finally, we're safe to convert all of the data to numpy arrays,
     #   then massage the data.
@@ -222,7 +222,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
                    for label in common_keys],
             x=kwargs['x'],
             y=kwargs['y'],
-            s=kwargs.get('s', 1000) / 1.E5))
+            s=kwargs.get('s', np.ones(kwargs['x'].shape) * 1000) / 1.E5))
         xdr = DataRange1d()
         ydr = DataRange1d()
         plot = Plot(x_range=xdr, y_range=ydr, name='scatter', title=title)
@@ -231,10 +231,11 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
                         line_color="black")
         circle_renderer = plot.add_glyph(source, circle)
 
-        legend = Legend(orientation="top_right")
-        legend.legends = [(size_label, [circle_renderer])]
+        if size_label:
+            legend = Legend(orientation="top_right")
+            legend.legends = [(size_label, [circle_renderer])]
+            plot.add_layout(legend)
 
-        plot.add_layout(legend)
         plot.add_layout(LinearAxis(axis_label=x_label), 'below')
         plot.add_layout(LinearAxis(axis_label=y_label), 'left')
         plot.add_tools(PanTool(), WheelZoomTool(), CrosshairTool(),
