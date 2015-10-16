@@ -28,6 +28,8 @@ def get_chromosome_locations(snp_metadata):
 def do_gwas(action, measures, covariates=None, output_format=None,
             data_dir='data', output_dir='data', force=False,
             username=None, passwd=None):
+    if covariates is None:
+        covariates = ['Age_At_IMGExam']
 
     sess = GWASSession(username=username, passwd=passwd, data_dir=data_dir)
     sess.login()
