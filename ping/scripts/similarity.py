@@ -42,12 +42,10 @@ def do_similarity(prefixes, metric='partial-correlation', measures=None,
 
     # Get measures
     if measures is None:
-        key_locations = list(filt_fns.keys())
-    else:
-        key_locations = measures.split(',')
+        measures = list(filt_fns.keys())
 
     # Get the key locations
-    filt_fns = OrderedDict(((k, filt_fns[k]) for k in key_locations))
+    filt_fns = OrderedDict(((k, filt_fns[k]) for k in measures))
 
     # Do the similarity computation; order by anatomy.
     sim_dict, sim_keys = compute_similarity_vectors(p_data.data_dict,
@@ -104,5 +102,5 @@ if __name__ == '__main__':
     parser.add_argument('--output-format', choices=['matplotlib', 'mpld3', 'bokeh', 'json'],
                         nargs='?', default='matplotlib')
     args = parser.parse_args()
-    print args.prefixes
+    args.measures = args.measures.split(',')
     do_similarity(**vars(args))
