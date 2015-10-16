@@ -10,6 +10,7 @@ Should take ordered parameters for data keys on the input,
 function should take keyword args.
 """
 import simplejson
+from collections import OrderedDict
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -23,15 +24,21 @@ from ..research.plotting import show_plots
 
 
 def parse_scatter_key(key):
-    return key.split(':')
+    parts = key.split(':')
+    if len(parts) == 2:
+        return dict(zip(('suffix', 'operator'), parts))
+    elif len(parts) == 3:
+        return dict(zip(('prefix', 'suffix', 'operator'), parts))
+    else:
+        raise Exception("Unexpected key format: %s" % key)
 
 
 def compute_scatter_label(key, part=None):
     if key is None:
         return
     elif isinstance(key, string_types):
-        key_type = keytype2label(parse_scatter_key(key)[0])
-        method = parse_scatter_key(key)[1]
+        key_type = keytype2label(parse_scatter_key(key)['suffix'])
+        method = parse_scatter_key(key)['operator']
         if part is None:
            return '%s (%s)' % (key_type, method)
         elif part == 'key_type':
@@ -52,17 +59,28 @@ def compute_key_data(data, key):
     if key in data:
         # Easy case: it's just a data request!
         return data[key]
-    elif len(parse_scatter_key(key)) != 2:
-        # OK, it's nothing we know, error
-        raise ValueError("key %s not found, nor of a computable format (suffix:function)" % key)
-    else:
-        # a key/operator pair
-        suffix, op = parse_scatter_key(key)
-        keys = [k for k in data if k.endswith(suffix)]
-        assert len(keys) > 0, "Must find keys with filter!"
-        f_data = {k: data[k][~np.isnan(data[k])] for k in keys}
-        assert not np.any([np.any(np.isnan(v)) for v in f_data.values()]), "NO nan ANYWHERE..."
-        return {k: getattr(f_data[k], op)() for k in keys}
+
+    parts = parse_scatter_key(key)
+    new_keys = dict([(key, key) for key in data])
+
+    if 'prefix' in parts:
+        new_keys = dict([(k, nk[len(parts['prefix']):])
+                         for k, nk in new_keys.items()
+                        if k.startswith(parts['prefix'])])
+        assert len(new_keys) > 0, "Must find keys with filter!"
+
+    if 'suffix' in parts:
+        new_keys = dict([(k, nk[:-len(parts['suffix'])])
+                         for k, nk in new_keys.items()
+                         if k.endswith(parts['suffix'])])
+        assert len(new_keys) > 0, "Must find keys with filter!"
+
+    # eliminate keys with nan data
+    f_data = {k: data[k][~np.isnan(data[k])] for k in new_keys}  # remove nan subjects
+    assert not np.any([np.any(np.isnan(v)) for v in f_data.values()]), "NO nan ANYWHERE..."
+
+    return OrderedDict([(nk, getattr(f_data[k], parts['operator'])())
+                        for k, nk in new_keys.items()])
 
 
 def decimate_data(data, x_key, y_key, size_key=None, color_key=None, color_fn=None):
@@ -279,11 +297,11 @@ if __name__ == '__main__':
                                common_args=['prefixes',
                                             'atlas', 'username', 'passwd',
                                             'output-dir'])
-    parser.add_argument('x_key', choices=ResearchArgParser.axis_choices)
-    parser.add_argument('y_key', choices=ResearchArgParser.axis_choices)
-    parser.add_argument('size_key', choices=ResearchArgParser.axis_choices,
+    parser.add_argument('x_key')#, choices=ResearchArgParser.axis_choices)
+    parser.add_argument('y_key')#, choices=ResearchArgParser.axis_choices)
+    parser.add_argument('size_key',#, choices=ResearchArgParser.axis_choices,
                         nargs='?', default=None)
-    parser.add_argument('color_key', choices=ResearchArgParser.axis_choices,
+    parser.add_argument('color_key',# choices=ResearchArgParser.axis_choices,
                         nargs='?', default=None)
     parser.add_argument('--output-format', nargs='?', default='matplotlib',
                         choices=['matplotlib', 'mpld3', 'json',
