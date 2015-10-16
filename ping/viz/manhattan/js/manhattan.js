@@ -21,7 +21,7 @@ var ManhattanPlot = function(args) {
             error: function(err) { alert('Load chrom error'); },
             success: function(data, textStatus, jqXHR) {
                 _this.chromLocs = data;
-                console.log('chromLocs', data);
+                console.log('chromLocs');
                 _this.load_snps()
             }
         })
@@ -35,7 +35,7 @@ var ManhattanPlot = function(args) {
             error: function(err) { alert('Load snp error'); },
             success: function(data, textStatus, jqXHR) {
                 _this.snps = data;
-                console.log('snps', data);
+                console.log('snps');
                 _this.load_gwas()
             }
         })
@@ -49,7 +49,7 @@ var ManhattanPlot = function(args) {
             success: function(data, textStatus, jqXHR) {
                 _this.id = Object.keys(data)[0];
                 _this.gwas = data[_this.id];
-                console.log('gwas', _this.id, _this.gwas);
+                console.log('gwas');
                 _this.draw(_this.id, _this.chromLocs, _this.snps, _this.gwas);
             }
         });
@@ -75,15 +75,25 @@ var ManhattanPlot = function(args) {
         var minP = Object.keys(gwas).reduce(function (curVal, newVal) {
             return Math.min(curVal, gwas[newVal].pval);
         }, 1);
-        console.log(minP);
 
-        var vals = Object.keys(gwas).map(function(curKey) {
+        var vals = Object.keys(gwas).map(function(curKey, idx) {
           var curVal = gwas[curKey];
           var chromIdx = parseInt(curVal.metadata.chromosome);
           var xval = chromLocs[chromIdx] + parseInt(curVal.metadata.basepair);
-          return [xval, -Math.log(curVal.pval) / Math.log(10)];
+          var yval = -Math.log(curVal.pval) / Math.log(10);
+
+          if (idx < 3) {
+              // Assuming these are ordered (bad...),
+              // show a laebel for it.
+              dataLabel.data.push({
+                  "x": xval,
+                  "y": yval,
+                  "z": 100,
+                  "name": curKey
+              });
+          }
+          return [xval, yval];
         })
-        console.log(vals);
 
         // now draw the vals array into #id
         var options = {
@@ -115,7 +125,7 @@ var ManhattanPlot = function(args) {
                 },
                 lineWidth: 1,
                 tickWidth: 1,
-                gridLineWidth: 0
+                gridLineWidth: 0,
             }],
             legend: {
               align: 'right',
@@ -136,8 +146,8 @@ var ManhattanPlot = function(args) {
 
                   // Find the matching point
                   var snp = null;
-                  for (u = 0; u < series.data.length; u++) {
-                      if (series.data[u].x == this.x && series.data[u].y == this.y) {
+                  for (u = 0; u < this.series.data.length; u++) {
+                      if (this.series.data[u].x == this.x && this.series.data[u].y == this.y) {
                           snp = Object.keys(gwas)[u];
                           break;
                         }
@@ -155,7 +165,7 @@ var ManhattanPlot = function(args) {
                       $(document).trigger('click', this);
                     },
                     click: function() {
-
+                      console.log(this);
                     }
                   }
                 },
@@ -192,7 +202,7 @@ var ManhattanPlot = function(args) {
                 color: '#606060'
               },
               verticalAlign: 'bottom',
-              y: -14
+              y: -9
             }
           });
         }
@@ -251,6 +261,7 @@ var ManhattanPlot = function(args) {
           zIndex: -1,
           enableMouseTracking: true
         }];
+        options.series[3] = dataLabel;
 
         chart = new Highcharts.Chart(options);
     } // end .draw
