@@ -54,7 +54,7 @@ def do_roygbiv(prefix, key,
     if force or not os.path.exists(os.path.join(output_dir, json_file)):
         roygbiv.freesurfer_annot_to_vtks(surface_file=surface_file,
                                          label_file=label_file,
-                                         output_stem='%s%s_' % (prefix, hemi),
+                                         output_stem='%s_' % (hemi),
                                          json_file=json_file,
                                          output_dir=output_dir,
                                          sample_rate=sample_rate,
