@@ -44,6 +44,7 @@ def do_usage(args, error_msg=None):
 
 
 def do_export(*args):
+    raise NotImplementedError("Broken in the refactor.")
     if len(args) > 3:
         do_usage(args, error_msg="Too many arguments.")
         return

@@ -11,6 +11,7 @@ from ..research.data import get_all_data
 
 
 def do_upload(*args):
+    raise NotImplementedError('Broken in refactor.')
     if len(args) > 0:
         # Someone told us about an existing csv
         csv_file = args[0]
@@ -30,7 +31,6 @@ def do_upload(*args):
     sess = PINGSession()
     sess.login()
     sess.upload_user_spreadsheet(csv_file)
-
 
 if __name__ == '__main__':
     import sys
