@@ -110,20 +110,14 @@ def do_roygbiv(prefix, key,
             web_dir = os.path.join(rgb_dir, '..', 'web')
             app = roygbiv.server.make_server(data_dir=data_dir)
 
-            @app.route('/<path:dataset>/<path:atlas>/<path:surface>/<path:prefix>/data/<path:path>')
-            def send_data_specific_new(dataset, atlas, surface, prefix, path):
-                if path.endswith('json'):
-                    fn = os.path.basename(path)
-                    path = os.path.join(os.path.dirname(path), prefix + fn)
-                cur_dir = os.path.join(data_dir, dataset, atlas, surface)
-                print cur_dir, path
+            @app.route('/data/<path:path>')
+            def send_data_specific_new(path):
                 return send_from_directory(cur_dir, path)
 
-            @app.route('/<path:dataset>/<path:atlas>/<path:surface>/<path:prefix>/<path:html_file>')
+            @app.route('/<path:dataset>/<path:atlas>/<path:surface>/<path:html_file>')
             def send_allspecific_new(dataset, atlas, surface, prefix, html_file):
                 if html_file == '':
                     html_file = 'index'
-                print web_dir, html_file
                 return send_from_directory(web_dir, html_file)
 
             app.run()
