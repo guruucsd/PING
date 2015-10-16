@@ -21,13 +21,13 @@ from ..research.plotting import show_plots
 
 def do_similarity(prefixes, metric='partial-correlation', measures=None,
                   atlas='desikan', username=None, passwd=None,
-                  output_format='matplotlib', output_dir=None):
+                  output_format='matplotlib', data_dir='data', output_dir='data'):
 
     # Get prefix
     prefix_filter_fn = lambda k, v: np.any([k.startswith(p) for p in prefixes])
 
     # Load and filter the data
-    p_data = get_all_data(atlas, username=username, passwd=passwd)
+    p_data = get_all_data(atlas, username=username, passwd=passwd, data_dir=data_dir)
     p_data.filter(prefix_filter_fn)
 
     # Determine filters for selecting the similarity groupings.
@@ -93,7 +93,7 @@ if __name__ == '__main__':
                                "matrix with LH/RH structural covariance matrices.",
                                common_args=['prefixes',
                                             'atlas', 'username', 'passwd',
-                                            'output-dir'])
+                                            'data-dir', 'output-dir'])
     parser.add_argument('metric', choices=['correlation', 'partial-correlation'],
                         nargs='?', default='partial-correlation')
     parser.add_argument('measures', choices=['Left Hemisphere',

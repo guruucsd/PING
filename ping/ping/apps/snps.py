@@ -23,18 +23,23 @@ class PINGSNPSession(PINGSession):
     as well as download user-data for specific snps.
     """
 
-    genes_metadata_file = 'data/genes/PING_gene_annotate.json'
-    SNP_metadata_file = 'data/genes/PING_SNPs.txt'
+    genes_metadata_file = 'genes/PING_gene_annotate.json'
+    SNP_metadata_file = 'genes/PING_SNPs.txt'
     SNP_HEADER = ['name', 'chromosome', 'basepair', 'allele1', 'allele2']
     GENE_HEADER = ['name', 'chromosome', 'strand', 'txStart', 'txEnd',
                    'cdsStart', 'cdsEnd', 'geneSymbol', 'description']
+
+    def __init__(self, *args, **kwargs):
+        super(PINGSNPSession, self).__init__(*args, **kwargs)
+        self.genes_metadata_file = os.path.join(self.data_dir, PINGSNPSession.genes_metadata_file)
+        self.SNP_metadata_file = os.path.join(self.data_dir, PINGSNPSession.SNP_metadata_file)
 
     def get_genes_dict(self):
         global GENES
         if GENES is None:
             if not os.path.exists(self.genes_metadata_file):
-                self.log("Downloading PING genes metadata...")
-                self.download_file('data/PING/data_uncorrected/SNPs/PING_gene_annotate.json',
+                self.log("Downloading PING genes metadata to %s..." % self.data_dir)
+                self.download_file(os.path.join(self.data_dir, 'PING/data_uncorrected/SNPs/PING_gene_annotate.json'),
                                    out_file=self.genes_metadata_file)
             GENES = simplejson.load(open(self.genes_metadata_file, 'r'))
             GENES = np.asarray(GENES['data'])
@@ -55,7 +60,7 @@ class PINGSNPSession(PINGSession):
         # Prep a stream of the SNP info
         if not os.path.exists(self.SNP_metadata_file):
             self.log("Downloading PING SNP metadata...")
-            self.download_file('data/PING/data_uncorrected/SNPs/PING_SNPs.txt',
+            self.download_file(os.path.join(self.data_dir, 'PING/data_uncorrected/SNPs/PING_SNPs.txt'),
                                out_file=self.SNP_metadata_file)
         snp_reader = csv.reader(open(self.SNP_metadata_file, 'r'))
         next(snp_reader)  # skip header
@@ -75,7 +80,7 @@ class PINGSNPSession(PINGSession):
         import re
 
         matches = []
-        for csv_file in glob.glob('results/gwas/*.csv'):
+        for csv_file in glob.glob(os.path.join(self.data_dir, 'gwas/*.csv')):
             with open(csv_file, 'r') as fp:
                 for line in fp:
                     if re.search(snp, line):
@@ -144,7 +149,7 @@ class PINGSNPSession(PINGSession):
                    for s in all_snps]
         snp_txt = self.download_file('applications/SNPs/download.php?_v=&project_name={project_name}&snps=%s' % (
                                          '%0A'.join(snp_ids)),
-                                     out_file='data/snps/%s.csv' % '_'.join(snp_ids))
+                                     out_file=os.path.join(self.data_dir, 'snps', '%s.csv' % '_'.join(snp_ids)))
 
         lines = snp_txt.split(' ')[4:]
         header = lines[0]

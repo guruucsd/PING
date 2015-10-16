@@ -92,7 +92,7 @@ class GWASSession(PINGSession):
         else:
             self.log(resp.text)
 
-    def launch_and_retrieve_run(self, measure, covariates=['Age_At_IMGExam'], output_dir='results/gwas'):
+    def launch_and_retrieve_run(self, measure, covariates=['Age_At_IMGExam']):
         result_id = self.launch_run(measure=measure, covariates=covariates)
-        results = self.get_results(measure=measure, force=True, raw=True, output_dir=output_dir)
+        results = self.get_results(measure=measure, force=True, raw=True, output_dir=self.data_dir)
         return results[-1]

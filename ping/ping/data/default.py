@@ -26,7 +26,9 @@ class PINGData(object):
                       'DTI_fiber_FA', 'DTI_fiber_LD', 'DTI_fiber_TD']
 
     def __init__(self, data=None, scrub_keys=False, scrub_values=True,
-                 csv_path=None, username=None, passwd=None, force=False):
+                 csv_path=None, username=None, passwd=None, force=False,
+                 data_dir='data'):
+
         if data is not None:
             # User specified data directly.
             pass
@@ -37,7 +39,7 @@ class PINGData(object):
 
         else:
             # Get the PING raw data (download if necessary)
-            csv_path = csv_path or os.path.join('data', 'PING_raw_data.csv')
+            csv_path = csv_path or os.path.join(data_dir, 'PING_raw_data.csv')
 
             # Download data
             sess = PINGSession(username=username, passwd=passwd)

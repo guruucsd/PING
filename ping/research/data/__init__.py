@@ -167,10 +167,14 @@ known_data = dict(desikan=dict(klass=PINGData),
                   destrieux=dict(klass=DestrieuxData))
 
 def get_all_data(all_data='desikan', filter_fns=None, verbose=0,
-                 username=None, passwd=None):
+                 username=None, passwd=None, data_dir=None):
+    kwargs = dict(username=username, passwd=passwd)
+    if data_dir is not None:
+        kwargs['data_dir'] = data_dir
+
     if inspect.isclass(all_data):
         data_klass = all_data
-        all_data = data_klass(username=username, passwd=passwd)
+        all_data = data_klass(**kwargs)
     elif isinstance(all_data, string_types):
         dataset_name = all_data
         global known_data
@@ -179,7 +183,7 @@ def get_all_data(all_data='desikan', filter_fns=None, verbose=0,
         else:
             if not known_data[dataset_name].get('data'):
                 data_klass = known_data[dataset_name]['klass']
-                known_data[dataset_name]['data'] = data_klass(username=username, passwd=passwd)
+                known_data[dataset_name]['data'] = data_klass(**kwargs)
             all_data = known_data[dataset_name]['data']
     else:
         raise NotImplementedError()  # assume it's data.

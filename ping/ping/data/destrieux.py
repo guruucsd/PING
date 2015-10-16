@@ -189,12 +189,13 @@ class DestrieuxData(PINGData):
         ])
 
     def __init__(self, data=None, scrub_keys=False, scrub_values=True,
-                 csv_path=None, username=None, passwd=None, force=False):
+                 csv_path=None, username=None, passwd=None, force=False,
+                 data_dir='data'):
         super(DestrieuxData, self).__init__(data=data, scrub_keys=scrub_keys,
                                             scrub_values=scrub_values,
                                             csv_path=csv_path, username=username,
                                             passwd=passwd, force=force)
-        atlas_dir = os.path.join('data', 'Destrieux_atlas_parcels')
+        atlas_dir = os.path.join(data_dir, 'Destrieux_atlas_parcels')
         if data is not None:
             pass
         elif not os.path.exists(atlas_dir):

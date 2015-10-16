@@ -248,9 +248,10 @@ def loop_show_asymmetry(prefix,
                         plots='regressions',
                         atlas='desikan',
                         username=None,
-                        passwd=None):
+                        passwd=None,
+                        data_dir='data'):
     """ Loop over all properties to show asymmetry."""
-    data = get_all_data(atlas, username=username, passwd=passwd)
+    data = get_all_data(atlas, username=username, passwd=passwd, data_dir)
     data.filter(lambda k, v: 'fuzzy' not in k)  # Remove 'fuzzy'
     data.filter([partial(lambda k, v, p: (k.startswith(p) or
                                           k in grouping_keys or
@@ -308,7 +309,8 @@ if __name__ == '__main__':
 
     parser = ResearchArgParser(description="Produce plots for each group.",
                                common_args=['prefix',
-                                            'atlas', 'username', 'passwd'])
+                                            'atlas', 'username', 'passwd',
+                                            'data-dir', 'output-dir'])
     parser.add_argument('grouping_keys', choices=['Gender', 'FDH_23_Handedness_Prtcpnt'])
     parser.add_argument('xaxis_key', help="spreadsheet value to regress against.",
                         nargs='?', default='Age_At_IMGExam')

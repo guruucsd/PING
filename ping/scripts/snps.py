@@ -12,8 +12,8 @@ from ..research.apps import ResearchArgParser
 
 
 def do_snps(action, snp, output_format='print',
-            output_dir='.', username=None, passwd=None):
-    sess = PINGSNPSession(username=username, passwd=passwd)
+            data_dir='.', output_dir='.', username=None, passwd=None):
+    sess = PINGSNPSession(username=username, passwd=passwd, data_dir=data_dir)
 
     print("Loading SNPS...")
     snp_metadata = sess.get_snp_metadata(snp)
@@ -45,10 +45,10 @@ def do_snps(action, snp, output_format='print',
 
 
 def do_genes(action, gene, output_format='print',
-             output_dir='.', username=None, passwd=None):
+             data_dir='.', output_dir='.', username=None, passwd=None):
 
     # gene => SNP mapping
-    sess = PINGSNPSession(username=username, passwd=passwd)
+    sess = PINGSNPSession(username=username, passwd=passwd, data_dir=data_dir)
 
     # Find matching genes
     print("Loading genes...")
@@ -102,7 +102,7 @@ def do_snps_datadump(action, snp_gene, output_format='print',
 if __name__ == '__main__':
 
     parser = ResearchArgParser(description="Show SNP=>gene or gene=>SNP mappings.",
-                               common_args=['username', 'passwd', 'output-dir'])
+                               common_args=['username', 'passwd', 'data-dir', 'output-dir'])
     parser.add_argument('action', choices=['view', 'download'])
     parser.add_argument('snp_gene', metavar="snp/gene",
                         help="case-sensitive text label; if it starts with"

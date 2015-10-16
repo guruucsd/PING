@@ -26,9 +26,10 @@ def get_chromosome_locations(snp_metadata):
 
 
 def do_gwas(action, measures, covariates=None, output_format=None,
-            output_dir='data', force=False, username=None, passwd=None):
+            data_dir='data', output_dir='data', force=False,
+            username=None, passwd=None):
 
-    sess = GWASSession(username=username, passwd=passwd)
+    sess = GWASSession(username=username, passwd=passwd, data_dir=data_dir)
     sess.login()
 
     # Get the data
@@ -44,7 +45,7 @@ def do_gwas(action, measures, covariates=None, output_format=None,
         raw_data = None
 
     # Get
-    _, snp_metadata = snps_script.do_genes(action='view', gene='all', output_format='json', output_dir=output_dir)
+    _, snp_metadata = snps_script.do_genes(action='view', gene='all', output_format='json', data_dir=data_dir, output_dir=output_dir)
 
     # Dump to json
     if raw_data is not None:
@@ -92,7 +93,8 @@ def do_gwas(action, measures, covariates=None, output_format=None,
 if __name__ == '__main__':
     parser = ResearchArgParser(description="Launch or view results of"
                                " a GWAS on the PING dataset.\n",
-                               common_args=['username', 'passwd', 'force', 'output-dir'])
+                               common_args=['username', 'passwd', 'force',
+                                            'data-dir', 'output-dir'])
     parser.add_argument('action', choices=['display', 'launch'])
     parser.add_argument('measures', help="comma-separated list of "
                         "measures from the PING database,"

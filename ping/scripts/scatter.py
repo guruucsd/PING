@@ -228,7 +228,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
 
 def do_scatter(prefixes, x_key, y_key, size_key=None, color_key=None,
                atlas='desikan', username=None, passwd=None,
-               output_format='matplotlib', output_dir=None):
+               output_format='matplotlib', data_dir='data', output_dir='data'):
 
     y_key = y_key.split(',')
     size_key = size_key.split(',') if size_key else size_key
@@ -236,7 +236,7 @@ def do_scatter(prefixes, x_key, y_key, size_key=None, color_key=None,
 
     # Load the data (should group, but ... later.),
     # then filter by prefix
-    data = get_all_data(atlas, username=username, passwd=passwd)
+    data = get_all_data(atlas, username=username, passwd=passwd, data_dir=data_dir)
     data = data.filter(lambda k, v: np.any([k.startswith(p) for p in prefixes]))
 
     if size_key is not None:

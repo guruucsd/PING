@@ -44,6 +44,10 @@ class PINGArgParser(ArgumentParser):
                 self.add_argument('--%s' % arg, type=bool, default=False,
                                   nargs='?', choices=[False, True])
 
+            elif arg in ['data-dir']:
+                self.add_argument('--%s' % arg,
+                                  nargs='?', default=os.path.join(os.getcwd(), 'data'))
+
             elif arg in ['out-dir', 'output-dir']:
                 self.add_argument('--%s' % arg,
                                   nargs='?', default=os.path.join(os.getcwd(), 'data'))
@@ -58,13 +62,14 @@ class PINGSession(object):
     project_name = 'PING'
     base_url = 'https://ping-dataportal.ucsd.edu/'
 
-    def __init__(self, username=None, passwd=None, verbose=1):
+    def __init__(self, username=None, passwd=None, verbose=1, data_dir='data'):
         self.username = username or self.env_username()
         self.passwd = passwd or self.env_passwd()
 
         self.sess = None
         self.result_ids = None  # current dictionary of result IDs
         self.verbose = verbose  # level of output
+        self.data_dir = data_dir  # download location
 
     @classmethod
     def env_username(klass):
@@ -188,7 +193,7 @@ smoothing.interaction = ""
 
         for dict_num, field_name in zip([1, 2], ['Name', 'variable']):
             # Download and load the data dictionary.
-            out_file_dict = 'data/dict/PING_datadictionary0%d.csv' % dict_num
+            out_file_dict = os.path.join(self.data_dir, 'dict/PING_datadictionary0%d.csv' % dict_num)
             if not os.path.exists(out_file_dict):
                 self.login()
                 self.download_file(

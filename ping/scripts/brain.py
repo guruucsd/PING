@@ -34,11 +34,11 @@ def do_roygbiv(prefix, key,
                atlas='desikan', username=None, passwd=None,
                output_format='json', subjects_dir=os.environ.get('SUBJECTS_DIR'),
                surface_type='pial', hemi='lh', subject='fsaverage',
-               sample_rate=1., force=False, output_dir='data'):
+               sample_rate=1., force=False, data_dir='data', output_dir='data'):
 
     # Load the data (should group, but ... later.),
     # then filter by prefix
-    data = get_all_data(atlas, username=username, passwd=passwd)
+    data = get_all_data(atlas, username=username, passwd=passwd, data_dir=data_dir)
     data = data.filter(lambda k, v: np.any([k.startswith(p)
                                             for p in prefix.split(',')]))
     data = data.filter(lambda k, v: 'fuzzy' not in k)
@@ -108,7 +108,7 @@ def do_roygbiv(prefix, key,
             data_dir = os.path.abspath('data')
             rgb_dir = os.path.dirname(os.path.abspath(roygbiv.__file__))
             web_dir = os.path.join(rgb_dir, '..', 'web')
-            app = roygbiv.server.make_server(data_dir=data_dir)
+            app = roygbiv.server.make_server(data_dir=output_dir)
 
             @app.route('/data/<path:path>')
             def send_data_specific_new(path):
@@ -132,7 +132,7 @@ if __name__ == '__main__':
                                " optionally control marker size and color.",
                                common_args=['prefix', 'key',
                                             'atlas', 'hemi',
-                                            'force', 'output-dir'])
+                                            'force', 'data-dir', 'output-dir'])
     parser.add_argument('--sample-rate', nargs='?', default=1.)
     parser.add_argument('--subject', nargs='?', default='fsaverage')
     parser.add_argument('--surface-type', choices=['pial', 'inflated'],
