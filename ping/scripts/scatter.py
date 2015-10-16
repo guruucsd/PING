@@ -207,7 +207,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
             s=kwargs.get('s', 1000) / 1.E5))
         xdr = DataRange1d()
         ydr = DataRange1d()
-        plot = Plot(x_range=xdr, y_range=ydr, title=title)
+        plot = Plot(x_range=xdr, y_range=ydr, name='scatter', title=title)
         circle = Circle(x="x", y="y", radius="s",
                         fill_color=kwargs.get('c', 'blue'),
                         line_color="black")
@@ -228,7 +228,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
 
 def do_scatter(prefixes, x_key, y_key, size_key=None, color_key=None,
                atlas='desikan', username=None, passwd=None,
-               output_format='matplotlib'):
+               output_format='matplotlib', output_dir=None):
 
     y_key = y_key.split(',')
     size_key = size_key.split(',') if size_key else size_key
@@ -267,7 +267,7 @@ def do_scatter(prefixes, x_key, y_key, size_key=None, color_key=None,
                              plotengine=output_format)
         # x_label='Asymmetry Index (mean)', y_label='Asymmetry Index (std)',
 
-        show_plots(output_format, ax=ax)
+        show_plots(output_format, ax=ax, output_dir=output_dir)
 
 
 if __name__ == '__main__':
@@ -277,7 +277,8 @@ if __name__ == '__main__':
                                " arrays, with additional data arrays that"
                                " optionally control marker size and color.",
                                common_args=['prefixes',
-                                            'atlas', 'username', 'passwd'])
+                                            'atlas', 'username', 'passwd',
+                                            'output-dir'])
     parser.add_argument('x_key', choices=ResearchArgParser.axis_choices)
     parser.add_argument('y_key', choices=ResearchArgParser.axis_choices)
     parser.add_argument('size_key', choices=ResearchArgParser.axis_choices,

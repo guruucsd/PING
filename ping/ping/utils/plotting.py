@@ -147,7 +147,8 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None,
                 count=mat.flatten()))
 
         p = figure(x_axis_location="above", tools="resize,hover,save",
-                   x_range=list(reversed(labels)), y_range=labels)
+                   x_range=list(reversed(labels)), y_range=labels,
+                   name='similarity', title='untitled')
         p.plot_width = 800
         p.plot_height = 800
 

@@ -21,7 +21,7 @@ from ..research.plotting import show_plots
 
 def do_similarity(prefixes, metric='partial-correlation', measures=None,
                   atlas='desikan', username=None, passwd=None,
-                  output_format='matplotlib'):
+                  output_format='matplotlib', output_dir=None):
 
     # Get prefix
     prefix_filter_fn = lambda k, v: np.any([k.startswith(p) for p in prefixes])
@@ -85,14 +85,15 @@ def do_similarity(prefixes, metric='partial-correlation', measures=None,
         ax = visualize_similarity_matrices(sim_dict, labels=labels,
                                            class_labels=class_labels,
                                            output_format=output_format)
-        show_plots(output_format, ax=ax)
+        show_plots(output_format, ax=ax, output_dir=output_dir)
 
 
 if __name__ == '__main__':
     parser = ResearchArgParser(description="Compare asymmetry correlation "
                                "matrix with LH/RH structural covariance matrices.",
                                common_args=['prefixes',
-                                            'atlas', 'username', 'passwd'])
+                                            'atlas', 'username', 'passwd',
+                                            'output-dir'])
     parser.add_argument('metric', choices=['correlation', 'partial-correlation'],
                         nargs='?', default='partial-correlation')
     parser.add_argument('measures', choices=['Left Hemisphere',
