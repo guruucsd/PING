@@ -99,8 +99,9 @@ if __name__ == '__main__':
                                             'Asymmetry Index',
                                             'all'],
                         nargs='?', default='all')
-    parser.add_argument('--output-format', choices=['matplotlib', 'mpld3', 'bokeh', 'json'],
-                        nargs='?', default='matplotlib')
+    parser.add_argument('--output-format', nargs='?', default='matplotlib',
+                        choices=['matplotlib', 'mpld3', 'json',
+                                 'bokeh', 'bokeh-silent'])
     args = parser.parse_args()
     args.measures = args.measures.split(',')
     do_similarity(**vars(args))

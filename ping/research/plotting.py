@@ -13,7 +13,7 @@ def show_plots(plotengine, ax=None, output_dir=None):
         import matplotlib.pyplot as plt
         plt.show()
 
-    elif plotengine == 'bokeh':
+    elif plotengine in ['bokeh', 'bokeh-silent']:
         import bokeh.plotting
         import tempfile
         output_dir = output_dir or tempfile.mkdtemp()
@@ -24,4 +24,5 @@ def show_plots(plotengine, ax=None, output_dir=None):
         if os.path.exists(output_file):
             os.remove(output_file)
         bokeh.plotting.output_file(output_file, title=ax.title, mode='absolute-dev')
-        bokeh.plotting.show(ax)
+        if plotengine == 'bokeh':
+            bokeh.plotting.show(ax)

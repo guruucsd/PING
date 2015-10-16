@@ -96,7 +96,7 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None,
         ax.xaxis.set_ticks_position('none')
         ax.yaxis.set_ticks_position('none')
 
-    elif output_format in ['bokeh']:
+    elif output_format in ['bokeh', 'bokeh-silent']:
         from collections import OrderedDict
         from bokeh.plotting import figure
         from bokeh.models import HoverTool, ColumnDataSource, CustomJS, TapTool

@@ -192,7 +192,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
         plt.axis('tight')
 
         ax.get_figure().suptitle(title, fontsize=24)
-    elif plotengine in ['bokeh']:
+    elif plotengine in ['bokeh', 'bokeh-silent']:
         from bokeh.io import show
         from bokeh.models.glyphs import Circle
         from bokeh.models import (Plot, DataRange1d, LinearAxis, Legend,
@@ -285,7 +285,8 @@ if __name__ == '__main__':
                         nargs='?', default=None)
     parser.add_argument('color_key', choices=ResearchArgParser.axis_choices,
                         nargs='?', default=None)
-    parser.add_argument('--output-format', choices=['matplotlib', 'mpld3', 'bokeh', 'json'],
-                        nargs='?', default='matplotlib')
+    parser.add_argument('--output-format', nargs='?', default='matplotlib',
+                        choices=['matplotlib', 'mpld3', 'json',
+                                 'bokeh', 'bokeh-silent'])
     args = parser.parse_args()
     do_scatter(**vars(args))

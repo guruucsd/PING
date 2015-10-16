@@ -190,7 +190,8 @@ def visualize_similarity_matrices(sim_dict, labels=None, class_labels=None,
         if output_format in ['matplotlib', 'mpld3']:
             plt.tight_layout(h_pad=5)
             ax.set_title(key, fontsize=18)
-        elif output_format in ['bokeh']:
+
+        elif output_format in ['bokeh', 'bokeh-silent']:
             from bokeh.models import HoverTool
             ax.title = key
             ax.title_text_font_size = '18pt'
