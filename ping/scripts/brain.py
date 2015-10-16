@@ -1,4 +1,4 @@
-"""
+i"""
 Various scatter plots
 
 Goal is to have:
@@ -105,9 +105,7 @@ def do_roygbiv(prefix, key,
         roygbiv.add_metadata(out_dict, json_file=json_file, output_dir=output_dir)
 
         if output_format == 'flask':
-            data_dir = os.path.abspath('data')
-            rgb_dir = os.path.dirname(os.path.abspath(roygbiv.__file__))
-            web_dir = os.path.join(rgb_dir, '..', 'web')
+            web_dir = os.path.dirname(os.path.abspath(roygbiv.web))
             app = roygbiv.server.make_server(data_dir=output_dir)
 
             @app.route('/data/<path:path>')
