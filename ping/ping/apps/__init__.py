@@ -50,7 +50,7 @@ class PINGArgParser(ArgumentParser):
 
             elif arg in ['out-dir', 'output-dir']:
                 self.add_argument('--%s' % arg,
-                                  nargs='?', default=os.path.join(os.getcwd(), 'data'))
+                                  nargs='?', default=os.path.join(os.getcwd()))
 
             else:
                 raise ValueError('Unrecognized argument: %s' % arg)
