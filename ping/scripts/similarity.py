@@ -59,7 +59,7 @@ def do_similarity(prefixes, metric='partial-correlation', measures=None,
     labels = []
     class_labels = []
     for ki, key in enumerate(good_keys):
-        class_label, label = [(p, p_data.get_nonhemi_key(key)[(len(p) + 1):])
+        class_label, label = [(p, p_data.get_nonhemi_key(key)[(len(p)):])
                               for p in prefixes
                               if key.startswith(p)][0]
         class_labels.append(class_label[:25])
