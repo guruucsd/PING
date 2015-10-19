@@ -182,19 +182,28 @@ class PINGData(object):
         'bankssts': 'superior temporal sulcus',
         'caudalanteriorcingulate': 'caudal anterior cingulate',
         'caudalmiddlefrontal': 'caudal middle frontal',
+        'cuneus': 'cuneus',
+        'entorhinal': 'entorhinal',
+        'fusiform': 'fusiform',
         'frontalpole': 'frontal pole',
         'inferiorparietal': 'inferior parietal',
         'inferiortemporal': 'inferior temporal',
         'isthmuscingulate': 'isthmus cingulate',
         'lateraloccipital': 'lateral occipital',
         'lateralorbitofrontal': 'lateral orbitofrontal',
+        'lingual': 'lingual',
         'medialorbitofrontal': 'medial orbitofrontal',
         'middletemporal': 'middle temporal',
-        'parahippocampal': 'pars hippocampal',
+        'paracentral': 'paracentral',
+        'parahippocampal': 'parahippocampal',
         'parsopercularis': 'pars opercularis',
         'parsorbitalis': 'pars orbitalis',
         'parstriangularis': 'pars triangularis',
+        'pericalcarine': 'pericalcarine',
+        'postcentral': 'postcentral',
         'posteriorcingulate': 'posterior cingulate',
+        'precentral': 'precentral',
+        'precuneus': 'precuneus',
         'rostralanteriorcingulate': 'rostral anterior cingulate',
         'rostralmiddlefrontal': 'rostral middle frontal',
         'superiorfrontal': 'superior frontal',
@@ -294,7 +303,7 @@ class PINGData(object):
         anat_key = klass.anatomical_name.get(normd_key, normd_key)
         if '_' in str(anat_key):
             # no change
-            import pdb; pdb.set_trace()
+            pass  # import pdb; pdb.set_trace()
         return anat_key
 
     @classmethod
@@ -456,3 +465,10 @@ class PINGData(object):
             return 'lh'
         else:
             return None
+
+    @classmethod
+    def get_roi_key_from_name(klass, anatomical_name):
+        for key, val in klass.anatomical_name.items():
+            if val.startswith(anatomical_name):  # allow partial matches...
+                return key
+        return None
