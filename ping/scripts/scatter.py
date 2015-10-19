@@ -201,9 +201,9 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
             # Interesting if it's outside of some range of values
             is_interesting = lambda v, varr, dist: np.abs(varr.mean() - v) >= dist * varr.std()
 
-            for label, x, y, s in zip(common_keys, kwargs['x'], kwargs['y'], kwargs['s']):
+            for xi, (label, x, y) in enumerate(zip(common_keys, kwargs['x'], kwargs['y'])): # , kwargs['s']):
                 locs = locals()
-                annotations = [key for key, sval in zip(['x', 'y', 's'], [1.35, 1.5, 2])
+                annotations = [key for key, sval in zip(['x', 'y'], [1.35, 1.5])
                                if is_interesting(locs[key], kwargs[key], sval)]
                 if len(annotations) > 0:
                     plt.annotate(
