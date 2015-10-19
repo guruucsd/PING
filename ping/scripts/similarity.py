@@ -63,7 +63,7 @@ def do_similarity(prefixes, metric='partial-correlation', measures=None,
                               for p in prefixes
                               if key.startswith(p)][0]
         class_labels.append(class_label[:25])
-        labels.append(p_data.get_anatomical_name(label)[:25])
+        labels.append(p_data.get_anatomical_name(label))
 
     # Compare matrices (printed)
     compare_similarity_vectors(sim_dict)
@@ -89,6 +89,7 @@ def do_similarity(prefixes, metric='partial-correlation', measures=None,
         ax = visualize_similarity_matrices(sim_dict, labels=labels,
                                            class_labels=class_labels,
                                            output_format=output_format)
+        ax.name = '%s' % ','.join(prefixes)
         show_plots(output_format, ax=ax, output_dir=output_dir)
 
 
