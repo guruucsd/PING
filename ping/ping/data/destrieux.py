@@ -194,7 +194,7 @@ class DestrieuxData(PINGData):
         super(DestrieuxData, self).__init__(data=data, scrub_keys=scrub_keys,
                                             scrub_values=scrub_values,
                                             csv_path=csv_path, username=username,
-                                            passwd=passwd, force=force)
+                                            passwd=passwd, force=force, data_dir=data_dir)
         atlas_dir = os.path.join(data_dir, 'Destrieux_atlas_parcels')
         if data is not None:
             pass

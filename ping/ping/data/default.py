@@ -42,7 +42,7 @@ class PINGData(object):
             csv_path = csv_path or os.path.join(data_dir, 'PING_raw_data.csv')
 
             # Download data
-            sess = PINGSession(username=username, passwd=passwd)
+            sess = PINGSession(username=username, passwd=passwd, data_dir=data_dir)
             if not os.path.exists(csv_path):
                 print("Downloading PING data...")
                 sess.login()
