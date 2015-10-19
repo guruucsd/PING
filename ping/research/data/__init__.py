@@ -5,6 +5,8 @@ import copy
 import inspect
 import os
 
+import matplotlib as mpl
+import matplotlib.cm as cm
 import numpy as np
 import pandas
 from six import string_types
@@ -211,3 +213,25 @@ def get_all_data(all_data='desikan', filter_fns=None, verbose=0,
     out_data.purge_empty_subjects()
 
     return out_data
+
+def strip_prefix(key, prefix):
+    if key.startswith(prefix):
+        return key[len(prefix):]
+    return key
+
+
+def map_colors(values, minval=None, maxval=None):
+    values = np.asarray(values)
+    good_values = values[~np.isnan(values)]
+
+    if maxval is None:
+        maxval = np.max(np.abs(good_values))
+    if minval is None:
+        minval = 0. if np.all(good_values > 0) else -maxval
+    norm = mpl.colors.Normalize(vmin=minval, vmax=maxval)
+
+    cmap = cm.coolwarm
+    m = cm.ScalarMappable(norm=norm, cmap=cmap)
+    colors = [m.to_rgba(val)[0:3] if ~np.isnan(val) else None
+              for val in values]
+    return colors

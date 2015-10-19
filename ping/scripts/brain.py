@@ -13,8 +13,6 @@ function should take keyword args.
 import os
 import simplejson
 
-import matplotlib as mpl
-import matplotlib.cm as cm
 import numpy as np
 from flask import send_from_directory
 from matplotlib import pyplot as plt
@@ -26,7 +24,7 @@ from .scatter import compute_key_data
 from ..ping.analysis.similarity import is_bad_key
 from ..ping.apps import PINGSession
 from ..research.apps import ResearchArgParser
-from ..research.data import get_all_data, keytype2label
+from ..research.data import get_all_data, keytype2label, map_colors, strip_prefix
 from ..research.plotting import show_plots
 
 
@@ -59,22 +57,6 @@ def do_roygbiv(prefix, key,
                                          output_dir=output_dir,
                                          sample_rate=sample_rate,
                                          force=force)
-
-    def strip_prefix(key, prefix):
-        if key.startswith(prefix):
-            return key[len(prefix):]
-        return key
-
-    def map_colors(values):
-        maxval = np.max(np.abs(values))
-        minval = 0. if np.all(values >= 0) else -maxval
-        norm = mpl.colors.Normalize(vmin=minval, vmax=maxval)
-
-        cmap = cm.coolwarm
-        m = cm.ScalarMappable(norm=norm, cmap=cmap)
-        colors = [m.to_rgba(val)[0:3] for val in values]
-
-        return colors
 
     if output_format in ['json', 'flask']:
         assert key == 'AI:mean'
