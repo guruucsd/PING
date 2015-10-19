@@ -21,33 +21,14 @@ from ..research.data import get_all_data
 from ..research.grouping import get_groupings
 
 
-def compare_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys, plots,
-                            measure_key):
-    """ Groups data according to grouping_keys, computes
-    asymmetry index for key, and graphs."""
-
+def compute_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys):
     group_names, grouping_index = get_groupings(data.data_dict, grouping_keys)
-
     x_data = np.asarray(data.data_dict[xaxis_key].tolist())
-    prop_ai = get_asymmetry_index(data, yaxis_key)
+    prop_ai = data.data_dict[yaxis_key]
+    # prop_ai = get_asymmetry_index(data, yaxis_key)
 
-    n_subplots = len(group_names)
-    n_rows = 1  # int(np.round(np.sqrt(n_subplots)))
-    n_cols = n_subplots  # int(np.ceil(n_subplots / float(n_rows)))
-
-    if 'regressions' in plots:
-        fh1 = plt.figure(figsize=(18, 7))
-        # fh1.suptitle('%s regression' % yaxis_key)
-    if 'distributions' in plots:
-        fh2 = plt.figure(figsize=(18, 7))
-        fh2.suptitle('%s distributions' % yaxis_key)
-        n_bins = 15
-        bins = np.linspace(prop_ai[~np.isnan(prop_ai)].min(),
-                           prop_ai[~np.isnan(prop_ai)].max(),
-                           n_bins + 2)[1:-1]
-
-    group_samples = []
-    regressions = []
+    group_x = []
+    group_y = []
     for gi, group_name in enumerate(group_names):
 
         # Index the current group
@@ -66,60 +47,85 @@ def compare_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys, plots,
         cur_x = cur_x[good_idx]
         group_ai = group_ai[good_idx]
 
-        group_samples.append(group_ai)
-        regressions.append(scipy.stats.linregress(cur_x, group_ai))
+        group_x.append(cur_x)
+        group_y.append(group_ai)
+    return group_names, group_x, group_y
+
+
+def plot_regressions(group_names, group_x, group_y):
+    n_subplots = len(group_names)
+    n_rows = 1  # int(np.round(np.sqrt(n_subplots)))
+    n_cols = n_subplots  # int(np.ceil(n_subplots / float(n_rows)))
+
+    fh1 = plt.figure(figsize=(18, 7))
+    # fh1.suptitle('%s regression' % yaxis_key)
+
+    regressions = []
+    for gi, (group_name, gx, gy) in enumerate(zip(group_names, group_x, group_y)):
+        regressions.append(scipy.stats.linregress(gx, gy))
 
         # Plot the regression result
         params = dict(xlabel=xaxis_key, ylabel='Asymmetry Index (LH - RH)',
-                      title='Group: %s (n=%d)' % (group_name, len(group_ai)))
-
-        if 'regressions' in plots:
-            if gi > 0:
-                del params['ylabel']
-            # ax1 = fh1.add_subplot(n_rows, n_cols, gi + 1)
-            ax1 = fh1.gca()
-            do_and_plot_regression(cur_x, group_ai, ax=ax1, colori=gi,
-                                   show_std=(len(cur_x) > 200), **params)
-            ax1.set_title(measure_key)  # ax1.get_title().split('\n')[0])
-
-        # Plot the distribution result
-        if 'distributions' in plots:
-            ax2 = fh2.add_subplot(n_rows, n_cols, gi + 1)
-            plot_normalized_hist(group_ai, ax2, bins=bins)
-            ax2.set_title(params['title'])
-            ax2.set_xlabel(params['ylabel'])
-            ax2.set_ylims([0, 0.25])
+                      title='Group: %s (n=%d)' % (group_name, len(gy)))
+        if gi > 0:
+            del params['ylabel']
+        # ax1 = fh1.add_subplot(n_rows, n_cols, gi + 1)
+        ax1 = fh1.gca()
+        do_and_plot_regression(gx, gy, ax=ax1, colori=gi,
+                               show_std=(len(cur_x) > 200), **params)
+        ax1.set_title(measure_key)  # ax1.get_title().split('\n')[0])
     regressions = np.asarray(regressions)
+    ax1.legend(group_names)
+    return regressions
 
+
+def plot_distributions(group_names, group_x, group_y, xaxis_key, yaxis_key, n_bins=15):
+    n_subplots = len(group_names)
+    n_rows = 1  # int(np.round(np.sqrt(n_subplots)))
+    n_cols = n_subplots  # int(np.ceil(n_subplots / float(n_rows)))
+
+    fh2 = plt.figure(figsize=(18, 7))
+    fh2.suptitle('%s distributions' % yaxis_key)
+    bins = np.linspace(np.asarray([ys.min() for ys in group_y]).min(),
+                       np.asarray([ys.max() for ys in group_y]).max(),
+                       n_bins + 2)[1:-1]
+
+    for gi, (group_name, gx, gy) in enumerate(zip(group_names, group_x, group_y)):
+        # Plot the regression result
+        params = dict(xlabel=xaxis_key, ylabel='Asymmetry Index (LH - RH)',
+                      title='Group: %s (n=%d)' % (group_name, len(gy)))
+
+        # Plot the regression result
+        ax2 = fh2.add_subplot(n_rows, n_cols, gi + 1)
+        plot_normalized_hist(gy, ax2, bins=bins)
+        ax2.set_title(params['title'])
+        ax2.set_xlabel(params['ylabel'])
+        ax2.set_ylim([0, 0.25])
+    equalize_xlims(fh2)
+    equalize_ylims(fh2)
+
+
+def do_stats(group_names, group_x, group_y):
     # stats[:, n]: 0:mean_stat: 1:mean_pval; 2:std_stat, 3:std_pval
     # shape: n_compares x 4
     stats = np.asarray([(scipy.stats.ttest_ind(gsamps1, gsamps2) +
                          scipy.stats.levene(gsamps1, gsamps2))
-                        for gi, gsamps1 in enumerate(group_samples)
-                        for gsamps2 in group_samples[gi + 1:]])
+                        for gi, gsamps1 in enumerate(group_y)
+                        for gsamps2 in group_y[gi + 1:]])
 
     # Test whether variances differ
-    if 'stats' in plots:
-        dist_mat = scipy.spatial.distance.squareform(stats[:, 2])
-        sig_mat = stats[:, 3] <= (0.05 / stats.shape[0])
+    dist_mat = scipy.spatial.distance.squareform(stats[:, 2])
+    sig_mat = stats[:, 3] <= (0.05 / stats.shape[0])
 
-        fh3 = plt.figure()
-        fh3.suptitle(str(['%.2e' % s for s in stats[:, 3]]))
+    fh3 = plt.figure()
+    fh3.suptitle(str(['%.2e' % s for s in stats[:, 3]]))
 
-        ax1 = fh3.add_subplot(1, 2, 1)
-        plot_symmetric_matrix_as_triangle(dist_mat, ax=ax1, labels=group_names)
+    ax1 = fh3.add_subplot(1, 2, 1)
+    plot_symmetric_matrix_as_triangle(dist_mat, ax=ax1, labels=group_names)
 
-        ax2 = fh3.add_subplot(1, 2, 2, axisbg=fh3.get_facecolor())
-        plot_symmetric_matrix_as_triangle(sig_mat, ax=ax2, labels=group_names)
+    ax2 = fh3.add_subplot(1, 2, 2, axisbg=fh3.get_facecolor())
+    plot_symmetric_matrix_as_triangle(sig_mat, ax=ax2, labels=group_names)
 
-    if 'distributions' in plots:
-        equalize_xlims(fh2)
-        equalize_ylims(fh2)
-
-    if 'regressions' in plots:
-        ax1.legend(group_names)
-
-    return group_names, stats, regressions, group_samples
 
 
 def dump_regressions_csv(regressions, group_names, measure_names):
@@ -242,67 +248,51 @@ def plot_stat_distributions(stats, group_names):
     ax2.legend(group_names)
 
 
-def loop_show_asymmetry(prefix,
-                        grouping_keys=['Gender', 'FDH_23_Handedness_Prtcpnt'],
-                        xaxis_key='Age_At_IMGExam',
-                        plots='regressions',
-                        atlas='desikan',
-                        username=None,
-                        passwd=None,
-                        data_dir='data'):
+def do_grouping(prefixes, grouping_keys, xaxis_key='Age_At_IMGExam',
+                plots='regressions',
+                atlas='desikan', username=None, passwd=None,
+                data_dir='data', output_dir='.', output_type='matplotlib'):
     """ Loop over all properties to show asymmetry."""
-    data = get_all_data(atlas, username=username, passwd=passwd, data_dir)
+
+    data = get_all_data(atlas, username=username, passwd=passwd, data_dir=data_dir)
     data.filter(lambda k, v: 'fuzzy' not in k)  # Remove 'fuzzy'
     data.filter([partial(lambda k, v, p: (k.startswith(p) or
                                           k in grouping_keys or
                                           k == xaxis_key),
                          p=p)
-                 for p in prefix])
+                 for p in prefixes])
 
     # Process & plot the data.
-    stats = []
-    regressions = []
-    group_samples = []
-    measure_keys = list(set([data.get_nonhemi_key(k) for k in data.data_dict.keys()]) - set(grouping_keys) - set([xaxis_key]))
-    for pi, key in enumerate(sorted(measure_keys)):
-        print("Comparing %d (%s)..." % (pi, key))
-        gn, ss, rv, gs = compare_group_asymmetry(data, xaxis_key=xaxis_key,
-                                                 yaxis_key=key, plots=plots,
-                                                 grouping_keys=grouping_keys,
-                                                 measure_key=key)
-        stats.append(ss)
-        regressions.append(rv)
-        group_samples.append(gs)
+    measure_keys = [(k) for k in data.data_dict.keys()
+                        if k.startswith(p) and k.endswith('_AI')]
+    for pi, yaxis_key in enumerate(sorted(measure_keys)):
+        print("Comparing %d (%s)..." % (pi, yaxis_key))
 
+        kwargs = dict(xaxis_key=xaxis_key, yaxis_key=yaxis_key)
+        group_names, group_x, group_y = compute_group_asymmetry(data, grouping_keys=grouping_keys, **kwargs)
+
+        kwargs.update(dict(group_names=group_names, group_x=group_x, group_y=group_y))
+        if 'regressions' in plots:
+            plot_regressions(**kwargs)
+        if 'distributions' in plots:
+            plot_distributions(**kwargs)
+        if 'stats' in plots:
+            do_stats(group_names, group_x, group_y)
+
+    # Outside of loop
     if 'regression_stats' in plots:
         dump_regressions_csv(regressions,
-                             group_names=gn,
+                             group_names=group_names,
                              measure_names=measure_keys)
 
         plot_regressions_scatter(regressions,
-                                 group_names=gn,
+                                 group_names=group_names,
                                  measure_names=measure_keys)
 
     if 'stat_distributions' in plots:
-        plot_stat_distributions(stats, group_names=gn)
+        plot_stat_distributions(stats, group_names=group_names)
 
     plt.show()
-
-
-def do_grouping(prefix, grouping_keys, xaxis_key='Age_At_IMGExam',
-                plots='regressions',
-                atlas='desikan', username=None, passwd=None):
-    prefix = prefix.split(',')
-    grouping_keys = grouping_keys.split(',')
-    plots = plots.split(',')
-
-    loop_show_asymmetry(prefix=prefix,
-                        grouping_keys=grouping_keys,
-                        xaxis_key=xaxis_key,
-                        plots=plots,
-                        atlas=atlas,
-                        username=username,
-                        passwd=passwd)
 
 
 if __name__ == '__main__':
