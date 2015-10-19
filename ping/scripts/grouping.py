@@ -306,18 +306,23 @@ def do_grouping(prefix, grouping_keys, xaxis_key='Age_At_IMGExam',
 
 
 if __name__ == '__main__':
-
     parser = ResearchArgParser(description="Produce plots for each group.",
-                               common_args=['prefix',
+                               common_args=['prefixes',
                                             'atlas', 'username', 'passwd',
                                             'data-dir', 'output-dir'])
     parser.add_argument('grouping_keys', choices=['Gender', 'FDH_23_Handedness_Prtcpnt'])
-    parser.add_argument('xaxis_key', help="spreadsheet value to regress against.",
+    parser.add_argument('--xaxis_key', help="spreadsheet value to regress against.",
                         nargs='?', default='Age_At_IMGExam')
-    parser.add_argument('plots', choices=['regressions', 'distributions',
+    parser.add_argument('--plots', choices=['regressions', 'distributions',
                                           'stats', 'regression_stats',
                                           'stat_distributions'],
                         nargs='?', default='regressions',
                         help="comma-separated list of plots")
+    parser.add_argument('--output-type', choices=['matplotlib'],
+                        nargs='?', default='matplotlib')
+
     args = parser.parse_args()
+    args.grouping_keys = args.grouping_keys.split(',')
+    args.plots = args.plots.split(',')
+
     do_grouping(**vars(args))
