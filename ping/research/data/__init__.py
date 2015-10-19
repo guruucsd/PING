@@ -1,14 +1,15 @@
 """
 """
-import collections
 import copy
 import inspect
 import os
+from collections import OrderedDict
 
 import matplotlib as mpl
 import matplotlib.cm as cm
 import numpy as np
 import pandas
+import simplejson
 from six import string_types
 
 from ..asymmetry import (get_asymmetry_index, get_ai_key,
@@ -31,6 +32,7 @@ def keytype2label(key):
         return 'Asymmetry Index'
     else:
         return key
+
 
 def compute_all_totals(filtered_data):
     """Computes total surface area / volume."""
@@ -168,6 +170,7 @@ def get_derived_data(filtered_data, tag=None, verbose=0):
 known_data = dict(desikan=dict(klass=PINGData),
                   destrieux=dict(klass=DestrieuxData))
 
+
 def get_all_data(all_data='desikan', filter_fns=None, verbose=0,
                  username=None, passwd=None, data_dir=None):
     kwargs = dict(username=username, passwd=passwd)
@@ -213,6 +216,43 @@ def get_all_data(all_data='desikan', filter_fns=None, verbose=0,
     out_data.purge_empty_subjects()
 
     return out_data
+
+
+def dump_to_json(data, json_file, klass):
+    if not np.any([key in data for key in ['names', 'values', 'filenames']]):
+        data = dict(values=data)
+
+    # Ensure the keys are roi keys, not anatomical names.
+    def scrub_keys(d):
+        return OrderedDict([(klass.get_roi_key_from_name(k), v)
+                            for k, v in d.items()])
+    for key, vals in data.items():
+        data[key] = scrub_keys(vals)
+
+        # Two levels deep
+        val0 = data[key].values()[0]
+        if isinstance(val0, dict):
+            data[key] = OrderedDict([(k, scrub_keys(v)) for k, v in data[key].items()])
+    roi_keys = data['values'].keys()
+
+    if 'names' not in data:
+        roi_names = [klass.get_anatomical_name(key) for key in roi_keys]
+        data['names'] = OrderedDict(zip(roi_keys, roi_names))
+
+    if 'colors' not in data and 'values' in data:
+        val0 = data['values'].values()[0]
+        if isinstance(val0, dict):
+            maxval = np.max(np.asarray([np.abs(np.asarray(val.values())).max()
+                            for val in data['values'].values()]))
+            colors = OrderedDict([(key, dict(zip(val.keys(), map_colors(val.values(), maxval=maxval))))
+                                  for key, val in data['values'].items()])
+        else:
+            colors = map_colors(data['values'].values())
+        data['colors'] = colors
+
+    with open(json_file, 'w') as fp:
+        simplejson.dump(data, fp)
+
 
 def strip_prefix(key, prefix):
     if key.startswith(prefix):

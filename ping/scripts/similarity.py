@@ -15,7 +15,7 @@ from ..ping.analysis.similarity import (compare_similarity_vectors,
 from ..ping.apps import PINGSession
 from ..research.apps import ResearchArgParser
 from ..research.asymmetry import is_ai_key
-from ..research.data import get_all_data
+from ..research.data import get_all_data, dump_to_json
 from ..research.plotting import show_plots
 
 
@@ -69,14 +69,20 @@ def do_similarity(prefixes, metric='partial-correlation', measures=None,
     compare_similarity_vectors(sim_dict)
 
     if output_format in ['json']:
-        # Dump as json
-        for ki, val in enumerate(sim_dict.values()):
-            json_file = '%s_%02d.json' % (','.join(prefixes), ki)
+        # Dump each prefix separately
+        for ki, sim_mat in enumerate(sim_dict.values()):
+            json_file = '%s.json' % (','.join(prefixes))
+            json_file = os.path.join(output_dir, json_file)
+
+            if sim_mat.ndim == 1:
+                sim_mat = scipy.spatial.distance.squareform(sim_mat)
+            sim_mat[np.eye(sim_mat.shape[0], dtype=bool)] = 0
+
             out_dict = dict()
             for li, lbl in enumerate(labels):
-                out_dict[lbl] = dict(zip(labels, val[li]))
-        with open(json_file, 'wb') as fp:
-            simplejson.dump(out_dict, fp)
+                out_dict[lbl] = dict(zip(labels, sim_mat[li]))
+
+            dump_to_json(out_dict, json_file, klass=p_data.__class__)
 
     else:
         #  Display the similarity matrices.
