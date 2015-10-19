@@ -296,6 +296,7 @@ def do_scatter(prefixes, x_key, y_key, size_key=None, color_key=None,
                              title=', '.join([data.prefix2text(p)
                                               for p in prefixes]),
                              plotengine=output_format)
+        ax.name = '%s-%s-%s-scatter' % (x_key, ','.join(y_key), size_key and ',s'.join(size_key) or 'nosz')
         # x_label='Asymmetry Index (mean)', y_label='Asymmetry Index (std)',
 
         show_plots(output_format, ax=ax, output_dir=output_dir)
