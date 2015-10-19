@@ -18,6 +18,7 @@ from six import string_types
 
 from ..ping.analysis.similarity import is_bad_key
 from ..ping.apps import PINGSession
+from ..ping.data import prefix2measure
 from ..research.apps import ResearchArgParser
 from ..research.data import get_all_data, keytype2label
 from ..research.plotting import show_plots
@@ -28,29 +29,40 @@ def parse_scatter_key(key):
     if len(parts) == 2:
         return dict(zip(('suffix', 'operator'), parts))
     elif len(parts) == 3:
-        return dict(zip(('prefix', 'suffix', 'operator'), parts))
+        d = dict(zip(('prefix', 'suffix', 'operator'), parts))
+        d['quantity'] = prefix2measure(d['prefix'])
+        return d
     else:
         raise Exception("Unexpected key format: %s" % key)
 
 
 def compute_scatter_label(key, part=None):
+    # part: part of key to return
     if key is None:
-        return
-    elif isinstance(key, string_types):
-        key_type = keytype2label(parse_scatter_key(key)['suffix'])
+        return None
+
+    if isinstance(key, string_types):
+        parts = parse_scatter_key(key)
+        quantity = parts.get('quantity', None)
+        key_type = keytype2label(parts['suffix'])
         method = parse_scatter_key(key)['operator']
-        if part is None:
-           return '%s (%s)' % (key_type, method)
-        elif part == 'key_type':
+
+        if part == 'quantity':
+            return quantity
+        if part == 'key_type':
             return key_type
-        elif part == 'method':
+        if part == 'method':
             return method
-        else:
-            raise NotImplementedError("Unrecognized part: %s" % part)
-    elif len(key) == 1:
+        if part is None and quantity:
+           return '%s (%s %s)' % (quantity, method, key_type)
+        if part is None:
+           return '%s %s' % (method, key_type)
+        raise NotImplementedError("Unrecognized part: %s" % part)
+
+    # Lists
+    if len(key) == 1:
         return compute_scatter_label(key[0], part=part)
-    else:
-        return [compute_scatter_label(k, part=part) for k in key]
+    return [compute_scatter_label(k, part=part) for k in key]
 
 
 def compute_key_data(data, key):
