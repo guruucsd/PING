@@ -18,7 +18,38 @@ from ..ping.utils.plotting import (plot_symmetric_matrix_as_triangle,
 from ..research.apps import ResearchArgParser
 from ..research.asymmetry import get_asymmetry_index
 from ..research.data import get_all_data
-from ..research.grouping import get_groupings
+from ..research.plotting import show_plots
+
+
+def get_groupings(data, grouping_keys):
+    """ Group data by the unique values of `grouping_key`"""
+
+    if not isinstance(grouping_keys, list):
+        grouping_keys = [grouping_keys]
+
+    # Group
+    grouping_index = group_names = []
+    for gpn in grouping_keys:
+        grouping_data = np.asarray(data[gpn].tolist())
+        if grouping_data.dtype == float:
+            grouping_data = np.round(grouping_data).astype(int)
+        prop_groups = (set(np.unique(grouping_data)) -
+                       set(['Not yet established', 'nan']))
+        prop_groups = np.asarray(list(prop_groups))
+        n_prop_group = len(prop_groups)
+
+        if len(group_names) == 0:
+            group_names = prop_groups.tolist()
+            grouping_index = [grouping_data == pg for pg in prop_groups]
+        else:
+            group_names = ['%s_%s' % (g1, pg)
+                           for g1 in group_names
+                           for pg in prop_groups]
+            grouping_index = [np.logical_and(idx1, grouping_data == pg)
+                              for idx1 in grouping_index
+                              for pg in prop_groups]
+
+    return group_names, grouping_index
 
 
 def compute_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys):
