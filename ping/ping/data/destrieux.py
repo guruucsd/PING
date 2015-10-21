@@ -230,3 +230,10 @@ class DestrieuxData(PINGData):
                 new_data['SubjID'] = subj_ids
                 self.merge(new_data)
 
+    @classmethod
+    def prefix2text(klass, prefix):
+        prefixes = {
+            'Destrieux_area.': 'Cortical surface area (mm^2)',
+            'Destrieux_thickness.': 'Cortical thickness (mm)'
+        }
+        return prefixes.get(prefix, super(DestrieuxData, klass).prefix2text(prefix))
