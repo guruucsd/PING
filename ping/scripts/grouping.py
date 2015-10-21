@@ -83,7 +83,9 @@ def compute_group_asymmetry(data, xaxis_key, yaxis_key, grouping_keys):
     return group_names, group_x, group_y
 
 
-def plot_regressions(group_names, group_x, group_y):
+def plot_regressions(group_names, group_x, group_y, plotengine='matplotlib',
+                     xaxis_key=None, yaxis_key=None):
+
     n_subplots = len(group_names)
     n_rows = 1  # int(np.round(np.sqrt(n_subplots)))
     n_cols = n_subplots  # int(np.ceil(n_subplots / float(n_rows)))
@@ -100,11 +102,12 @@ def plot_regressions(group_names, group_x, group_y):
                       title='Group: %s (n=%d)' % (group_name, len(gy)))
         if gi > 0:
             del params['ylabel']
-        # ax1 = fh1.add_subplot(n_rows, n_cols, gi + 1)
+        ax1 = fh1.add_subplot(n_rows, n_cols, gi + 1)
         ax1 = fh1.gca()
         do_and_plot_regression(gx, gy, ax=ax1, colori=gi,
-                               show_std=(len(cur_x) > 200), **params)
-        ax1.set_title(measure_key)  # ax1.get_title().split('\n')[0])
+                               show_std=(len(gx) > 200),
+                               plotengine=plotengine, **params)
+        #ax1.set_title(measure_key)  # ax1.get_title().split('\n')[0])
     regressions = np.asarray(regressions)
     ax1.legend(group_names)
     return regressions
@@ -323,7 +326,7 @@ def do_grouping(prefixes, grouping_keys, xaxis_key='Age_At_IMGExam',
     if 'stat_distributions' in plots:
         plot_stat_distributions(stats, group_names=group_names)
 
-    plt.show()
+    show_plots(plotengine=output_type, output_dir=output_dir)
 
 
 if __name__ == '__main__':
@@ -339,7 +342,7 @@ if __name__ == '__main__':
                                           'stat_distributions'],
                         nargs='?', default='regressions',
                         help="comma-separated list of plots")
-    parser.add_argument('--output-type', choices=['matplotlib'],
+    parser.add_argument('--output-type', choices=['matplotlib', 'mpld3'],
                         nargs='?', default='matplotlib')
 
     args = parser.parse_args()
