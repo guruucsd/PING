@@ -299,8 +299,13 @@ def do_scatter(prefixes, x_key, y_key, size_key=None, color_key=None,
                              title=', '.join([data.prefix2text(p)
                                               for p in prefixes]),
                              plotengine=output_format)
+
+        # Label file
+        prefix = ','.join(prefixes)
+        x_key = x_key if x_key.startswith(prefix) else prefix + x_key
+        y_key = y_key if x_key.startswith(prefix) else prefix + y_key
+        size_key = size_key if x_key.startswith(prefix) else prefix + size_key
         ax.name = '%s-%s-%s-scatter' % (x_key, ','.join(y_key), size_key and ',s'.join(size_key) or 'nosz')
-        # x_label='Asymmetry Index (mean)', y_label='Asymmetry Index (std)',
 
         show_plots(output_format, ax=ax, output_dir=output_dir)
 
