@@ -56,7 +56,7 @@ def compute_scatter_label(key, part=None):
         if part is None and quantity:
            return '%s (%s %s)' % (quantity, method, key_type)
         if part is None:
-           return '%s %s' % (method, key_type)
+           return '%s (%s)' % (key_type, method)
         raise NotImplementedError("Unrecognized part: %s" % part)
 
     # Lists
@@ -151,7 +151,9 @@ def decimate_data(data, x_key, y_key, size_key=None, color_key=None, color_fn=No
                                   for ck in common_keys])
 
     if 's' in out_data:
-        out_data['s'] = 1000 * out_data['s'] / np.abs(out_data['s']).mean()
+        x_range = out_data['x'].max() - out_data['x'].min()
+        y_range = out_data['y'].max() - out_data['y'].min()
+        out_data['s'] = 1E6 * out_data['s'] * x_range * y_range / np.abs(out_data['s']).sum()
     if 'c' in out_data:
         out_data['c'] = colors[out_data['c']].ravel()
 
@@ -228,7 +230,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
         from bokeh.models import (Plot, DataRange1d, LinearAxis, Legend,
                                   ColumnDataSource, PanTool, WheelZoomTool,
                                   HoverTool, CrosshairTool, PreviewSaveTool,
-                                  ResizeTool, BoxZoomTool)
+                                  ResizeTool, BoxZoomTool, ResetTool)
         source = ColumnDataSource(data=dict(
             label=[data.get_anatomical_name(data.get_nonhemi_key(label))
                    for label in common_keys],
@@ -252,7 +254,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
         plot.add_layout(LinearAxis(axis_label=y_label), 'left')
         plot.add_tools(PanTool(), WheelZoomTool(), CrosshairTool(),
                        PreviewSaveTool(), ResizeTool(), BoxZoomTool(),
-                       HoverTool(tooltips=[('label', '@label')]))
+                       HoverTool(tooltips=[('label', '@label'), ResetTool()]))
         ax = plot
     return ax
 
@@ -271,7 +273,8 @@ def do_scatter(prefixes, x_key, y_key, size_key=None, color_key=None,
     data = data.filter(lambda k, v: np.any([k.startswith(p) for p in prefixes]))
 
     if size_key is not None:
-        size_label = ' Marker size indicates\n %s %s' % (
+        size_label = """ Marker size indicates
+ %s %s""" % (
             compute_scatter_label(size_key, part='key_type').lower(),
              ', '.join([data.prefix2text(p).lower() for p in prefixes]))
     else:
