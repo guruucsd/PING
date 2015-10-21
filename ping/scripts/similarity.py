@@ -71,7 +71,7 @@ def do_similarity(prefixes, metric='partial-correlation', measures=None,
     if output_format in ['json']:
         # Dump each prefix separately
         for ki, sim_mat in enumerate(sim_dict.values()):
-            json_file = '%s.json' % (','.join(prefixes))
+            json_file = '%s_similarity.json' % (','.join(prefixes))
             json_file = os.path.join(output_dir, json_file)
 
             if sim_mat.ndim == 1:
