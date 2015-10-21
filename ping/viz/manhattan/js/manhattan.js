@@ -12,13 +12,15 @@ var ManhattanPlot = function(args) {
     _this.chrom_url = args.chrom_url || "data/chrom_locs.json";
     _this.snps_url = args.snps_url || "data/snps_all.json";
     _this.markerSize = args.markerSize || 4;
+    _this.title = args.title || 'title';
+    _this.subtitle = args.subtitle || 'subtitle'
 
     _this.load_chrom_locations = function() {
         $.ajax({
             dataType: "json",
             url: _this.chrom_url,
             data: function(data) {},
-            error: function(err) { alert('Load chrom error'); },
+            error: function(err) { alert('Load chrom error', err); },
             success: function(data, textStatus, jqXHR) {
                 _this.chromLocs = data;
                 console.log('chromLocs');
@@ -32,7 +34,7 @@ var ManhattanPlot = function(args) {
             dataType: "json",
             url: _this.snps_url,
             data: function(data) {},
-            error: function(err) { alert('Load snp error'); },
+            error: function(err) { console.log('Load snp error', err); },
             success: function(data, textStatus, jqXHR) {
                 _this.snps = data;
                 console.log('snps');
@@ -45,7 +47,7 @@ var ManhattanPlot = function(args) {
             dataType: "json",
             url: _this.gwas_url,
             data: function(data) {},
-            error: function(err) { alert('Load error'); },
+            error: function(err) { console.log('Load error', err); },
             success: function(data, textStatus, jqXHR) {
                 _this.id = Object.keys(data)[0];
                 _this.gwas = data[_this.id];
@@ -96,6 +98,8 @@ var ManhattanPlot = function(args) {
         })
 
         // now draw the vals array into #id
+        var color = '#ccc';
+
         var options = {
             chart: {
                 renderTo: this.divID,
@@ -103,12 +107,12 @@ var ManhattanPlot = function(args) {
                 zoomType: 'x',
                 backgroundColor: 'rgba(0,0,0,0)'
             },
-            title: { enabled: true, text: 'title' },
-            subtitle: { enabled: true, text: 'subtitle' },
+            title: { enabled: true, text: _this.title, style: { color: color } },
+            subtitle: { enabled: true, text: _this.subtitle, style: { color: color } },
             xAxis: {
                 title: {
                     enabled: true,
-                    text: 'chromosom'
+                    text: 'chromosome'
                 },
                 tickWidth: 1,
                 gridLineWidth: 0,

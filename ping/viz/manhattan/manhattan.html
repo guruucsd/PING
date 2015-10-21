@@ -27,17 +27,8 @@
 <body>
      <div class="row-fluid">
          <div id="runs" class="runs span12">
-             <div id="1398050295" class="erg">
-                 <span class="label label-info">Sun Apr 20 2014 20:18:15 GMT-0700 (PDT)</span>
-                 &nbsp;
-                 <span class="label label-default">SNP ~ MRI_cort_area.ctx.total + Age_At_IMGExam</span>
-                 &nbsp;
-                 <span class="label label-info">1398050295</span>
-                 <div class="info" id="1398050295N"></div>
-                 <div class="manhattan" id="chart_1398050295"></div>
-             </div>
              <div id="some_id">
-                N: 10, List of covariates: blah
+                N: 1000+, List of covariates: Age
                 <div class="manhattan" id="chart_some_id">
                 </div>
             </div>
@@ -45,10 +36,12 @@
        </div>
     </div>
     <script>
-      window.mhp = new ManhattanPlot({
-          gwas_url: 'data/GWAS_MRI_cort_area_ctx_frontalpole_AI__Age_At_IMGExam.json',
-          divID: 'chart_some_id'
-      })
+        window.mhp = new ManhattanPlot({
+            gwas_url: 'data/GWAS_MRI_cort_area_ctx_frontalpole_AI__Age_At_IMGExam.json',
+            divID: 'chart_some_id',
+            title: 'GWAS on frontal pole cortical surface area asymmetry',
+            subtitle: 'hit on STK31'
+        });
     </script>
 </body>
 </html>
