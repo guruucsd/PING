@@ -52,6 +52,10 @@ class PINGArgParser(ArgumentParser):
                 self.add_argument('--%s' % arg,
                                   nargs='?', default=os.path.join(os.getcwd()))
 
+            elif arg in ['verbose']:
+                self.add_argument('--%s' % arg, type=int,
+                                  nargs='?', default=0, choices=[0, 1])
+
             else:
                 raise ValueError('Unrecognized argument: %s' % arg)
 
