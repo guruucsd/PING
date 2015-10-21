@@ -13,22 +13,25 @@ from ..ping.utils import do_and_plot_regression
 
 
 class AsymmetryPCA(object):
-    def __init__(self, whiten=True, pc_threshhold=0.05):
+    def __init__(self, whiten=True, pc_thresh=0.01):
         self.pca = None
         self.data = None
         self.data_mat = None
         self.good_keys = None
 
         self.whiten = whiten
-        self.pc_threshhold = pc_threshhold
+        self.pc_thresh = pc_thresh
 
     def fit(self, data, verbose=1):
         """Perform PCA on asymmetry indices.
         data is a data dictionary."""
 
         data = copy.deepcopy(data)
+
+        # HACK Remove unwanted keys @bcipolli
         data.filter(lambda k, v: 'fuzzy' not in k)
         data.filter(lambda k, v: '_TOTAL_AI' not in k)
+
         self.data = data
         good_keys = self.data.get_twohemi_keys()
 
@@ -79,7 +82,7 @@ class AsymmetryPCA(object):
         self.pca.fit(np.abs(data_mat).T)
 
     def get_components(self):
-        selected_idx = self.pca.explained_variance_ratio_ >= self.pc_threshhold
+        selected_idx = self.pca.explained_variance_ratio_ >= self.pc_thresh
         return self.pca.components_[selected_idx]
 
     def get_projections(self):

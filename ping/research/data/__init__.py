@@ -132,12 +132,12 @@ def compute_all_asymmetries(filtered_data):
     return out_data
 
 
-def compute_component_loadings(filtered_data, verbose=0):
+def compute_component_loadings(filtered_data, verbose=0, pc_thresh=0.05):
     # Volume before asymmetry, so asymmetry can be computed.
     volume_data = compute_all_volumes(filtered_data)
     asymmetry_data = compute_all_asymmetries(filtered_data)
 
-    pca = AsymmetryPCA(whiten=False)
+    pca = AsymmetryPCA(whiten=False, pc_thresh=pc_thresh)
     pca.fit(asymmetry_data, verbose=verbose)
 
     if verbose >= 1:
@@ -151,10 +151,14 @@ def compute_component_loadings(filtered_data, verbose=0):
     pc_dict = dict(zip(keys, pc_projections))
     pc_dict['SubjID'] = pca.subj_ids
 
-    return filtered_data.__class__(pc_dict)
+    # Need the components!
+    keys = ['PC%d' % pi for pi in range(pca.get_components().shape[0])]
+    pcs = OrderedDict([(k, dict(zip(pca.good_keys, comp))) for k, comp in zip(keys, pca.get_components())])
+
+    return filtered_data.__class__(pc_dict), pcs
 
 
-def get_derived_data(filtered_data, tag=None, verbose=0):
+def get_derived_data(filtered_data, tag=None, verbose=0, pc_thresh=0.05):
     print("Computing derived data...")
 
     data = compute_all_asymmetries(filtered_data)
@@ -162,9 +166,10 @@ def get_derived_data(filtered_data, tag=None, verbose=0):
 
     # Add principle components as a whole,
     #   then for each prefix seperately.
-    cl = compute_component_loadings(filtered_data, verbose=verbose)
+    cl, pcs = compute_component_loadings(filtered_data, verbose=verbose,
+                                         pc_thresh=pc_thresh)
     data.merge(cl, tag=tag)
-    return data
+    return data, pcs
 
 
 known_data = dict(desikan=dict(klass=PINGData),
@@ -172,7 +177,8 @@ known_data = dict(desikan=dict(klass=PINGData),
 
 
 def get_all_data(all_data='desikan', filter_fns=None, verbose=0,
-                 username=None, passwd=None, data_dir=None):
+                 username=None, passwd=None, data_dir=None,
+                 pc_thresh=0.05):
     kwargs = dict(username=username, passwd=passwd)
     if data_dir is not None:
         kwargs['data_dir'] = data_dir
@@ -207,10 +213,11 @@ def get_all_data(all_data='desikan', filter_fns=None, verbose=0,
             filters = filter_fns[key]
 
         filtered_data.filter(filters)
-        computed_data = get_derived_data(filtered_data, tag='%s_%%s' % key,
-                                         verbose=verbose)
+        computed_data, pcs = get_derived_data(filtered_data, tag='%s_%%s' % key,
+                                              pc_thresh=pc_thresh, verbose=verbose)
         computed_data.filter(filters)
         out_data.merge(computed_data)
+        out_data.pcs = pcs  # hack
 
     # Now filter out any subjects with all nan measures.
     out_data.purge_empty_subjects()
@@ -224,7 +231,7 @@ def dump_to_json(data, json_file, klass):
 
     # Ensure the keys are roi keys, not anatomical names.
     def scrub_keys(d):
-        return OrderedDict([(klass.get_roi_key_from_name(k), v)
+        return OrderedDict([(klass.get_roi_key_from_name(k) or k, v)
                             for k, v in d.items()])
     for key, vals in data.items():
         data[key] = scrub_keys(vals)
