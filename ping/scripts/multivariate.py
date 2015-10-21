@@ -7,7 +7,7 @@ from collections import OrderedDict
 import numpy as np
 
 from ..research.apps import ResearchArgParser
-from ..research.data import get_all_data, dump_to_json
+from ..research.data import get_all_data, dump_to_json, dict_revmap
 
 
 def do_multivariate(prefixes, atlas='desikan', username=None, passwd=None,
@@ -56,16 +56,11 @@ def do_multivariate(prefixes, atlas='desikan', username=None, passwd=None,
             out_dict[alg] = dict(zip(pcs[pc_lbl].keys(), summary_stat))
 
         # now reverse mapping, so ROIs are outside, and mean/std/pc is inside.
-        # { roi1: { mean: 1, std: 2, pc: 1}, roi2: ...}
-        alg_keys = out_dict.keys()
-        od_keys = out_dict.values()[0].keys()
-        roi_keys = [k[len(prefix):-3] for k in od_keys]
-
-        roi_vals = [dict(zip(alg_keys, [vals[k] for vals in out_dict.values()]))
-                    for k in od_keys]
+        out_dict = dict_revmap(out_dict)
+        out_dict = dict([(k[len(prefix):-3], v) for k, v in out_dict.items()])
 
         json_file = os.path.join(output_dir, '%s.json' % (key))
-        dump_to_json(dict(zip(roi_keys, roi_vals)), json_file, data.__class__)
+        dump_to_json(out_dict, json_file, data.__class__)
 
 
 if __name__ == '__main__':

@@ -18,6 +18,19 @@ from ..multivariate import AsymmetryPCA
 from ...ping.data import PINGData, DestrieuxData
 
 
+def dict_revmap(d):
+    """ Swaps inner and outer keys of a dict."""
+    if not d:  # empty or none
+        return d
+
+    outer_keys = d.keys()
+    inner_keys = d.values()[0].keys()
+
+    new_inner_vals = [dict(zip(outer_keys, [vals[k] for vals in d.values()]))
+                      for k in inner_keys]
+    return dict(zip(inner_keys, new_inner_vals))
+
+
 def keytype2label(key):
     if not isinstance(key, string_types):
         return [keytype2label(k) for k in key]
@@ -248,11 +261,12 @@ def dump_to_json(data, json_file, klass):
 
     if 'colors' not in data and 'values' in data:
         val0 = data['values'].values()[0]
-        if isinstance(val0, dict):
-            maxval = np.max(np.asarray([np.abs(np.asarray(val.values())).max()
-                            for val in data['values'].values()]))
-            colors = OrderedDict([(key, dict(zip(val.keys(), map_colors(val.values(), maxval=maxval))))
-                                  for key, val in data['values'].items()])
+        if isinstance(val0, dict):  # multiple value types; need min/max/color for each
+            colors = dict()
+            for val_key in val0.keys():
+                all_vals = np.asarray([val[val_key] for val in data['values'].values()])
+                colors[val_key] = OrderedDict(zip(data['values'].keys(), map_colors(all_vals)))
+            colors = dict_revmap(colors)
         else:
             colors = map_colors(data['values'].values())
         data['colors'] = colors
