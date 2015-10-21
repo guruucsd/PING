@@ -1,0 +1,10 @@
+.manhattan {
+  width: 1200px;
+  height: 400px;
+}
+
+body {
+    padding: 15px;
+    background-color: #444;
+    color: #ccc;
+}

@@ -8,6 +8,8 @@
 *.pyc
 *.csv
 .DS_Store
+*.json
+/*.html
 
 # Coverage
 /.coverage
