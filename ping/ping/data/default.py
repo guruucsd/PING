@@ -299,12 +299,16 @@ class PINGData(object):
     @classmethod
     def get_anatomical_name(klass, key):
         """Returns a proper anatomical name, or the key if not found."""
-        normd_key = klass.norm_key(key)
-        anat_key = klass.anatomical_name.get(normd_key, normd_key)
-        if '_' in str(anat_key):
-            # no change
-            pass  # import pdb; pdb.set_trace()
-        return anat_key
+        try:
+            normd_key = klass.norm_key(key)
+            anat_key = klass.anatomical_name.get(normd_key, normd_key)
+            if '_' in str(anat_key):
+                # no change
+                pass  # import pdb; pdb.set_trace()
+            return anat_key
+        except AttributeError as ae:
+            import pdb; pdb.set_trace()
+            return None
 
     @classmethod
     def norm_key(klass, key):
@@ -317,11 +321,11 @@ class PINGData(object):
     @classmethod
     def prefix2text(klass, prefix):
         d = {
-            'MRI_cort_thick.ctx': 'Cortical thickness (mm)',
-            'MRI_cort_area.ctx': 'Cortical surface area (mm^2)',
-            'MRI_subcort_vol': 'Subcortical volume (mm^3)',
-            'DTI_fiber_vol': 'Fiber tract volume (via DTI) (mm^3)',
-            'DTI_fiber_FA': 'Fiber tract fractional anisotropy (FA)'}
+            'MRI_cort_thick.ctx.': 'Cortical thickness (mm)',
+            'MRI_cort_area.ctx.': 'Cortical surface area (mm^2)',
+            'MRI_subcort_vol.': 'Subcortical volume (mm^3)',
+            'DTI_fiber_vol.': 'Fiber tract volume (via DTI) (mm^3)',
+            'DTI_fiber_FA.': 'Fiber tract fractional anisotropy (FA)'}
         return d.get(prefix, prefix)
 
     @classmethod

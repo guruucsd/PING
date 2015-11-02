@@ -45,8 +45,10 @@ class PINGArgParser(ArgumentParser):
                                   nargs='?', choices=[False, True])
 
             elif arg in ['data-dir']:
+                default_dir = os.environ.get('PING_PATH',
+                                             os.path.join(os.getcwd(), 'data'))
                 self.add_argument('--%s' % arg,
-                                  nargs='?', default=os.path.join(os.getcwd(), 'data'))
+                                  nargs='?', default=default_dir)
 
             elif arg in ['out-dir', 'output-dir']:
                 self.add_argument('--%s' % arg,
