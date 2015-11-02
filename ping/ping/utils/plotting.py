@@ -1,10 +1,12 @@
 """
 Plotting utilities
 """
+
 import matplotlib.patches as pat
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.spatial
+import seaborn
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 

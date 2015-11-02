@@ -14,6 +14,7 @@ import os
 import simplejson
 
 import numpy as np
+import seaborn
 from flask import send_from_directory
 from matplotlib import pyplot as plt
 from six import string_types
