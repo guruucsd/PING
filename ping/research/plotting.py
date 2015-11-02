@@ -29,6 +29,6 @@ def show_plots(plotengine, ax=None, output_dir=None):
             os.makedirs(output_dir)
         if os.path.exists(output_file):
             os.remove(output_file)
-        bokeh.plotting.output_file(output_file, title=ax.title, mode='absolute-dev')
+        bokeh.plotting.output_file(output_file, title=ax.title, mode='inline')
         if plotengine == 'bokeh':
             bokeh.plotting.show(ax)
