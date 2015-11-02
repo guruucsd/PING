@@ -11,7 +11,13 @@ def show_plots(plotengine, ax=None, output_dir=None):
 
     elif plotengine == 'matplotlib':
         import matplotlib.pyplot as plt
-        plt.show()
+        if not output_dir:  # None or ""
+            plt.show()
+        else:
+            for fi in plt.get_fignums():
+                plt.figure(fi)
+                plt.savefig('%s.png' % (getattr(plt.figure(fi), 'name', 'figure%d' % fi)))
+                plt.close()
 
     elif plotengine in ['bokeh', 'bokeh-silent']:
         import bokeh.plotting
