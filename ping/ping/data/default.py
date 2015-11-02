@@ -321,11 +321,11 @@ class PINGData(object):
     @classmethod
     def prefix2text(klass, prefix):
         d = {
-            'MRI_cort_thick.ctx': 'Cortical thickness (mm)',
-            'MRI_cort_area.ctx': 'Cortical surface area (mm^2)',
-            'MRI_subcort_vol': 'Subcortical volume (mm^3)',
-            'DTI_fiber_vol': 'Fiber tract volume (via DTI) (mm^3)',
-            'DTI_fiber_FA': 'Fiber tract fractional anisotropy (FA)'}
+            'MRI_cort_thick.ctx.': 'Cortical thickness (mm)',
+            'MRI_cort_area.ctx.': 'Cortical surface area (mm^2)',
+            'MRI_subcort_vol.': 'Subcortical volume (mm^3)',
+            'DTI_fiber_vol.': 'Fiber tract volume (via DTI) (mm^3)',
+            'DTI_fiber_FA.': 'Fiber tract fractional anisotropy (FA)'}
         return d.get(prefix, prefix)
 
     @classmethod
