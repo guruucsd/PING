@@ -7,7 +7,6 @@ from collections import OrderedDict
 from functools import partial
 
 import numpy as np
-from matplotlib import pyplot as plt
 
 from ..ping.analysis.similarity import (compare_similarity_vectors,
                                         compute_similarity_vectors,

@@ -13,6 +13,7 @@ import simplejson
 from collections import OrderedDict
 
 import numpy as np
+import seaborn
 from matplotlib import pyplot as plt
 from six import string_types
 
@@ -318,7 +319,7 @@ if __name__ == '__main__':
                                " optionally control marker size and color.",
                                common_args=['prefixes',
                                             'atlas', 'username', 'passwd',
-                                            'output-dir'])
+                                            'data-dir', 'output-dir'])
     parser.add_argument('x_key')#, choices=ResearchArgParser.axis_choices)
     parser.add_argument('y_key')#, choices=ResearchArgParser.axis_choices)
     parser.add_argument('size_key',#, choices=ResearchArgParser.axis_choices,

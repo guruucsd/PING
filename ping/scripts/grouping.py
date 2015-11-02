@@ -2,11 +2,14 @@
 File for investigating asymmetry from PING data, based on each subject's
 asymmetry index
 """
+
+import os
 import sys
 from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn
 import scipy.stats
 
 from ..ping.apps import PINGSession
@@ -110,6 +113,7 @@ def plot_regressions(group_names, group_x, group_y, plotengine='matplotlib',
         #ax1.set_title(measure_key)  # ax1.get_title().split('\n')[0])
     regressions = np.asarray(regressions)
     ax1.legend(group_names)
+
     return regressions
 
 
@@ -308,6 +312,7 @@ def do_grouping(prefixes, grouping_keys, xaxis_key='Age_At_IMGExam',
         kwargs.update(dict(group_names=group_names, group_x=group_x, group_y=group_y))
         if 'regressions' in plots:
             plot_regressions(**kwargs)
+
         if 'distributions' in plots:
             plot_distributions(**kwargs)
         if 'stats' in plots:

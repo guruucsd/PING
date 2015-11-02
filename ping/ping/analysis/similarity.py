@@ -6,6 +6,7 @@ from collections import OrderedDict
 import numpy as np
 import scipy.spatial
 import scipy.stats
+import seaborn
 from matplotlib import pyplot as plt
 
 from .partial_corr import partial_corr
