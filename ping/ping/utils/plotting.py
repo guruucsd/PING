@@ -166,7 +166,7 @@ def plot_symmetric_matrix_as_triangle(mat, ax=None, labels=None,
 
         hover = p.select(dict(type=HoverTool))
         hover.tooltips = OrderedDict([('names', '@yname, @xname')])
-        customjs = CustomJS(args=dict(var1=p), lang="javascript", code="""
+        customjs = CustomJS(args=dict(var1=p), code="""
             function get_clicked_data(source) {
                 var clicked_idx = cb_obj.get("selected")['1d'].indices;
                 if (clicked_idx.length == 0)
