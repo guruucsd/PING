@@ -6,6 +6,7 @@ import os
 from collections import OrderedDict
 
 import simplejson
+from six import string_types
 
 from . import snps as snps_script
 from ..ping.apps.gwas import GWASSession
@@ -30,6 +31,10 @@ def do_gwas(action, measures, covariates=None, output_format=None,
             username=None, passwd=None):
     if covariates is None:
         covariates = ['Age_At_IMGExam']
+    elif isinstance(covariates, string_types):
+        covariates = [covariates]
+    if isinstance(measures, string_types):
+        measures = [measures]
 
     sess = GWASSession(username=username, passwd=passwd, data_dir=data_dir)
     sess.login()
@@ -60,15 +65,16 @@ def do_gwas(action, measures, covariates=None, output_format=None,
         with open(json_file, 'w') as fp:
             simplejson.dump(data_dict, fp)
 
+    # Dump the chromosome info
+    chrom_locations = get_chromosome_locations(snp_metadata.values())
+    with open(os.path.join(output_dir, 'chrom_locs.json'), 'w') as fp:
+        simplejson.dump(chrom_locations, fp)
+
     # Display the data
     if output_format == 'json':
         pass  # already did the work
 
     elif output_format == 'flask':
-        chrom_locations = get_chromosome_locations(snp_metadata.values())
-        with open(os.path.join(output_dir, 'chrom_locs.json'), 'w') as fp:
-            simplejson.dump(chrom_locations, fp)
-
         import flask
         app = flask.Flask(__name__)
         cur_dir = os.path.abspath(os.path.dirname(__file__))
