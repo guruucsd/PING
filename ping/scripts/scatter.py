@@ -83,7 +83,7 @@ def compute_key_data(data, key):
         assert len(new_keys) > 0, "Must find keys with filter!"
 
     if 'suffix' in parts:
-        new_keys = dict([(k, nk[:-len(parts['suffix'])])
+        new_keys = dict([(k, nk[:-1-len(parts['suffix'])])  # -1 for leading underscore.
                          for k, nk in new_keys.items()
                          if k.endswith(parts['suffix'])])
         assert len(new_keys) > 0, "Must find keys with filter!"
@@ -255,7 +255,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
         plot.add_layout(LinearAxis(axis_label=y_label), 'left')
         plot.add_tools(PanTool(), WheelZoomTool(), CrosshairTool(),
                        PreviewSaveTool(), ResizeTool(), BoxZoomTool(),
-                       HoverTool(tooltips=[('label', '@label'), ResetTool()]))
+                       HoverTool(tooltips=[('label', '@label')]), ResetTool())
         ax = plot
     return ax
 
@@ -272,6 +272,7 @@ def do_scatter(prefixes, x_key, y_key, size_key=None, color_key=None,
     # then filter by prefix
     data = get_all_data(atlas, username=username, passwd=passwd, data_dir=data_dir)
     data = data.filter(lambda k, v: np.any([k.startswith(p) for p in prefixes]))
+    data = data.filter(lambda k, v: "TOTAL" not in k)
 
     if size_key is not None:
         size_label = """ Marker size indicates
