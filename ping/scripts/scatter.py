@@ -261,6 +261,7 @@ def plot_scatter_4D(data, x_key, y_key, size_key=None, color_key=None,
 
 
 def do_scatter(prefixes, x_key, y_key, size_key=None, color_key=None,
+               title=None,
                atlas='desikan', username=None, passwd=None,
                output_format='matplotlib', data_dir='data', output_dir='data'):
 
@@ -298,8 +299,8 @@ def do_scatter(prefixes, x_key, y_key, size_key=None, color_key=None,
         ax = plot_scatter_4D(data, x_key=x_key, y_key=y_key, size_key=size_key,
                              color_key=color_key, size_label=size_label,
                              add_marker_text=True,
-                             title=', '.join([data.prefix2text(p)
-                                              for p in prefixes]),
+                             title=title or ', '.join([data.prefix2text(p)
+                                                       for p in prefixes]),
                              plotengine=output_format)
 
         # Label file
