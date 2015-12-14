@@ -39,7 +39,7 @@ class PINGSNPSession(PINGSession):
         if GENES is None:
             if not os.path.exists(self.genes_metadata_file):
                 self.log("Downloading PING genes metadata to %s..." % self.data_dir)
-                self.download_file(os.path.join(self.data_dir, 'PING/data_uncorrected/SNPs/PING_gene_annotate.json'),
+                self.download_file('data/PING/data_uncorrected/SNPs/PING_gene_annotate.json',
                                    out_file=self.genes_metadata_file)
             GENES = simplejson.load(open(self.genes_metadata_file, 'r'))
             GENES = np.asarray(GENES['data'])
@@ -60,7 +60,7 @@ class PINGSNPSession(PINGSession):
         # Prep a stream of the SNP info
         if not os.path.exists(self.SNP_metadata_file):
             self.log("Downloading PING SNP metadata...")
-            self.download_file(os.path.join(self.data_dir, 'PING/data_uncorrected/SNPs/PING_SNPs.txt'),
+            self.download_file('data/PING/data_uncorrected/SNPs/PING_SNPs.txt',
                                out_file=self.SNP_metadata_file)
         snp_reader = csv.reader(open(self.SNP_metadata_file, 'r'))
         next(snp_reader)  # skip header
