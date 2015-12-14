@@ -271,6 +271,8 @@ def dump_to_json(data, json_file, klass):
             colors = map_colors(data['values'].values())
         data['colors'] = colors
 
+    if not os.path.exists(os.path.dirname(json_file)):
+        os.makedirs(os.path.dirname(json_file))
     with open(json_file, 'w') as fp:
         simplejson.dump(data, fp)
 
