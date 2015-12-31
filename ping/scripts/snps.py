@@ -2,7 +2,6 @@
 Access SNP information
 """
 
-import copy
 import os.path
 
 import simplejson
@@ -58,7 +57,7 @@ def do_genes(action, gene, output_format='print',
     # Output matching genes
     gene_json = os.path.join(output_dir, 'genes_%s.json' % gene)
     if output_format == 'print':
-        print('\n'.join([str(gene) for gene in gene_metadata]))
+        print('\n'.join([str(g) for g in gene_metadata]))
     elif output_format == 'json':
         with open(gene_json, 'w') as fp:
             simplejson.dump(gene_metadata, fp)
@@ -88,7 +87,8 @@ def do_genes(action, gene, output_format='print',
 
 
 def do_snps_datadump(action, snp_gene, output_format='print',
-                     output_dir='.', username=None, passwd=None):
+                     data_dir='data', output_dir='.',
+                     username=None, passwd=None):
 
     if snp_gene.startswith('rs'):
         do_snps(action=action, snp=snp_gene, output_format=output_format,
@@ -101,8 +101,9 @@ def do_snps_datadump(action, snp_gene, output_format='print',
 
 if __name__ == '__main__':
 
-    parser = ResearchArgParser(description="Show SNP=>gene or gene=>SNP mappings.",
-                               common_args=['username', 'passwd', 'data-dir', 'output-dir'])
+    parser = ResearchArgParser(
+        description="Show SNP=>gene or gene=>SNP mappings.",
+        common_args=['username', 'passwd', 'data-dir', 'output-dir'])
     parser.add_argument('action', choices=['view', 'download'])
     parser.add_argument('snp_gene', metavar="snp/gene",
                         help="case-sensitive text label; if it starts with"
