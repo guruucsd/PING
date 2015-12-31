@@ -142,7 +142,7 @@ class PINGSession(object):
                                  verb='post', data=payload,
                                  msg="Logging in as %s" % (self.username))
         if 'Login to Data Portal' in resp.text or resp.url != self.make_url('index.php'):
-            raise Exception('Login failed.')
+            raise Exception('Login as %s failed.' % self.username)
         else:
             self.log("Logged in as %s successfully." % self.username)
 

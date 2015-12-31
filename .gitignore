@@ -10,6 +10,7 @@
 .DS_Store
 *.json
 /*.html
+/env/
 
 # Coverage
 /.coverage
