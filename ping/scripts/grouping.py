@@ -110,11 +110,11 @@ def plot_regressions(group_names, group_x, group_y, plotengine='matplotlib',
         do_and_plot_regression(gx, gy, ax=ax1, colori=gi,
                                show_std=(len(gx) > 200),
                                plotengine=plotengine, **params)
-        #ax1.set_title(measure_key)  # ax1.get_title().split('\n')[0])
+
     regressions = np.asarray(regressions)
     ax1.legend(group_names)
 
-    return regressions
+    return fh1
 
 
 def plot_distributions(group_names, group_x, group_y, xaxis_key, yaxis_key, n_bins=15):
@@ -141,6 +141,8 @@ def plot_distributions(group_names, group_x, group_y, xaxis_key, yaxis_key, n_bi
         ax2.set_ylim([0, 0.25])
     equalize_xlims(fh2)
     equalize_ylims(fh2)
+
+    return fh2
 
 
 def do_stats(group_names, group_x, group_y):
@@ -311,7 +313,8 @@ def do_grouping(prefixes, grouping_keys, xaxis_key='Age_At_IMGExam',
 
         kwargs.update(dict(group_names=group_names, group_x=group_x, group_y=group_y))
         if 'regressions' in plots:
-            plot_regressions(**kwargs)
+            fh = plot_regressions(**kwargs)
+            fh.name = '%s-%s-regressions' % (yaxis_key, '__'.join(grouping_keys))
 
         if 'distributions' in plots:
             plot_distributions(**kwargs)

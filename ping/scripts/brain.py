@@ -1,4 +1,4 @@
-i"""
+"""
 Various scatter plots
 
 Goal is to have:
@@ -84,7 +84,6 @@ def do_roygbiv(prefix, key,
         out_dict = dict(names=dict(zip(anat_keys, labels)),
                         values=dict(zip(anat_keys, values)),
                         colors=dict(zip(anat_keys, colors)))
-        print json_file
         roygbiv.add_metadata(out_dict, json_file=json_file, output_dir=output_dir)
 
         if output_format == 'flask':
