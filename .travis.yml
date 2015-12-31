@@ -20,7 +20,7 @@ install: # Install packages
   # Coverage packages are on my binstar channel
   - "pip install python-coveralls"
   - "pip install coverage"
-  - "pip install -r requirements.txt"
+  - "python setup.py install"
 
 script: # Run test
   - nosetests ping --with-coverage
