@@ -141,5 +141,5 @@ class TestSnps(TestWithGoodies):
         assert_equal(stdout, "", 'stdout should be empty; instead=="%s"' % stdout)
 
     def test_snp_view(self):
-        _, stderr = self.exec_pyfile('snps.py view STK31')
+        _, stderr = self.exec_pyfile('snps.py view STK31 --username dummy --passwd dummy')
         assert_equal(stderr, "", 'stderr should be empty; instead=="%s"' % stderr)

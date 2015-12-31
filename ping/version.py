@@ -50,4 +50,5 @@ VERSION = __version__
 PACKAGES = ['ping']
 PACKAGE_DATA = {}
 REQUIRES = ["numpy", "matplotlib", "pandas", "patsy", "pythondateutil",
-            "pytz", "requests", "sklearn", "scipy", "six"]
+            "pytz", "requests", "sklearn", "scipy", "seaborn", "simplejson",
+            "six"]
